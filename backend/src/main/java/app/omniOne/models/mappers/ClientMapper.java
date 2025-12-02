@@ -1,14 +1,16 @@
 package app.omniOne.models.mappers;
 
+import app.omniOne.models.dtos.ClientPatchDto;
+import app.omniOne.models.dtos.ClientResponseDto;
 import app.omniOne.models.entities.Client;
-import app.omniOne.models.dtos.ClientDto;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 
-@Component
-public class ClientMapper {
+@Mapper(componentModel = "spring")
+public interface ClientMapper {
 
-    public ClientDto toClientDto(Client client) {
-        return new ClientDto(client.getId(), client.getEmail(), client.getStatus());
-    }
+    ClientResponseDto convert(Client client);
+
+    void patch(ClientPatchDto dto, @MappingTarget Client client);
 
 }

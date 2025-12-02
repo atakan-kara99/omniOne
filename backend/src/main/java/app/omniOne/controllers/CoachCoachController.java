@@ -1,7 +1,8 @@
 package app.omniOne.controllers;
 
-import app.omniOne.models.dtos.CoachDto;
-import app.omniOne.models.entities.Coach;
+import app.omniOne.models.dtos.CoachPatchDto;
+import app.omniOne.models.dtos.CoachPostDto;
+import app.omniOne.models.dtos.CoachResponseDto;
 import app.omniOne.models.mappers.CoachMapper;
 import app.omniOne.services.CoachService;
 import jakarta.validation.Valid;
@@ -22,23 +23,22 @@ public class CoachCoachController {
     }
 
     @PostMapping
-    public ResponseEntity<CoachDto> registerCoach(@RequestBody @Valid Coach coach) {
-        Coach newCoach = coachService.registerCoach(coach);
-        CoachDto newCoachDto = coachMapper.toCoachDto(newCoach);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newCoachDto);
+    public ResponseEntity<CoachResponseDto> registerCoach(@RequestBody @Valid CoachPostDto postDto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(coachMapper.convert(coachService.registerCoach(postDto)));
     }
 
     @GetMapping("/{coachId}")
-    public ResponseEntity<CoachDto> getCoach(@PathVariable Long coachId) {
-        Coach coach = coachService.getCoach(coachId);
-        CoachDto coachDto = coachMapper.toCoachDto(coach);
-        return ResponseEntity.status(HttpStatus.OK).body(coachDto);
+    public ResponseEntity<CoachResponseDto> getCoach(@PathVariable Long coachId) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(coachMapper.convert(coachService.getCoach(coachId)));
     }
 
-    @PutMapping("/{coachId}")
-    public ResponseEntity<CoachDto> updateCoach(@PathVariable Long coachId, @RequestBody @Valid Coach coach){
-        CoachDto coachDto = coachMapper.toCoachDto(coachService.updateCoach(coachId, coach));
-        return ResponseEntity.status(HttpStatus.OK).body(coachDto);
+    @PatchMapping("/{coachId}")
+    public ResponseEntity<CoachResponseDto> patchCoach(
+            @PathVariable Long coachId, @RequestBody @Valid CoachPatchDto patchDto){
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(coachMapper.convert(coachService.patchCoach(coachId, patchDto)));
     }
 
     @DeleteMapping("/{coach_id}")

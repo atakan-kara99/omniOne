@@ -1,7 +1,6 @@
 package app.omniOne.models.entities;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,15 +21,12 @@ public class NutritionPlan {
     @Column(nullable = false)
     private Integer calories;
 
-    @NotNull
     @Column(nullable = false)
     private Integer carbohydrates;
 
-    @NotNull
     @Column(nullable = false)
     private Integer proteins;
 
-    @NotNull
     @Column(nullable = false)
     private Integer fats;
 
@@ -52,4 +48,14 @@ public class NutritionPlan {
     private void computeCalories() {
         this.calories = (int) Math.round(carbohydrates * 4.1 + proteins * 4.1 + fats * 9.3);
     }
+
+    public NutritionPlan(Integer carbohydrates, Integer proteins, Integer fats, Client client) {
+        this.carbohydrates = carbohydrates;
+        this.proteins = proteins;
+        this.fats = fats;
+        this.startDate = LocalDate.now();
+        this.endDate = null;
+        this.client = client;
+    }
+
 }

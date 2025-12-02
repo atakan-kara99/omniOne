@@ -2,8 +2,6 @@ package app.omniOne.models.entities;
 
 import app.omniOne.models.enums.ClientStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,8 +19,6 @@ public class Client {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @Email(message = "Invalid email address")
     @Column(nullable = false, unique = true)
     private String email;
 
@@ -36,5 +32,11 @@ public class Client {
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
     private List<NutritionPlan> nutritionPlans;
+
+    public Client(String email, Coach coach) {
+        this.email = email;
+        this.status = ClientStatus.PENDING;
+        this.coach = coach;
+    }
 
 }

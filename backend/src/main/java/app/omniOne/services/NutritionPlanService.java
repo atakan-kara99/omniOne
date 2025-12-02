@@ -1,43 +1,51 @@
 package app.omniOne.services;
 
 import app.omniOne.exceptions.NoSuchResourceException;
+import app.omniOne.models.dtos.NutritionPlanPostDto;
 import app.omniOne.models.entities.Client;
 import app.omniOne.models.entities.NutritionPlan;
+import app.omniOne.models.mappers.NutritionPlanMapper;
 import app.omniOne.repositories.ClientRepository;
 import app.omniOne.repositories.NutritionPlanRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class NutritionPlanService {
 
     private final NutritionPlanRepository nutritionPlanRepository;
     private final ClientRepository clientRepository;
+    private final NutritionPlanMapper nutritionPlanMapper;
 
-    public NutritionPlanService(NutritionPlanRepository nutritionPlanRepository,
-                                ClientRepository clientRepository) {
+    public NutritionPlanService(
+            NutritionPlanRepository nutritionPlanRepository,
+            ClientRepository clientRepository,
+            NutritionPlanMapper nutritionPlanMapper) {
         this.nutritionPlanRepository = nutritionPlanRepository;
         this.clientRepository = clientRepository;
+        this.nutritionPlanMapper = nutritionPlanMapper;
     }
 
-    public NutritionPlan addNutritionPlan(Long coachId, Long clientId, NutritionPlan np) {
+    @Transactional
+    public NutritionPlan addNutritionPlan(Long coachId, Long clientId, NutritionPlanPostDto postDto) {
         Client client = clientRepository.findByIdAndCoachId(clientId, coachId)
                 .orElseThrow(() -> new NoSuchResourceException("Client %d not found".formatted(clientId)));
-        Optional<NutritionPlan> activeNP = nutritionPlanRepository.findByClientIdAndClientCoachIdAndEndDateIsNull(clientId, coachId);
-        if (activeNP.isPresent()) {
-            activeNP.get().setEndDate(LocalDate.now());
-            nutritionPlanRepository.save(activeNP.get());
-        }
-        np.setClient(client);
-        np.setStartDate(LocalDate.now());
-        np.setEndDate(null);
-        return nutritionPlanRepository.save(np);
+        nutritionPlanRepository.findByClientIdAndClientCoachIdAndEndDateIsNull(clientId, coachId)
+                .ifPresent(activeNP -> activeNP.setEndDate(LocalDate.now()));
+        NutritionPlan newPlan = new NutritionPlan(
+                postDto.carbohydrates(),
+                postDto.proteins(),
+                postDto.fats(),
+                client
+        );
+        return nutritionPlanRepository.save(newPlan);
     }
 
-    public NutritionPlan getNutritionPlan(Long coachId, Long clientId) {
+    public NutritionPlan getActiveNutritionPlan(Long coachId, Long clientId) {
         return nutritionPlanRepository.findByClientIdAndClientCoachIdAndEndDateIsNull(clientId, coachId)
                 .orElseThrow(() -> new NoSuchResourceException("Client %d has no NutritionPlan".formatted(clientId)));
     }
@@ -45,10 +53,8 @@ public class NutritionPlanService {
     public List<NutritionPlan> getNutritionPlans(Long coachId, Long clientId) {
         Client client = clientRepository.findByIdAndCoachId(clientId, coachId)
                 .orElseThrow(() -> new NoSuchResourceException("Client %d not found".formatted(clientId)));
-        List<NutritionPlan> nps = client.getNutritionPlans();
-        if (nps == null)
-            throw new NoSuchResourceException("Client %d has no NutritionPlan".formatted(clientId));
-        return nps;
+        Sort sort = Sort.by(Sort.Direction.ASC, "startDate");
+        return nutritionPlanRepository.findByClientIdAndClientCoachId(clientId, coachId, sort);
     }
 
 }

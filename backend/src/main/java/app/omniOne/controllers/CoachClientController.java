@@ -1,7 +1,7 @@
 package app.omniOne.controllers;
 
-import app.omniOne.models.dtos.ClientDto;
-import app.omniOne.models.entities.Client;
+import app.omniOne.models.dtos.ClientPostDto;
+import app.omniOne.models.dtos.ClientResponseDto;
 import app.omniOne.models.mappers.ClientMapper;
 import app.omniOne.services.ClientService;
 import jakarta.validation.Valid;
@@ -25,23 +25,22 @@ public class CoachClientController {
     }
 
     @PostMapping("/clients")
-    public ResponseEntity<ClientDto> registerClient(@PathVariable Long coachId, @RequestBody @Valid Client client) {
-        Client registeredClient = clientService.registerClient(coachId, client);
-        ClientDto registeredClientDto = clientMapper.toClientDto(registeredClient);
-        return ResponseEntity.status(HttpStatus.CREATED).body(registeredClientDto);
+    public ResponseEntity<ClientResponseDto> registerClient(
+            @PathVariable Long coachId, @RequestBody @Valid ClientPostDto postDto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(clientMapper.convert(clientService.registerClient(coachId, postDto)));
     }
 
     @GetMapping("/clients")
-    public ResponseEntity<List<ClientDto>> getClients(@PathVariable Long coachId) {
-        List<Client> clients = clientService.getClients(coachId);
-        List<ClientDto> clientDtos = clients.stream().map(clientMapper::toClientDto).toList();
-        return ResponseEntity.status(HttpStatus.OK).body(clientDtos);
+    public ResponseEntity<List<ClientResponseDto>> getClients(@PathVariable Long coachId) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(clientService.getClients(coachId).stream().map(clientMapper::convert).toList());
     }
 
     @GetMapping("/clients/{clientId}")
-    public ResponseEntity<ClientDto> getClient(@PathVariable Long coachId, @PathVariable Long clientId) {
-        ClientDto client = clientMapper.toClientDto(clientService.getClient(coachId, clientId));
-        return ResponseEntity.status(HttpStatus.OK).body(client);
+    public ResponseEntity<ClientResponseDto> getClient(@PathVariable Long coachId, @PathVariable Long clientId) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(clientMapper.convert(clientService.getClient(coachId, clientId)));
     }
 
 }
