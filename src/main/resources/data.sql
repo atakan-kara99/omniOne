@@ -17,7 +17,8 @@ INSERT INTO client (email, status, coach_id)
 VALUES
     ('client.doe@example.com', 'PENDING', 1),
     ('client.smith@example.com', 'PENDING', 1),
-    ('client.brown@example.com', 'PENDING', 2);
+    ('client.brown@example.com', 'PENDING', 2),
+    ('client.eminem@example.com', 'PENDING', 1);
 
 -----------------------------------------
 -- NUTRITION PLANS

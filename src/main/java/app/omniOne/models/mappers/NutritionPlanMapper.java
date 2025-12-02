@@ -1,18 +1,14 @@
 package app.omniOne.models.mappers;
 
-import app.omniOne.models.dtos.NutritionPlanDto;
+import app.omniOne.models.dtos.NutritionPlanResponseDto;
 import app.omniOne.models.entities.NutritionPlan;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
 
-@Component
-public class NutritionPlanMapper {
+@Mapper(componentModel = "spring")
+public interface NutritionPlanMapper {
 
-    public NutritionPlanDto toNutritionPlanDto(NutritionPlan nutritionPlan) {
-        return new NutritionPlanDto(
-                nutritionPlan.getCalories(),
-                nutritionPlan.getCarbohydrates(),
-                nutritionPlan.getProteins(),
-                nutritionPlan.getFats());
-    }
+    NutritionPlanResponseDto convert(NutritionPlan nutritionPlan);
+
+    //void patch(CoachPatchDto dto, @MappingTarget Coach coach);
 
 }

@@ -1,7 +1,7 @@
 package app.omniOne.controllers;
 
-import app.omniOne.models.dtos.NutritionPlanDto;
-import app.omniOne.models.entities.NutritionPlan;
+import app.omniOne.models.dtos.NutritionPlanPostDto;
+import app.omniOne.models.dtos.NutritionPlanResponseDto;
 import app.omniOne.models.mappers.NutritionPlanMapper;
 import app.omniOne.services.NutritionPlanService;
 import jakarta.validation.Valid;
@@ -18,27 +18,36 @@ public class CoachNutritionPlanController {
     private final NutritionPlanService nutritionPlanService;
     private final NutritionPlanMapper nutritionPlanMapper;
 
-    public CoachNutritionPlanController(NutritionPlanService nutritionPlanService, NutritionPlanMapper nutritionPlanMapper) {
+    public CoachNutritionPlanController(
+            NutritionPlanService nutritionPlanService, NutritionPlanMapper nutritionPlanMapper) {
         this.nutritionPlanService = nutritionPlanService;
         this.nutritionPlanMapper = nutritionPlanMapper;
     }
 
     @PostMapping("/nutrition-plan")
-    public ResponseEntity<NutritionPlanDto> addNutritionPlan(@PathVariable Long coachId, @PathVariable Long clientId, @RequestBody @Valid NutritionPlan np) {
-        return ResponseEntity.status(HttpStatus.OK).body(nutritionPlanMapper.toNutritionPlanDto(nutritionPlanService.addNutritionPlan(coachId, clientId, np)));
+    public ResponseEntity<NutritionPlanResponseDto> addNutritionPlan(
+            @PathVariable Long coachId, @PathVariable Long clientId,
+            @RequestBody @Valid NutritionPlanPostDto postDto) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(nutritionPlanMapper.convert(nutritionPlanService.addNutritionPlan(coachId, clientId, postDto)));
     }
 
     @GetMapping("/nutrition-plan")
-    public ResponseEntity<NutritionPlanDto> getNutritionPlan(@PathVariable Long coachId, @PathVariable Long clientId) {
-        NutritionPlanDto npd = nutritionPlanMapper.toNutritionPlanDto(nutritionPlanService.getNutritionPlan(coachId, clientId));
-        return ResponseEntity.status(HttpStatus.OK).body(npd);
+    public ResponseEntity<NutritionPlanResponseDto> getNutritionPlan(
+            @PathVariable Long coachId, @PathVariable Long clientId) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(nutritionPlanMapper.convert((nutritionPlanService.getActiveNutritionPlan(coachId, clientId))));
     }
 
     @GetMapping("/nutrition-plans")
-    public ResponseEntity<List<NutritionPlanDto>> getNutritionPlans(@PathVariable Long coachId, @PathVariable Long clientId) {
-        List<NutritionPlan> nps = nutritionPlanService.getNutritionPlans(coachId, clientId);
-        List<NutritionPlanDto> npds = nps.stream().map(nutritionPlanMapper::toNutritionPlanDto).toList();
-        return ResponseEntity.status(HttpStatus.OK).body(npds);
+    public ResponseEntity<List<NutritionPlanResponseDto>> getNutritionPlans(
+            @PathVariable Long coachId, @PathVariable Long clientId) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(nutritionPlanService.getNutritionPlans(coachId, clientId)
+                        .stream().map(nutritionPlanMapper::convert).toList());
     }
 
 }

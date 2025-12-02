@@ -1,7 +1,7 @@
 package app.omniOne.controllers;
 
-import app.omniOne.models.dtos.ClientDto;
-import app.omniOne.models.entities.Client;
+import app.omniOne.models.dtos.ClientPatchDto;
+import app.omniOne.models.dtos.ClientResponseDto;
 import app.omniOne.models.mappers.ClientMapper;
 import app.omniOne.services.ClientService;
 import jakarta.validation.Valid;
@@ -21,10 +21,17 @@ public class ClientClientController {
         this.clientMapper = clientMapper;
     }
 
+    @GetMapping
+    public ResponseEntity<ClientResponseDto> getClient(@PathVariable Long clientId) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(clientMapper.convert(clientService.getClient(clientId)));
+    }
+
     @PatchMapping
-    public ResponseEntity<ClientDto> updateClient(@PathVariable Long clientId, @RequestBody @Valid Client client) {
-        ClientDto cd = clientMapper.toClientDto(clientService.updateClient(clientId, client));
-        return ResponseEntity.status(HttpStatus.OK).body(cd);
+    public ResponseEntity<ClientResponseDto> patchClient(
+            @PathVariable Long clientId, @RequestBody @Valid ClientPatchDto patchDto) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(clientMapper.convert(clientService.patchClient(clientId, patchDto)));
     }
 
 }

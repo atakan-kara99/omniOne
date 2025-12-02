@@ -1,8 +1,6 @@
 package app.omniOne.models.entities;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,12 +18,14 @@ public class Coach {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @Email(message = "Invalid email address")
     @Column(nullable = false, unique = true)
     private String email;
 
     @OneToMany(mappedBy = "coach")
     private List<Client> clients;
+
+    public Coach(String email) {
+        this.email = email;
+    }
 
 }
