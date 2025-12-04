@@ -1,6 +1,16 @@
 TRUNCATE TABLE nutrition_plan RESTART IDENTITY CASCADE;
 TRUNCATE TABLE client RESTART IDENTITY CASCADE;
 TRUNCATE TABLE coach RESTART IDENTITY CASCADE;
+TRUNCATE TABLE users RESTART IDENTITY CASCADE;
+
+-----------------------------------------
+-- USERS
+-----------------------------------------
+INSERT INTO users (email, password, role, created_at, enabled)
+VALUES
+    ('user.admin@example.com', '$2a$12$eZQ5iHOC5gmrYD77UBqpm.YSXKHnAyQ1jtP3EA1bfy1rMUYf9w8MW', 'ADMIN', '2025-12-01', true),
+    ('user.coach@example.com', '$2a$12$eZQ5iHOC5gmrYD77UBqpm.YSXKHnAyQ1jtP3EA1bfy1rMUYf9w8MW', 'ADMIN', '2025-12-01', true),
+    ('user.client@example.com', '$2a$12$eZQ5iHOC5gmrYD77UBqpm.YSXKHnAyQ1jtP3EA1bfy1rMUYf9w8MW', 'ADMIN', '2025-12-01', true);
 
 -----------------------------------------
 -- COACHES
