@@ -1,4 +1,4 @@
-package app.omniOne.auth;
+package app.omniOne.auth.jwt;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,7 +32,7 @@ public class JwtFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             try {
                 String jwt = authHeader.substring(7);
-                DecodedJWT decodedJwt = jwtService.verify(jwt);
+                DecodedJWT decodedJwt = jwtService.verifyAuth(jwt);
                 String username = decodedJwt.getSubject();
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UsernamePasswordAuthenticationToken authToken =

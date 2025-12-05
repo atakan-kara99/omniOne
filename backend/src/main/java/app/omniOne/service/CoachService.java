@@ -3,7 +3,6 @@ package app.omniOne.service;
 import app.omniOne.exception.DuplicateResourceException;
 import app.omniOne.exception.NoSuchResourceException;
 import app.omniOne.model.dto.CoachPatchDto;
-import app.omniOne.model.dto.CoachPostDto;
 import app.omniOne.model.entity.Coach;
 import app.omniOne.model.mapper.CoachMapper;
 import app.omniOne.repo.CoachRepo;
@@ -11,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,21 +19,14 @@ public class CoachService {
     private final CoachRepo coachRepo;
     private final CoachMapper coachMapper;
 
-    public Coach getCoach(Long coachId) {
+    public Coach getCoach(UUID coachId) {
         Optional<Coach> coach = coachRepo.findById(coachId);
         if (coach.isEmpty())
-            throw new NoSuchResourceException("Coach %d not found".formatted(coachId));
+            throw new NoSuchResourceException("Coach %s not found".formatted(coachId));
         return coach.get();
     }
 
-    public Coach registerCoach(CoachPostDto dto) {
-        String email = dto.email();
-        if (coachRepo.existsByEmail(email))
-            throw new DuplicateResourceException("Coach already exists with email: %s".formatted(email));
-        return coachRepo.save(new Coach(email));
-    }
-
-    public Coach patchCoach(Long coachId, CoachPatchDto dto) {
+    public Coach patchCoach(UUID coachId, CoachPatchDto dto) {
         String email = dto.email();
         Coach coach = coachRepo.findById(coachId)
                 .orElseThrow(() -> new DuplicateResourceException("Coach already exists with email: %s".formatted(email)));
@@ -41,9 +34,9 @@ public class CoachService {
         return coachRepo.save(coach);
     }
 
-    public void deleteCoach(Long coachId) {
+    public void deleteCoach(UUID coachId) {
         Coach coach = coachRepo.findById(coachId)
-                .orElseThrow(() -> new NoSuchResourceException("Coach %d not found".formatted(coachId)));
+                .orElseThrow(() -> new NoSuchResourceException("Coach %s not found".formatted(coachId)));
         coach.getClients().forEach(c -> c.setCoach(null));
         coachRepo.delete(coach);
     }

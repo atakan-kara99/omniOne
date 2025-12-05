@@ -1,11 +1,15 @@
 package app.omniOne.model.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -15,17 +19,13 @@ import java.util.List;
 public class Coach {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, unique = true)
-    private String email;
+    private UUID id;
 
     @OneToMany(mappedBy = "coach")
     private List<Client> clients;
 
-    public Coach(String email) {
-        this.email = email;
+    public Coach(UUID id) {
+        this.id = id;
     }
 
 }

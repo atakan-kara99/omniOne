@@ -1,11 +1,11 @@
 package app.omniOne.config;
 
-import app.omniOne.auth.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -13,30 +13,38 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtFilter jwtFilter;
+//                 for the usage of JSON Web Token
+//    private final JwtFilter jwtFilter;
+//                .csrf(AbstractHttpConfigurer::disable)
+//                .httpBasic(AbstractHttpConfigurer::disable)
+//                .formLogin(AbstractHttpConfigurer::disable)
+//                .logout(AbstractHttpConfigurer::disable)
+//                .sessionManagement(session -> session
+//                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable)
-                .logout(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/register", "/auth/login").permitAll()
-                        .requestMatchers("/coach").hasRole("COACH")
-                        .requestMatchers("/client").hasRole("CLIENT")
-                        .anyRequest().authenticated())
+                .csrf(AbstractHttpConfigurer::disable)                        //TODO: JUST FOR POSTMAN
+                .httpBasic(httpBasic -> {})     //TODO: JUST FOR POSTMAN
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionFixation().migrateSession()
+                        .maximumSessions(1))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/register", "/auth/activate").permitAll()
+                        .requestMatchers("/client/**").hasAnyRole("CLIENT", "ADMIN")
+                        .requestMatchers("/coach/**").hasAnyRole("COACH", "ADMIN")
+                        .requestMatchers("/**").hasRole("ADMIN")
+                        .anyRequest().authenticated())
                 .build();
     }
 

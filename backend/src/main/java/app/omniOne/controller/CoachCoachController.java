@@ -1,45 +1,41 @@
 package app.omniOne.controller;
 
 import app.omniOne.model.dto.CoachPatchDto;
-import app.omniOne.model.dto.CoachPostDto;
 import app.omniOne.model.dto.CoachResponseDto;
 import app.omniOne.model.mapper.CoachMapper;
 import app.omniOne.service.CoachService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/coach")
+@RequestMapping("/coach/{coachId}")
+@PreAuthorize("@authService.isOwner(#coachId)")
 public class CoachCoachController {
 
-    private final CoachService coachService;
     private final CoachMapper coachMapper;
+    private final CoachService coachService;
 
-    @PostMapping
-    public ResponseEntity<CoachResponseDto> registerCoach(@RequestBody @Valid CoachPostDto dto) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(coachMapper.map(coachService.registerCoach(dto)));
-    }
-
-    @GetMapping("/{coachId}")
+    @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public CoachResponseDto getCoach(@PathVariable Long coachId) {
+    public CoachResponseDto getCoach(@PathVariable UUID coachId) {
         return coachMapper.map(coachService.getCoach(coachId));
     }
 
-    @PatchMapping("/{coachId}")
+    @PatchMapping
     @ResponseStatus(HttpStatus.OK)
-    public CoachResponseDto patchCoach(@PathVariable Long coachId, @RequestBody @Valid CoachPatchDto dto){
+    public CoachResponseDto patchCoach(@PathVariable UUID coachId, @RequestBody @Valid CoachPatchDto dto){
         return coachMapper.map(coachService.patchCoach(coachId, dto));
     }
 
-    @DeleteMapping("/{coach_id}")
+    @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteCoach(@PathVariable Long coachId) {
+    public void deleteCoach(@PathVariable UUID coachId) {
         coachService.deleteCoach(coachId);
         //return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ProblemDetail> handleParsing(HttpMessageNotReadableException ex) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        ProblemDetail pd = pd("Http Message Not Readable", status, ex.getMessage());
+        ProblemDetail pd = pd("Http Message Not Readable", status, "Invalid request body");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -42,10 +42,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(pd, status);
     }
 
-    @ExceptionHandler(AccessForbiddenException.class)
-    public ResponseEntity<ProblemDetail> handleAccessForbidden(AccessForbiddenException ex) {
+    @ExceptionHandler(NotAllowedException.class)
+    public ResponseEntity<ProblemDetail> handleNotAllowed(NotAllowedException ex) {
         HttpStatus status = HttpStatus.FORBIDDEN;
-        ProblemDetail pd = pd("Access Forbidden", status, ex.getMessage());
+        ProblemDetail pd = pd("Not Allowed", status, ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 

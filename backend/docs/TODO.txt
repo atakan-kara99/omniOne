@@ -1,31 +1,19 @@
 omniØne Coaching System
 
 Software & Tools
-- Frontend: HTML, CSS, JS
-- Thymeleaf?
 - Backend
   - Spring Boot
   - Maven
   - Spring Data JPA / Hibernate / JDBC
   - PostgreSQL
-  - HTTP / REST APIs / Postman / Insomnia (API-Testing)
-  - Error Handling + Logging
-  - Spring Security + JWT Login
-  - Tests (JUnit, MockMVC)
+  - HTTP / REST APIs / Postman / Insomnia? (API-Testing)
+  - Error Handling + Logging?
+  - Spring Security + JWT Login + HttpSession + BasicAuth
+  - Tests (JUnit, MockMVC)?
 - DevOps
-  - GitHub Actions
   - Docker
 
 Dependencies
-- Spring Web
-- Lombok
-- H2 Database
-- PostgreSQL Driver
-- Spring Data JPA
-- Validation
-- Thymeleaf
-- Spring Security
-
 - Java Mail Sender?
 - WebSockets?
 

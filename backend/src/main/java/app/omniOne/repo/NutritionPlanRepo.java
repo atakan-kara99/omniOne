@@ -7,17 +7,18 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface NutritionPlanRepo extends JpaRepository<NutritionPlan, Long> {
 
-    Optional<NutritionPlan> findByClientIdAndClientCoachId(Long clientId, Long coachId);
+    Optional<NutritionPlan> findByClientIdAndClientCoachId(UUID clientId, UUID coachId);
 
-    Optional<NutritionPlan> findByClientIdAndClientCoachIdAndEndDateIsNull(Long clientId, Long coachId);
+    Optional<NutritionPlan> findByClientIdAndClientCoachIdAndEndDateIsNull(UUID clientId, UUID coachId);
 
-    List<NutritionPlan> findByClientIdAndClientCoachId(Long clientId, Long coachId, Sort sort);
+    List<NutritionPlan> findByClientIdAndClientCoachId(UUID clientId, UUID coachId, Sort sort);
 
-    Optional<NutritionPlan> findByClientIdAndEndDateIsNull(Long clientId);
+    Optional<NutritionPlan> findByClientIdAndEndDateIsNull(UUID clientId);
 
-    List<NutritionPlan> findByClientId(Long clientId, Sort sort);
+    List<NutritionPlan> findByClientId(UUID clientId, Sort sort);
 }

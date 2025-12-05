@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -16,11 +17,7 @@ import java.util.List;
 public class Client {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, unique = true)
-    private String email;
+    private UUID id;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -33,8 +30,13 @@ public class Client {
     @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
     private List<NutritionPlan> nutritionPlans;
 
-    public Client(String email, Coach coach) {
-        this.email = email;
+    public Client(UUID id) {
+        this.id = id;
+        this.status = ClientStatus.PENDING;
+    }
+
+    public Client(UUID id, Coach coach) {
+        this.id = id;
         this.status = ClientStatus.PENDING;
         this.coach = coach;
     }

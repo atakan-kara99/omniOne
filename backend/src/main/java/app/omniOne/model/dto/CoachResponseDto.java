@@ -1,8 +1,10 @@
 package app.omniOne.model.dto;
 
+import java.util.UUID;
+
 public record CoachResponseDto(
 
-        Long id,
+        UUID id,
 
         String email
 

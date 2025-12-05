@@ -1,9 +1,7 @@
 package app.omniOne.service;
 
-import app.omniOne.exception.DuplicateResourceException;
 import app.omniOne.exception.NoSuchResourceException;
 import app.omniOne.model.dto.ClientPatchDto;
-import app.omniOne.model.dto.ClientPostDto;
 import app.omniOne.model.entity.Client;
 import app.omniOne.model.entity.Coach;
 import app.omniOne.model.mapper.ClientMapper;
@@ -13,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,35 +21,25 @@ public class ClientService {
     private final CoachRepo coachRepo;
     private final ClientMapper clientMapper;
 
-    public Client registerClient(Long coachId, ClientPostDto dto) {
-        String email = dto.email();
-        if (clientRepo.existsByEmail(email))
-            throw new DuplicateResourceException("Client already exists with email: %s".formatted(email));
-        Coach coach = coachRepo.findById(coachId)
-                .orElseThrow(() -> new NoSuchResourceException("Coach %d not found".formatted(coachId)));
-        Client newClient = new Client(email, coach);
-        return clientRepo.save(newClient);
-    }
-
-    public List<Client> getClients(Long coachId) {
+    public List<Client> getClients(UUID coachId) {
         Coach coach = coachRepo.findById(coachId)
                 .orElseThrow(() -> new NoSuchResourceException("Coach %d not found".formatted(coachId)));
         return coach.getClients();
     }
 
-    public Client getClient(Long coachId, Long clientId) {
+    public Client getClient(UUID coachId, UUID clientId) {
         return clientRepo.findByIdAndCoachId(clientId, coachId)
                 .orElseThrow(() -> new NoSuchResourceException("Coach %d not found".formatted(coachId)));
     }
 
-    public Client patchClient(Long clientId, ClientPatchDto dto) {
+    public Client patchClient(UUID clientId, ClientPatchDto dto) {
         Client client = clientRepo.findById(clientId)
                 .orElseThrow(() -> new NoSuchResourceException("Client %d not found".formatted(clientId)));
         clientMapper.map(dto, client);
         return clientRepo.save(client);
     }
 
-    public Client getClient(Long clientId) {
+    public Client getClient(UUID clientId) {
         return clientRepo.findById(clientId)
                 .orElseThrow(() -> new NoSuchResourceException("Client %d not found".formatted(clientId)));
     }
