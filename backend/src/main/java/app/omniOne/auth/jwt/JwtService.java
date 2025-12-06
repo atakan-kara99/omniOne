@@ -1,9 +1,5 @@
 package app.omniOne.auth.jwt;
 
-import app.omniOne.auth.User;
-import app.omniOne.auth.UserLoginDto;
-import app.omniOne.auth.UserMapper;
-import app.omniOne.auth.UserRepo;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -11,13 +7,12 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -31,28 +26,24 @@ public class JwtService {
     private Algorithm authAlgorithm;
     private JWTVerifier authVerifier;
 
-    @Value("${jwt.secret.auth}")
-    private String activationSecret;
-    private Algorithm activationAlgorithm;
-    private JWTVerifier activationVerifier;
-
-    private final UserRepo userRepo;
-    private final UserMapper userMapper;
-    private final PasswordEncoder encoder;
+    @Value("${jwt.secret.init}")
+    private String initSecret;
+    private Algorithm initAlgorithm;
+    private JWTVerifier initVerifier;
 
     @PostConstruct
     public void init() {
         this.authAlgorithm = Algorithm.HMAC256(authSecret);
         this.authVerifier = JWT.require(authAlgorithm).withIssuer(applicationName).build();
-        this.activationAlgorithm = Algorithm.HMAC256(activationSecret);
-        this.activationVerifier = JWT.require(activationAlgorithm).withIssuer(applicationName).build();
+        this.initAlgorithm = Algorithm.HMAC256(initSecret);
+        this.initVerifier = JWT.require(initAlgorithm).withIssuer(applicationName).build();
     }
 
-    public String createAuthJwt(String username) {
+    public String createAuthJwt(String email) {
         return JWT.create()
                 .withIssuer(applicationName)
-                .withSubject(username)
-                .withClaim("type", "authorization")
+                .withSubject("authorization")
+                .withClaim("email", email)
                 .withIssuedAt(new Date())
                 .withExpiresAt(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
                 .sign(authAlgorithm);
@@ -62,28 +53,36 @@ public class JwtService {
         return authVerifier.verify(jwt);
     }
 
-    public JwtResponse getJwt(UserLoginDto dto) {
-        String email = dto.email().trim().toLowerCase();
-        User user = userRepo.findByEmail(email)
-                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
-        if (!encoder.matches(dto.password(), user.getPassword()))
-            throw new BadCredentialsException("Invalid credentials");
-        return new JwtResponse(createAuthJwt(email), userMapper.map(user));
-    }
 
-    public String createActivationJwt(User user) {
+    public String createActivationJwt(String email) {
         return JWT.create()
                 .withIssuer(applicationName)
-                .withSubject(user.getId().toString())
-                .withClaim("email", user.getEmail())
-                .withClaim("type", "activation")
+                .withSubject("activation")
+                .withClaim("email", email)
                 .withIssuedAt(new Date())
                 .withExpiresAt(Date.from(Instant.now().plus(24, ChronoUnit.HOURS)))
-                .sign(activationAlgorithm);
+                .sign(initAlgorithm);
     }
 
     public DecodedJWT verifyActivation(String jwt) {
-        return activationVerifier.verify(jwt);
+        return initVerifier.verify(jwt);
     }
+
+
+    public String createInvitationJwt(String clientEmail, UUID coachId) {
+        return JWT.create()
+                .withIssuer(applicationName)
+                .withSubject("invitation")
+                .withClaim("clientEmail", clientEmail)
+                .withClaim("coachId", coachId.toString())
+                .withIssuedAt(new Date())
+                .withExpiresAt(Date.from(Instant.now().plus(24, ChronoUnit.HOURS)))
+                .sign(initAlgorithm);
+    }
+
+    public DecodedJWT verifyInvitation(String jwt) {
+        return initVerifier.verify(jwt);
+    }
+
 
 }

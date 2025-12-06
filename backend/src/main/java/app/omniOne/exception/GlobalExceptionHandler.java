@@ -16,6 +16,13 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(SendEmailException.class)
+    public ResponseEntity<ProblemDetail> handleSendMail(SendEmailException ex) {
+        HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
+        ProblemDetail pd = pd("Send Email Failed", status, ex.getMessage());
+        return new ResponseEntity<>(pd, status);
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ProblemDetail> handleBadCred(BadCredentialsException ex) {
         HttpStatus status = HttpStatus.UNAUTHORIZED;

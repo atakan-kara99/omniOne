@@ -24,12 +24,6 @@ public class CoachClientController {
     private final ClientService clientService;
     private final ClientMapper clientMapper;
 
-//    @PostMapping("/clients")
-//    @ResponseStatus(HttpStatus.CREATED)
-//    public ClientResponseDto registerClient(@PathVariable UUID coachId, @RequestBody @Valid ClientPostDto dto) {
-//        return clientMapper.map(clientService.registerClient(coachId, dto));
-//    }
-
     @GetMapping("/clients")
     @ResponseStatus(HttpStatus.OK)
     public List<ClientResponseDto> getClients(@PathVariable UUID coachId) {

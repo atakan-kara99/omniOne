@@ -40,7 +40,7 @@ public class SecurityConfig {
                         .sessionFixation().migrateSession()
                         .maximumSessions(1))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/register", "/auth/activate").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/client/**").hasAnyRole("CLIENT", "ADMIN")
                         .requestMatchers("/coach/**").hasAnyRole("COACH", "ADMIN")
                         .requestMatchers("/**").hasRole("ADMIN")
