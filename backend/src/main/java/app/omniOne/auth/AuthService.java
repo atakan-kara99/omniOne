@@ -72,8 +72,8 @@ public class AuthService {
     }
 
     public void sendInvitation(String clientMail, UUID coachId) {
-        User coach = userRepo.findById(coachId)
-                .orElseThrow(() -> new NoSuchResourceException("User not found"));
+        if (!userRepo.existsById(coachId))
+            throw new NoSuchResourceException("Coach not found");
         String jwt = jwtService.createInvitationJwt(clientMail, coachId);
         emailService.sendInvitationMail(clientMail, jwt);
     }
@@ -85,8 +85,8 @@ public class AuthService {
                 .orElseThrow(() -> new NoSuchResourceException("Coach not found"));
         Client client = clientRepo.findById(clientId)
                 .orElseThrow(() -> new NoSuchResourceException("Client not found"));
-        coach.getClients().add(client);
-        coachRepo.save(coach);
+        client.setCoach(coach);
+        clientRepo.save(client);
     }
 
 }

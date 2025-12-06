@@ -1,6 +1,7 @@
 package app.omniOne.auth.jwt;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTCreator.Builder;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -40,49 +42,42 @@ public class JwtService {
     }
 
     public String createAuthJwt(String email) {
-        return JWT.create()
+        Map<String, String> claims = Map.of("email", email);
+        return createTemplateJwt("authorization", claims, 60, authAlgorithm);
+    }
+
+    public String createActivationJwt(String email) {
+        Map<String, String> claims = Map.of("email", email);
+        return createTemplateJwt("activation", claims, 60*24, initAlgorithm);
+    }
+
+    public String createInvitationJwt(String clientEmail, UUID coachId) {
+        Map<String, String> claims = Map.of(
+                "clientEmail", clientEmail,
+                "coachId", coachId.toString());
+        return createTemplateJwt("invitation", claims, 60*24, initAlgorithm);
+    }
+
+    private String createTemplateJwt(String subject, Map<String, String> claims, long minutes, Algorithm algorithm) {
+        Builder jwtBuilder = JWT.create()
                 .withIssuer(applicationName)
-                .withSubject("authorization")
-                .withClaim("email", email)
+                .withSubject(subject)
                 .withIssuedAt(new Date())
-                .withExpiresAt(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
-                .sign(authAlgorithm);
+                .withExpiresAt(Date.from(Instant.now().plus(minutes, ChronoUnit.MINUTES)));
+        claims.forEach(jwtBuilder::withClaim);
+        return jwtBuilder.sign(algorithm);
     }
 
     public DecodedJWT verifyAuth(String jwt) {
         return authVerifier.verify(jwt);
     }
 
-
-    public String createActivationJwt(String email) {
-        return JWT.create()
-                .withIssuer(applicationName)
-                .withSubject("activation")
-                .withClaim("email", email)
-                .withIssuedAt(new Date())
-                .withExpiresAt(Date.from(Instant.now().plus(24, ChronoUnit.HOURS)))
-                .sign(initAlgorithm);
-    }
-
     public DecodedJWT verifyActivation(String jwt) {
         return initVerifier.verify(jwt);
-    }
-
-
-    public String createInvitationJwt(String clientEmail, UUID coachId) {
-        return JWT.create()
-                .withIssuer(applicationName)
-                .withSubject("invitation")
-                .withClaim("clientEmail", clientEmail)
-                .withClaim("coachId", coachId.toString())
-                .withIssuedAt(new Date())
-                .withExpiresAt(Date.from(Instant.now().plus(24, ChronoUnit.HOURS)))
-                .sign(initAlgorithm);
     }
 
     public DecodedJWT verifyInvitation(String jwt) {
         return initVerifier.verify(jwt);
     }
-
 
 }
