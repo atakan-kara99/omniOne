@@ -1,4 +1,4 @@
-package app.omniOne.controller;
+package app.omniOne.controller.coach;
 
 import app.omniOne.model.dto.NutritionPlanPostDto;
 import app.omniOne.model.dto.NutritionPlanResponseDto;
@@ -7,16 +7,16 @@ import app.omniOne.service.NutritionPlanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
+import static app.omniOne.auth.AuthService.getMyId;
+
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/coach/{coachId}/clients/{clientId}")
-@PreAuthorize("@authService.isOwner(#coachId)")
+@RequestMapping("/coach/clients/{clientId}")
 public class CoachNutritionPlanController {
 
     private final NutritionPlanService nutritionPlanService;
@@ -25,21 +25,20 @@ public class CoachNutritionPlanController {
     @PostMapping("/nutrition-plan")
     @ResponseStatus(HttpStatus.OK)
     public NutritionPlanResponseDto addNutritionPlan(
-            @PathVariable UUID coachId, @PathVariable UUID clientId,
-            @RequestBody @Valid NutritionPlanPostDto dto) {
-        return nutritionPlanMapper.map(nutritionPlanService.addNutritionPlan(coachId, clientId, dto));
+            @PathVariable UUID clientId, @RequestBody @Valid NutritionPlanPostDto dto) {
+        return nutritionPlanMapper.map(nutritionPlanService.addNutritionPlan(getMyId(), clientId, dto));
     }
 
     @GetMapping("/nutrition-plan")
     @ResponseStatus(HttpStatus.OK)
-    public NutritionPlanResponseDto getNutritionPlan(@PathVariable UUID coachId, @PathVariable UUID clientId) {
-        return nutritionPlanMapper.map((nutritionPlanService.getActiveNutritionPlan(coachId, clientId)));
+    public NutritionPlanResponseDto getNutritionPlan(@PathVariable UUID clientId) {
+        return nutritionPlanMapper.map((nutritionPlanService.getActiveNutritionPlan(getMyId(), clientId)));
     }
 
     @GetMapping("/nutrition-plans")
     @ResponseStatus(HttpStatus.OK)
-    public List<NutritionPlanResponseDto> getNutritionPlans(@PathVariable UUID coachId, @PathVariable UUID clientId) {
-        return nutritionPlanService.getNutritionPlans(coachId, clientId)
+    public List<NutritionPlanResponseDto> getNutritionPlans(@PathVariable UUID clientId) {
+        return nutritionPlanService.getNutritionPlans(getMyId(), clientId)
                         .stream().map(nutritionPlanMapper::map).toList();
     }
 

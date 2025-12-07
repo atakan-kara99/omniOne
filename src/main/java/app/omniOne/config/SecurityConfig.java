@@ -41,9 +41,10 @@ public class SecurityConfig {
                         .maximumSessions(1))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/client/**").hasAnyRole("CLIENT", "ADMIN")
-                        .requestMatchers("/coach/**").hasAnyRole("COACH", "ADMIN")
-                        .requestMatchers("/**").hasRole("ADMIN")
+                        .requestMatchers("/client/**").hasRole("CLIENT")
+                        .requestMatchers("/coach/**").hasRole("COACH")
+                        .requestMatchers("/user/**").hasAnyRole("COACH", "CLIENT")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .build();
     }

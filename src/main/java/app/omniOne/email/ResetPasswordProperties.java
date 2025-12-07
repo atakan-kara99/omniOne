@@ -2,8 +2,8 @@ package app.omniOne.email;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "invitation")
-public record InvitationProperties(
+@ConfigurationProperties(prefix = "reset-password")
+public record ResetPasswordProperties(
 
         String from,
 

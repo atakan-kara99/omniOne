@@ -1,21 +1,23 @@
-package app.omniOne.controller;
+package app.omniOne.controller.client;
 
 import app.omniOne.model.dto.NutritionPlanResponseDto;
 import app.omniOne.model.mapper.NutritionPlanMapper;
 import app.omniOne.service.NutritionPlanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static app.omniOne.auth.AuthService.getMyId;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/client/{clientId}")
-@PreAuthorize("@authService.isOwner(#clientId)")
+@RequestMapping("/client")
 public class ClientNutritionPlanController {
 
     private final NutritionPlanService nutritionPlanService;
@@ -23,14 +25,14 @@ public class ClientNutritionPlanController {
 
     @GetMapping("/nutrition-plan")
     @ResponseStatus(HttpStatus.OK)
-    public NutritionPlanResponseDto getNutritionPlan(@PathVariable UUID clientId) {
-        return nutritionPlanMapper.map(nutritionPlanService.getActiveNutritionPlan(clientId));
+    public NutritionPlanResponseDto getNutritionPlan() {
+        return nutritionPlanMapper.map(nutritionPlanService.getActiveNutritionPlan(getMyId()));
     }
 
     @GetMapping("/nutrition-plans")
     @ResponseStatus(HttpStatus.OK)
-    public List<NutritionPlanResponseDto> getNutritionPlans(@PathVariable UUID clientId) {
-        return nutritionPlanService.getNutritionPlans(clientId)
+    public List<NutritionPlanResponseDto> getNutritionPlans() {
+        return nutritionPlanService.getNutritionPlans(getMyId())
                         .stream().map(nutritionPlanMapper::map).collect(Collectors.toList());
     }
 

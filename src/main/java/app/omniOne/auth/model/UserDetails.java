@@ -1,5 +1,7 @@
-package app.omniOne.auth;
+package app.omniOne.auth.model;
 
+import app.omniOne.model.entity.User;
+import app.omniOne.model.enums.UserRole;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;

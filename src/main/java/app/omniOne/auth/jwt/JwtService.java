@@ -51,6 +51,11 @@ public class JwtService {
         return createTemplateJwt("activation", claims, 60*24, initAlgorithm);
     }
 
+    public String createResetPasswordJwt(String email) {
+        Map<String, String> claims = Map.of("email", email);
+        return createTemplateJwt("reset-password", claims, 60, initAlgorithm);
+    }
+
     public String createInvitationJwt(String clientEmail, UUID coachId) {
         Map<String, String> claims = Map.of(
                 "clientEmail", clientEmail,

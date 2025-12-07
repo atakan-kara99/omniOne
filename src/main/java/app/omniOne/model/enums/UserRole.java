@@ -1,4 +1,4 @@
-package app.omniOne.auth;
+package app.omniOne.model.enums;
 
 public enum UserRole {
     ADMIN,
