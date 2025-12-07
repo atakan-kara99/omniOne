@@ -9,7 +9,7 @@ public record ActivationProperties(
 
         String url,
 
-        String text,
+        String path,
 
         String subject
 

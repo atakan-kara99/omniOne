@@ -1,11 +1,14 @@
 package app.omniOne.auth;
 
+import app.omniOne.auth.model.AuthDto;
+import app.omniOne.auth.model.AuthMapper;
+import app.omniOne.auth.model.PasswordRequest;
+import app.omniOne.auth.model.RegisterRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -13,40 +16,43 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final UserMapper userMapper;
+    private final AuthMapper authMapper;
     private final AuthService authService;
 
-    @PostMapping("/register")
+    @PostMapping("/account/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserResponseDto register(@RequestBody @Valid UserRegisterDto dto) {
-        return userMapper.map(authService.register(dto));
+    public AuthDto register(@RequestBody @Valid RegisterRequest dto) {
+        return authMapper.map(authService.register(dto));
     }
 
-    @GetMapping("/send-again")
+    @GetMapping("/account/activate")
     @ResponseStatus(HttpStatus.OK)
-    public UserResponseDto sendAgain(@RequestParam @Email @NotBlank String email) {
-        return userMapper.map(authService.sendActivation(email));
+    public AuthDto activate(@RequestParam @NotBlank String token) {
+        return authMapper.map(authService.activate(token));
     }
 
-    @GetMapping("/activate")
-    @ResponseStatus(HttpStatus.OK)
-    public UserResponseDto activate(@RequestParam @NotBlank String token) {
-        return userMapper.map(authService.activate(token));
+    @GetMapping("/account/resend")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void resend(@RequestParam @Email @NotBlank String email) {
+        authService.sendActivationMail(email);
     }
 
-    @PostMapping("/invite")
-    @ResponseStatus(HttpStatus.OK)
-    public void invite(@RequestParam @Email @NotBlank String email, Authentication auth) {
-        UserDetails user = (UserDetails) auth.getPrincipal();
-        authService.sendInvitation(email, user.getId());
+    @GetMapping("/password/forgot")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void forgot(@RequestParam @Email @NotBlank String email) {
+        authService.sendForgotMail(email);
     }
 
-    @GetMapping("/accept")
+    @PostMapping("/password/reset")
     @ResponseStatus(HttpStatus.OK)
-    public UserResponseDto accept(@RequestParam @NotBlank String token, @RequestBody @Valid UserRegisterDto dto) {
-        User user = authService.register(dto);
-        authService.acceptInvitation(token, user.getId());
-        return userMapper.map(user);
+    public AuthDto reset(@RequestParam @NotBlank String token, @RequestBody @Valid PasswordRequest request) {
+        return authMapper.map(authService.reset(token, request));
+    }
+
+    @GetMapping("/invitation/accept")
+    @ResponseStatus(HttpStatus.OK)
+    public AuthDto accept(@RequestParam @NotBlank String token, @RequestBody @Valid PasswordRequest request) {
+        return authMapper.map(authService.acceptInvitation(token, request));
     }
 
 }

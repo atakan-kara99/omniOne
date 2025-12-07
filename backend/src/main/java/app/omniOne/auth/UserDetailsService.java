@@ -1,5 +1,7 @@
 package app.omniOne.auth;
 
+import app.omniOne.auth.model.UserDetails;
+import app.omniOne.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;

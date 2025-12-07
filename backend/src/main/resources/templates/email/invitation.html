@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Invitation</title>
+</head>
+<body>
+<table>
+    <tr>
+        <td>
+            <table>
+                <tr>
+                    <td>
+                        <h3>You have been invited to join <span th:text="${appName}">AppName</span>!</h3>
+
+                        <p>Click the link below to accept the invitation:</p>
+
+                        <p>
+                            <a th:href="${link}">Accept Invitation</a>
+                        </p>
+
+                        <p>If you were not expecting this invitation, you may ignore this email.</p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

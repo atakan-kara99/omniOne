@@ -1,4 +1,4 @@
-package app.omniOne.controller;
+package app.omniOne.controller.coach;
 
 import app.omniOne.model.dto.CoachPatchDto;
 import app.omniOne.model.dto.CoachResponseDto;
@@ -7,15 +7,13 @@ import app.omniOne.service.CoachService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
+import static app.omniOne.auth.AuthService.getMyId;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/coach/{coachId}")
-@PreAuthorize("@authService.isOwner(#coachId)")
+@RequestMapping("/coach")
 public class CoachCoachController {
 
     private final CoachMapper coachMapper;
@@ -23,21 +21,20 @@ public class CoachCoachController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public CoachResponseDto getCoach(@PathVariable UUID coachId) {
-        return coachMapper.map(coachService.getCoach(coachId));
+    public CoachResponseDto getCoach() {
+        return coachMapper.map(coachService.getCoach(getMyId()));
     }
 
     @PatchMapping
     @ResponseStatus(HttpStatus.OK)
-    public CoachResponseDto patchCoach(@PathVariable UUID coachId, @RequestBody @Valid CoachPatchDto dto){
-        return coachMapper.map(coachService.patchCoach(coachId, dto));
+    public CoachResponseDto patchCoach(@RequestBody @Valid CoachPatchDto dto){
+        return coachMapper.map(coachService.patchCoach(getMyId(), dto));
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteCoach(@PathVariable UUID coachId) {
-        coachService.deleteCoach(coachId);
-        //return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    public void deleteCoach() {
+        coachService.deleteCoach(getMyId());
     }
 
 }
