@@ -45,6 +45,11 @@ public class AuthService {
         return getMe().getId();
     }
 
+    public boolean isCoachedByMe(UUID clientId) {
+        Client client = clientRepo.findByIdOrThrow(clientId);
+        return client.getCoach().getId().equals(getMyId());
+    }
+
     @Transactional
     public User register(RegisterRequest dto) {
         String email = dto.email().trim().toLowerCase();

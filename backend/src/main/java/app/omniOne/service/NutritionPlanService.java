@@ -22,9 +22,9 @@ public class NutritionPlanService {
     private final ClientRepo clientRepo;
 
     @Transactional
-    public NutritionPlan addNutritionPlan(UUID coachId, UUID clientId, NutritionPlanPostDto dto) {
-        Client client = clientRepo.findByIdAndCoachIdOrThrow(clientId, coachId);
-        nutritionPlanRepo.findByClientIdAndClientCoachIdAndEndDateIsNull(clientId, coachId)
+    public NutritionPlan addNutritionPlan(UUID clientId, NutritionPlanPostDto dto) {
+        Client client = clientRepo.findByIdOrThrow(clientId);
+        nutritionPlanRepo.findByClientIdAndEndDateIsNull(clientId)
                 .ifPresent(activeNP -> activeNP.setEndDate(LocalDate.now()));
         NutritionPlan newPlan = new NutritionPlan(
                 dto.carbohydrates(),
@@ -35,18 +35,8 @@ public class NutritionPlanService {
         return nutritionPlanRepo.save(newPlan);
     }
 
-    public NutritionPlan getActiveNutritionPlan(UUID coachId, UUID clientId) {
-        return nutritionPlanRepo.findByClientIdAndClientCoachIdAndEndDateIsNullOrThrow(clientId, coachId);
-    }
-
     public NutritionPlan getActiveNutritionPlan(UUID clientId) {
         return nutritionPlanRepo.findByClientIdAndEndDateIsNullOrThrow(clientId);
-    }
-
-    public List<NutritionPlan> getNutritionPlans(UUID coachId, UUID clientId) {
-        Client client = clientRepo.findByIdAndCoachIdOrThrow(clientId, coachId);
-        Sort sort = Sort.by(Sort.Direction.ASC, "startDate");
-        return nutritionPlanRepo.findByClientIdAndClientCoachId(clientId, coachId, sort);
     }
 
     public List<NutritionPlan> getNutritionPlans(UUID clientId) {

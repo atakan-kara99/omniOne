@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.UUID;
 
 import static app.omniOne.auth.AuthService.getMyId;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 @RequestMapping("/coach/clients/")
 public class CoachClientController {
@@ -33,8 +33,9 @@ public class CoachClientController {
 
     @GetMapping("{clientId}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("@authService.isCoachedByMe(#clientId)")
     public ClientResponseDto getClient(@PathVariable UUID clientId) {
-        return clientMapper.map(clientService.getClient(getMyId(), clientId));
+        return clientMapper.map(clientService.getClient(clientId));
     }
 
     @GetMapping("/invite")

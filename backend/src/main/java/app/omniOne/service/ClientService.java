@@ -25,18 +25,14 @@ public class ClientService {
         return coach.getClients();
     }
 
-    public Client getClient(UUID coachId, UUID clientId) {
-        return clientRepo.findByIdAndCoachIdOrThrow(clientId, coachId);
+    public Client getClient(UUID clientId) {
+        return clientRepo.findByIdOrThrow(clientId);
     }
 
     public Client patchClient(UUID clientId, ClientPatchDto dto) {
         Client client = clientRepo.findByIdOrThrow(clientId);
         clientMapper.map(dto, client);
         return clientRepo.save(client);
-    }
-
-    public Client getClient(UUID clientId) {
-        return clientRepo.findByIdOrThrow(clientId);
     }
 
 }
