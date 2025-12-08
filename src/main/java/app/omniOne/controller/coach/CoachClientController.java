@@ -1,6 +1,6 @@
 package app.omniOne.controller.coach;
 
-import app.omniOne.auth.AuthService;
+import app.omniOne.authentication.AuthService;
 import app.omniOne.model.dto.ClientResponseDto;
 import app.omniOne.model.mapper.ClientMapper;
 import app.omniOne.service.ClientService;
@@ -14,16 +14,16 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-import static app.omniOne.auth.AuthService.getMyId;
+import static app.omniOne.authentication.AuthService.getMyId;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/coach/clients/")
 public class CoachClientController {
 
-    private final ClientService clientService;
-    private final ClientMapper clientMapper;
     private final AuthService authService;
+    private final ClientMapper clientMapper;
+    private final ClientService clientService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)

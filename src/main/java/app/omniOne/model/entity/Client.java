@@ -19,16 +19,16 @@ public class Client {
     @Id
     private UUID id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ClientStatus status;
-
     @ManyToOne
     @JoinColumn(name = "coach_id")
     private Coach coach;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ClientStatus status;
+
     @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
-    private List<NutritionPlan> nutritionPlans;
+    private List<NutriPlan> nutriPlans;
 
     public Client(UUID id) {
         this.id = id;

@@ -11,15 +11,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import static app.omniOne.auth.AuthService.getMyId;
+import static app.omniOne.authentication.AuthService.getMyId;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/user")
 public class UserController {
 
-    private final UserService userService;
     private final UserMapper userMapper;
+    private final UserService userService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)

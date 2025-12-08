@@ -1,9 +1,3 @@
--- Reset tables
-TRUNCATE TABLE nutrition_plan RESTART IDENTITY CASCADE;
-TRUNCATE TABLE client RESTART IDENTITY CASCADE;
-TRUNCATE TABLE coach RESTART IDENTITY CASCADE;
-TRUNCATE TABLE user_ RESTART IDENTITY CASCADE;
-
 -----------------------------------------
 -- USER
 -----------------------------------------
@@ -52,16 +46,16 @@ VALUES
 -- NUTRITION PLAN (link via client email)
 -----------------------------------------
 
-INSERT INTO nutrition_plan (calories, carbohydrates, proteins, fats, start_date, end_date, client_id)
+INSERT INTO nutrition_plan (calories, carbs, proteins, fats, start_date, end_date, client_id)
 VALUES
     (2400, 300, 120, 80, '2024-01-01',         NULL, (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
     (2200, 250, 110, 70, '2023-09-01', '2023-12-31', (SELECT id FROM user_ WHERE email = 'client-100@omni.one'));
 
-INSERT INTO nutrition_plan (calories, carbohydrates, proteins, fats, start_date, end_date, client_id)
+INSERT INTO nutrition_plan (calories, carbs, proteins, fats, start_date, end_date, client_id)
 VALUES
     (1800, 200, 90, 60, '2023-01-01', '2023-03-01', (SELECT id FROM user_ WHERE email = 'client-101@omni.one'));
 
-INSERT INTO nutrition_plan (calories, carbohydrates, proteins, fats, start_date, end_date, client_id)
+INSERT INTO nutrition_plan (calories, carbs, proteins, fats, start_date, end_date, client_id)
 VALUES
     (2600, 310, 130, 90, '2024-02-15',         NULL, (SELECT id FROM user_ WHERE email = 'client-102@omni.one')),
     (2400, 280, 115, 85, '2023-05-01', '2023-11-01', (SELECT id FROM user_ WHERE email = 'client-102@omni.one'));

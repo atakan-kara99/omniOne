@@ -1,9 +1,9 @@
 package app.omniOne.service;
 
-import app.omniOne.model.dto.CoachPatchDto;
+import app.omniOne.model.dto.CoachPatchRequest;
 import app.omniOne.model.entity.Coach;
 import app.omniOne.model.mapper.CoachMapper;
-import app.omniOne.repo.CoachRepo;
+import app.omniOne.repository.CoachRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,9 +20,9 @@ public class CoachService {
         return coachRepo.findByIdOrThrow(coachId);
     }
 
-    public Coach patchCoach(UUID coachId, CoachPatchDto dto) {
+    public Coach patchCoach(UUID coachId, CoachPatchRequest request) {
         Coach coach = coachRepo.findByIdOrThrow(coachId);
-        coachMapper.map(dto, coach);
+        coachMapper.map(request, coach);
         return coachRepo.save(coach);
     }
 

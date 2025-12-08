@@ -1,6 +1,6 @@
 package app.omniOne.controller.client;
 
-import app.omniOne.model.dto.ClientPatchDto;
+import app.omniOne.model.dto.ClientPatchRequest;
 import app.omniOne.model.dto.ClientResponseDto;
 import app.omniOne.model.mapper.ClientMapper;
 import app.omniOne.service.ClientService;
@@ -9,15 +9,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import static app.omniOne.auth.AuthService.getMyId;
+import static app.omniOne.authentication.AuthService.getMyId;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/client")
 public class ClientClientController {
 
-    private final ClientService clientService;
     private final ClientMapper clientMapper;
+    private final ClientService clientService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -27,7 +27,7 @@ public class ClientClientController {
 
     @PatchMapping
     @ResponseStatus(HttpStatus.OK)
-    public ClientResponseDto patchClient(@RequestBody @Valid ClientPatchDto dto) {
+    public ClientResponseDto patchClient(@RequestBody @Valid ClientPatchRequest dto) {
         return clientMapper.map(clientService.patchClient(getMyId(), dto));
     }
 

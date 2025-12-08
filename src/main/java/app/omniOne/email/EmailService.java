@@ -1,5 +1,8 @@
 package app.omniOne.email;
 
+import app.omniOne.email.properties.ActivationProps;
+import app.omniOne.email.properties.InvitationProps;
+import app.omniOne.email.properties.ResetPasswordProps;
 import app.omniOne.exception.SendEmailException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +25,9 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
-    private final ActivationProperties activationProps;
-    private final InvitationProperties invitationProps;
-    private final ResetPasswordProperties resetPasswordProps;
+    private final ActivationProps activationProps;
+    private final InvitationProps invitationProps;
+    private final ResetPasswordProps resetPasswordProps;
 
     public void sendSimpleMail(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();

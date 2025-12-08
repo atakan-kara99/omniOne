@@ -6,7 +6,7 @@ import app.omniOne.model.dto.UserProfileRequest;
 import app.omniOne.model.entity.User;
 import app.omniOne.model.entity.UserProfile;
 import app.omniOne.model.mapper.UserMapper;
-import app.omniOne.repo.UserRepo;
+import app.omniOne.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
