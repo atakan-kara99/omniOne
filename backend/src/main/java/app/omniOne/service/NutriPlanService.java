@@ -7,6 +7,7 @@ import app.omniOne.repository.ClientRepo;
 import app.omniOne.repository.NutriPlanRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NutriPlanService {
@@ -32,16 +34,22 @@ public class NutriPlanService {
                 request.fats(),
                 client
         );
-        return nutriPlanRepo.save(newPlan);
+        NutriPlan savedNutriPlan = nutriPlanRepo.save(newPlan);
+        log.info("Successfully added NutritionPlan for Client {}", clientId);
+        return savedNutriPlan;
     }
 
     public NutriPlan getActiveNutriPlan(UUID clientId) {
-        return nutriPlanRepo.findByClientIdAndEndDateIsNullOrThrow(clientId);
+        NutriPlan nutriPlan = nutriPlanRepo.findByClientIdAndEndDateIsNullOrThrow(clientId);
+        log.info("Successfully retrieved active NutritionPlan for Client {}", clientId);
+        return nutriPlan;
     }
 
     public List<NutriPlan> getNutriPlans(UUID clientId) {
         Client client = clientRepo.findByIdOrThrow(clientId);
         Sort sort = Sort.by(Sort.Direction.ASC, "startDate");
-        return nutriPlanRepo.findByClientId(clientId, sort);
+        List<NutriPlan> nutriPlans = nutriPlanRepo.findByClientId(clientId, sort);
+        log.info("Successfully retrieved NutritionPlans for Client {}", clientId);
+        return nutriPlans;
     }
 }

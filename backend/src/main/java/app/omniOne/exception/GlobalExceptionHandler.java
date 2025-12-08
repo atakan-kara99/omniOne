@@ -1,5 +1,6 @@
 package app.omniOne.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -20,6 +22,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleSendMail(SendEmailException ex) {
         HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
         ProblemDetail pd = pd("Send Email Failed", status, ex.getMessage());
+        log.error("Failed processing or sending email", ex);
         return new ResponseEntity<>(pd, status);
     }
 
@@ -27,6 +30,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleBadCred(BadCredentialsException ex) {
         HttpStatus status = HttpStatus.UNAUTHORIZED;
         ProblemDetail pd = pd("Bad Credentials", status, ex.getMessage());
+        log.info("Failed to authorize, bad credentials");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -34,6 +38,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleParsing(HttpMessageNotReadableException ex) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         ProblemDetail pd = pd("Http Message Not Readable", status, "Invalid request body");
+        log.info("Failed to read/parse the http message might be invalid request body");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -46,6 +51,7 @@ public class GlobalExceptionHandler {
                 errors.put(error.getField(), error.getDefaultMessage())
         );
         pd.setProperty("errors", errors);
+        log.info("Failed to validate the http request");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -53,6 +59,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleNotAllowed(NotAllowedException ex) {
         HttpStatus status = HttpStatus.FORBIDDEN;
         ProblemDetail pd = pd("Not Allowed", status, ex.getMessage());
+        log.info("Failed to process request because: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
@@ -60,6 +67,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleDuplicateResource(DuplicateResourceException ex) {
         HttpStatus status = HttpStatus.CONFLICT;
         ProblemDetail pd = pd("Duplicate Resource", status, ex.getMessage());
+        log.info("Failed to insert resource into database because it already exists");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -67,6 +75,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleNoSuchResource(NoSuchResourceException ex) {
         HttpStatus status = HttpStatus.NOT_FOUND;
         ProblemDetail pd = pd("No Such Resource", status, ex.getMessage());
+        log.info("Failed to retrieve resource from database because it does not exist");
+        return new ResponseEntity<>(pd, status);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ProblemDetail> handleUnexpected(Exception ex) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        ProblemDetail pd = pd("Something went wrong", status);
+        log.info("Failed to exists", ex);
         return new ResponseEntity<>(pd, status);
     }
 

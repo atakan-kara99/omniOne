@@ -20,4 +20,9 @@ public interface UserRepo extends JpaRepository<User, UUID> {
                 .orElseThrow(() -> new NoSuchResourceException("User not found"));
     }
 
+    default User findByEmailOrThrow(String email) {
+        return findByEmail(email)
+                .orElseThrow(() -> new NoSuchResourceException("User not found"));
+    }
+
 }

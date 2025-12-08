@@ -7,6 +7,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class JwtService {
@@ -64,6 +66,7 @@ public class JwtService {
     }
 
     private String createTemplateJwt(String subject, Map<String, String> claims, long minutes, Algorithm algorithm) {
+        log.info("Creating JWT for {} purposes", subject);
         Builder jwtBuilder = JWT.create()
                 .withIssuer(applicationName)
                 .withSubject(subject)
@@ -74,15 +77,20 @@ public class JwtService {
     }
 
     public DecodedJWT verifyAuth(String jwt) {
-        return authVerifier.verify(jwt);
+        return verify(jwt, authVerifier);
     }
 
     public DecodedJWT verifyActivation(String jwt) {
-        return initVerifier.verify(jwt);
+        return verify(jwt, initVerifier);
     }
 
     public DecodedJWT verifyInvitation(String jwt) {
-        return initVerifier.verify(jwt);
+        return verify(jwt, initVerifier);
+    }
+
+    private DecodedJWT verify(String jwt, JWTVerifier verifier) {
+        log.info("Verifying JWT");
+        return verifier.verify(jwt);
     }
 
 }

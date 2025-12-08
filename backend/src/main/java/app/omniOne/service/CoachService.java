@@ -5,10 +5,12 @@ import app.omniOne.model.entity.Coach;
 import app.omniOne.model.mapper.CoachMapper;
 import app.omniOne.repository.CoachRepo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CoachService {
@@ -17,19 +19,24 @@ public class CoachService {
     private final CoachMapper coachMapper;
 
     public Coach getCoach(UUID coachId) {
-        return coachRepo.findByIdOrThrow(coachId);
+        Coach coach = coachRepo.findByIdOrThrow(coachId);
+        log.info("Successfully retrieved Coach {}", coachId);
+        return coach;
     }
 
     public Coach patchCoach(UUID coachId, CoachPatchRequest request) {
         Coach coach = coachRepo.findByIdOrThrow(coachId);
         coachMapper.map(request, coach);
-        return coachRepo.save(coach);
+        Coach savedCoach = coachRepo.save(coach);
+        log.info("Successfully updated Coach {}", coachId);
+        return savedCoach;
     }
 
     public void deleteCoach(UUID coachId) {
         Coach coach = coachRepo.findByIdOrThrow(coachId);
         coach.getClients().forEach(c -> c.setCoach(null));
         coachRepo.delete(coach);
+        log.info("Successfully deleted Coach {}", coachId);
     }
 
 }

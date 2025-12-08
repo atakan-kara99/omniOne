@@ -6,7 +6,6 @@ import app.omniOne.authentication.model.RegisterRequest;
 import app.omniOne.authentication.model.UserDetails;
 import app.omniOne.email.EmailService;
 import app.omniOne.exception.DuplicateResourceException;
-import app.omniOne.exception.NoSuchResourceException;
 import app.omniOne.exception.NotAllowedException;
 import app.omniOne.model.entity.Client;
 import app.omniOne.model.entity.Coach;
@@ -18,6 +17,7 @@ import app.omniOne.repository.UserRepo;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -46,8 +47,11 @@ public class AuthService {
     }
 
     public boolean isCoachedByMe(UUID clientId) {
+        UUID coachId = getMyId();
         Client client = clientRepo.findByIdOrThrow(clientId);
-        return client.getCoach().getId().equals(getMyId());
+        boolean isIt = client.getCoach().getId().equals(coachId);
+        log.debug("Claim that Coach {} and Client {} match", coachId, clientId);
+        return isIt;
     }
 
     @Transactional
@@ -65,20 +69,21 @@ public class AuthService {
             clientRepo.save(new Client(user.getId()));
         String jwt = jwtService.createActivationJwt(email);
         emailService.sendActivationMail(email, jwt);
+        log.info("Successfully registered User {}", user.getId());
         return user;
     }
 
     public User activate(String token) {
         DecodedJWT jwt = jwtService.verifyActivation(token);
-        User user = userRepo.findByEmail(jwt.getClaim("email").asString())
-                .orElseThrow(() -> new NoSuchResourceException("User not found"));
+        User user = userRepo.findByEmailOrThrow(jwt.getClaim("email").asString());
         user.setEnabled(true);
-        return userRepo.save(user);
+        User savedUser = userRepo.save(user);
+        log.info("Successfully activated User {}", savedUser.getId());
+        return savedUser;
     }
 
     public void sendActivationMail(String email) {
-        User user = userRepo.findByEmail(email)
-                .orElseThrow(() -> new NoSuchResourceException("User not found"));
+        User user = userRepo.findByEmailOrThrow(email);
         if (user.isEnabled())
             throw new NotAllowedException("User already activated");
         String jwt = jwtService.createActivationJwt(email);
@@ -86,8 +91,7 @@ public class AuthService {
     }
 
     public void sendInvitationMail(String clientMail, UUID coachId) {
-        if (!userRepo.existsById(coachId))
-            throw new NoSuchResourceException("Coach not found");
+        userRepo.findByIdOrThrow(coachId);
         String jwt = jwtService.createInvitationJwt(clientMail, coachId);
         emailService.sendInvitationMail(clientMail, jwt);
     }
@@ -96,29 +100,28 @@ public class AuthService {
     public User acceptInvitation(String token, PasswordRequest request) {
         DecodedJWT jwt = jwtService.verifyInvitation(token);
         UUID coachId = UUID.fromString(jwt.getClaim("coachId").asString());
-        Coach coach = coachRepo.findById(coachId)
-                .orElseThrow(() -> new NoSuchResourceException("Coach not found"));
+        Coach coach = coachRepo.findByIdOrThrow(coachId);
         User user = register(new RegisterRequest(
                 jwt.getClaim("clientEmail").asString(), request.password(), UserRole.CLIENT));
-        Client client = clientRepo.findById(user.getId())
-                .orElseThrow(() -> new NoSuchResourceException("Client not found"));
+        Client client = clientRepo.findByIdOrThrow(user.getId());
         client.setCoach(coach);
         clientRepo.save(client);
+        log.info("Successfully accepted invitation Coach {}, Client {}", coachId, client.getId());
         return user;
     }
 
     public void sendForgotMail(String email) {
-        if (!userRepo.existsByEmail(email))
-            throw new NoSuchResourceException("User not found");
+        userRepo.findByEmailOrThrow(email);
         String jwt = jwtService.createResetPasswordJwt(email);
         emailService.sendResetPasswordMail(email, jwt);
     }
 
     public User reset(String token, PasswordRequest request) {
         DecodedJWT jwt = jwtService.verifyActivation(token);
-        User user = userRepo.findByEmail(jwt.getClaim("email").asString())
-                .orElseThrow(() -> new NoSuchResourceException("User not found"));
+        User user = userRepo.findByEmailOrThrow(jwt.getClaim("email").asString());
         user.setPassword(encoder.encode(request.password()));
-        return userRepo.save(user);
+        User savedUser = userRepo.save(user);
+        log.info("Successfully reset password from User {}", user.getId());
+        return savedUser;
     }
 }

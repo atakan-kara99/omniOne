@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Map;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
@@ -39,6 +41,7 @@ public class JwtFilter extends OncePerRequestFilter {
                             new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    log.info("JWT Authorization successful for user {}", username);
                 }
             } catch (Exception ex) {
                 ObjectMapper mapper = new ObjectMapper();
@@ -52,6 +55,7 @@ public class JwtFilter extends OncePerRequestFilter {
                         "path", request.getRequestURI()
                 );
                 mapper.writeValue(response.getWriter(), body);
+                log.error("Invalid JWToken or Unauthorized access", ex);
                 return;
             }
         }
