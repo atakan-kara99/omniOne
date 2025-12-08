@@ -26,25 +26,25 @@
 
 ## 🧑‍🏫 Coach
 
-| Method     | Endpoint                                    | Description                          |
-| ---------- | ------------------------------------------- | ------------------------------------ |
-| **GET**    | `/coach`                                    | Get coach                            |
-| **PATCH**  | `/coach`                                    | Update coach                         |
-| **DELETE** | `/coach`                                    | Remove coach                         |
-| **GET**    | `/coach/clients`                            | Get all clients from a coach         |
-| **GET**    | `/coach/clients/{clientId}`                 | Get a specific client                |
-| **POST**   | `/coach/clients/invite?email=`              | Send client invitation               |
-| **GET**    | `/coach/clients/{clientId}/nutrition-plan`  | Get client's nutrition plan          |
-| **POST**   | `/coach/clients/{clientId}/nutrition-plan`  | Add nutrition plan for client        |
-| **GET**    | `/coach/clients/{clientId}/nutrition-plans` | Get all nutrition plans for a client |
+| Method     | Endpoint                               | Description                          |
+| ---------- | -------------------------------------- | ------------------------------------ |
+| **GET**    | `/coach`                               | Get coach                            |
+| **PATCH**  | `/coach`                               | Update coach                         |
+| **DELETE** | `/coach`                               | Remove coach                         |
+| **GET**    | `/coach/clients`                       | Get all clients from a coach         |
+| **GET**    | `/coach/clients/{clientId}`            | Get a specific client                |
+| **POST**   | `/coach/clients/invite?email=`         | Send client invitation               |
+| **GET**    | `/coach/clients/{clientId}/nutri-plan` | Get client's nutrition plan          |
+| **POST**   | `/coach/clients/{clientId}/nutri-plan` | Add nutrition plan for client        |
+| **GET**    | `/coach/clients/{clientId}/nutri-plans` | Get all nutrition plans for a client |
 
 ---
 
 ## 🧑‍💼 Client
 
-| Method    | Endpoint                  | Description                      |
-| --------- | ------------------------- | -------------------------------- |
-| **GET**   | `/client`                 | Get client                       |
-| **PATCH** | `/client`                 | Update client                    |
-| **GET**   | `/client/nutrition-plan`  | Get client's nutrition plan      |
-| **GET**   | `/client/nutrition-plans` | Get all client's nutrition plans |
+| Method    | Endpoint              | Description                      |
+| --------- |-----------------------| -------------------------------- |
+| **GET**   | `/client`             | Get client                       |
+| **PATCH** | `/client`             | Update client                    |
+| **GET**   | `/client/nutri-plan`  | Get client's nutrition plan      |
+| **GET**   | `/client/nutri-plans` | Get all client's nutrition plans |
