@@ -23,23 +23,26 @@ public class ClientService {
     private final ClientMapper clientMapper;
 
     public List<Client> getClients(UUID coachId) {
+        log.debug("Trying to retrieve Clients from Coach {}", coachId);
         Coach coach = coachRepo.findByIdOrThrow(coachId);
         List<Client> clients = coach.getClients();
-        log.info("Successfully retrieved Clients from Coach {}", coachId);
+        log.info("Successfully retrieved Clients");
         return clients;
     }
 
     public Client getClient(UUID clientId) {
+        log.debug("Trying to retrieve Client {}", clientId);
         Client client = clientRepo.findByIdOrThrow(clientId);
-        log.info("Successfully retrieved Client {}", clientId);
+        log.info("Successfully retrieved Client");
         return client;
     }
 
     public Client patchClient(UUID clientId, ClientPatchRequest request) {
+        log.debug("Trying to update Client {}", clientId);
         Client client = clientRepo.findByIdOrThrow(clientId);
         clientMapper.map(request, client);
         Client savedClient = clientRepo.save(client);
-        log.info("Successfully updated Client {}", clientId);
+        log.info("Successfully updated Client");
         return savedClient;
     }
 

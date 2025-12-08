@@ -23,14 +23,16 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String method = request.getMethod();
         String path = request.getRequestURI();
-        log.info("→ {} {}", method, path);
+        log.info("→");
+        log.info("{} {}", method, path);
         long start = System.currentTimeMillis();
 
         filterChain.doFilter(request, response);
 
         HttpStatus status = HttpStatus.valueOf(response.getStatus());
         long duration = System.currentTimeMillis() - start;
-        log.info("← {} {} completed with {} in {} ms", method, path, status, duration);
+        log.info("{} {} completed with {} in {} ms", method, path, status, duration);
+        log.info("←");
     }
 
 }

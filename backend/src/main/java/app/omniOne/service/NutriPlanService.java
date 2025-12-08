@@ -25,6 +25,7 @@ public class NutriPlanService {
 
     @Transactional
     public NutriPlan addNutriPlan(UUID clientId, NutriPlanPostRequest request) {
+        log.debug("Trying to add NutritionPlan for Client {}", clientId);
         Client client = clientRepo.findByIdOrThrow(clientId);
         nutriPlanRepo.findByClientIdAndEndDateIsNull(clientId)
                 .ifPresent(activeNP -> activeNP.setEndDate(LocalDate.now()));
@@ -35,21 +36,23 @@ public class NutriPlanService {
                 client
         );
         NutriPlan savedNutriPlan = nutriPlanRepo.save(newPlan);
-        log.info("Successfully added NutritionPlan for Client {}", clientId);
+        log.info("Successfully added NutritionPlan");
         return savedNutriPlan;
     }
 
     public NutriPlan getActiveNutriPlan(UUID clientId) {
+        log.debug("Trying to retrieve active NutritionPlan for Client {}", clientId);
         NutriPlan nutriPlan = nutriPlanRepo.findByClientIdAndEndDateIsNullOrThrow(clientId);
-        log.info("Successfully retrieved active NutritionPlan for Client {}", clientId);
+        log.info("Successfully retrieved active NutritionPlan");
         return nutriPlan;
     }
 
     public List<NutriPlan> getNutriPlans(UUID clientId) {
+        log.debug("Trying to retrieve NutritionPlans for Client {}", clientId);
         Client client = clientRepo.findByIdOrThrow(clientId);
         Sort sort = Sort.by(Sort.Direction.ASC, "startDate");
         List<NutriPlan> nutriPlans = nutriPlanRepo.findByClientId(clientId, sort);
-        log.info("Successfully retrieved NutritionPlans for Client {}", clientId);
+        log.info("Successfully retrieved NutritionPlans");
         return nutriPlans;
     }
 }

@@ -36,12 +36,13 @@ public class JwtFilter extends OncePerRequestFilter {
                 String jwt = authHeader.substring(7);
                 DecodedJWT decodedJwt = jwtService.verifyAuth(jwt);
                 String username = decodedJwt.getSubject();
+                log.debug("Trying to authenticate via JWT for user {}", username);
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    log.info("JWT Authorization successful for user {}", username);
+                    log.info("Successfully authorized with JWT");
                 }
             } catch (Exception ex) {
                 ObjectMapper mapper = new ObjectMapper();

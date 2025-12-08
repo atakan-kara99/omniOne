@@ -59,6 +59,7 @@ public class EmailService {
     }
 
     private void sendTemplateMail(String to, String jwt, String from, String url, String path, String subject) {
+        log.debug("Trying to send mail to {}", to);
         String link = url + "?token=" + jwt;
         String text = render(path, Map.of("link", link, "appName", applicationName));
         MimeMessage message = mailSender.createMimeMessage();
@@ -75,11 +76,10 @@ public class EmailService {
     }
 
     private String render(String templateName, Map<String, Object> variables) {
+        log.debug("Trying to render {} template", templateName);
         Context context = new Context();
         context.setVariables(variables);
-        String text = templateEngine.process(templateName, context);
-        log.debug("Successfully rendered {} template", templateName);
-        return text;
+        return templateEngine.process(templateName, context);
     }
 
 }

@@ -24,22 +24,25 @@ public class UserService {
     private final PasswordEncoder encoder;
 
     public User getUser(UUID id) {
+        log.debug("Trying to retrieve User {}", id);
         User user = userRepo.findByIdOrThrow(id);
-        log.info("Successfully retrieved User {}", id);
+        log.info("Successfully retrieved User");
         return user;
     }
 
     public User changePassword(UUID id, ChangePasswordRequest request) {
+        log.debug("Trying to change password for User {}", id);
         User user = userRepo.findByIdOrThrow(id);
         if (!encoder.matches(request.oldPassword(), user.getPassword()))
             throw new NotAllowedException("Old password is incorrect");
         user.setPassword(encoder.encode(request.newPassword()));
         User savedUser = userRepo.save(user);
-        log.info("Successfully changed password for User {}", id);
+        log.info("Successfully changed password");
         return savedUser;
     }
 
     public UserProfile putProfile(UUID id, UserProfileRequest request) {
+        log.debug("Trying to update UserProfile for User {}", id);
         User user = userRepo.findByIdOrThrow(id);
         UserProfile profile;
         if (user.getProfile() == null) {
@@ -51,14 +54,15 @@ public class UserService {
         }
         userMapper.map(request, profile);
         UserProfile savedUserProfile = userRepo.save(user).getProfile();
-        log.info("Successfully updated UserProfile for User {}", id);
+        log.info("Successfully updated UserProfile");
         return savedUserProfile;
     }
 
     public UserProfile getProfile(UUID id) {
+        log.debug("Trying to retrieve UserProfile for User {}", id);
         User user = userRepo.findByIdOrThrow(id);
         UserProfile profile = user.getProfile();
-        log.info("Successfully retrieved UserProfile for User {}", id);
+        log.info("Successfully retrieved UserProfile");
         return profile;
     }
 

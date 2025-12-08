@@ -89,8 +89,10 @@ public class JwtService {
     }
 
     private DecodedJWT verify(String jwt, JWTVerifier verifier) {
-        log.info("Verifying JWT");
-        return verifier.verify(jwt);
+        log.debug("Trying to verify JWT");
+        DecodedJWT decodedJWT = verifier.verify(jwt);
+        log.info("Successfully verified JWT");
+        return decodedJWT;
     }
 
 }

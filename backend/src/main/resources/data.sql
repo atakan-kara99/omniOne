@@ -28,19 +28,20 @@ VALUES
 -- COACH  (IDs discovered via email)
 -----------------------------------------
 
-INSERT INTO coach (id)
-SELECT id FROM user_ WHERE role = 'COACH';
-
+INSERT INTO coach (user_id, created_at, updated_at)
+VALUES
+    ((SELECT id FROM user_ WHERE email = 'coach-10@omni.one'), '2025-12-01 00:00:00.000000', NULL),
+    ((SELECT id FROM user_ WHERE email = 'coach-11@omni.one'), '2025-12-01 00:00:00.000000', NULL);
 
 -----------------------------------------
 -- CLIENT  (link to coaches via email lookup)
 -----------------------------------------
 
-INSERT INTO client (id, status, coach_id)
+INSERT INTO client (user_id, coach_id, created_at, updated_at)
 VALUES
-    ((SELECT id FROM user_ WHERE email = 'client-100@omni.one'), 'PENDING', (SELECT id FROM user_ WHERE email = 'coach-10@omni.one')),
-    ((SELECT id FROM user_ WHERE email = 'client-101@omni.one'), 'PENDING', (SELECT id FROM user_ WHERE email = 'coach-10@omni.one')),
-    ((SELECT id FROM user_ WHERE email = 'client-102@omni.one'), 'PENDING', (SELECT id FROM user_ WHERE email = 'coach-11@omni.one'));
+    ((SELECT id FROM user_ WHERE email = 'client-100@omni.one'), (SELECT id FROM user_ WHERE email = 'coach-10@omni.one'), '2025-12-01 00:00:00.000000', NULL),
+    ((SELECT id FROM user_ WHERE email = 'client-101@omni.one'), (SELECT id FROM user_ WHERE email = 'coach-10@omni.one'), '2025-12-01 00:00:00.000000', NULL),
+    ((SELECT id FROM user_ WHERE email = 'client-102@omni.one'), (SELECT id FROM user_ WHERE email = 'coach-11@omni.one'), '2025-12-01 00:00:00.000000', NULL);
 
 -----------------------------------------
 -- NUTRITION PLAN (link via client email)

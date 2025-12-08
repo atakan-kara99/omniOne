@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleSendMail(SendEmailException ex) {
         HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
         ProblemDetail pd = pd("Send Email Failed", status, ex.getMessage());
-        log.error("Failed processing or sending email", ex);
+        log.error("Failed to process or send email", ex);
         return new ResponseEntity<>(pd, status);
     }
 
@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleBadCred(BadCredentialsException ex) {
         HttpStatus status = HttpStatus.UNAUTHORIZED;
         ProblemDetail pd = pd("Bad Credentials", status, ex.getMessage());
-        log.info("Failed to authorize, bad credentials");
+        log.info("Failed to authorize request because: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleParsing(HttpMessageNotReadableException ex) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         ProblemDetail pd = pd("Http Message Not Readable", status, "Invalid request body");
-        log.info("Failed to read/parse the http message might be invalid request body");
+        log.info("Failed to read http message because: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
                 errors.put(error.getField(), error.getDefaultMessage())
         );
         pd.setProperty("errors", errors);
-        log.info("Failed to validate the http request");
+        log.info("Failed to validate http request because: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
@@ -67,7 +67,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleDuplicateResource(DuplicateResourceException ex) {
         HttpStatus status = HttpStatus.CONFLICT;
         ProblemDetail pd = pd("Duplicate Resource", status, ex.getMessage());
-        log.info("Failed to insert resource into database because it already exists");
+        log.info("Failed to insert into database because: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
@@ -75,7 +75,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleNoSuchResource(NoSuchResourceException ex) {
         HttpStatus status = HttpStatus.NOT_FOUND;
         ProblemDetail pd = pd("No Such Resource", status, ex.getMessage());
-        log.info("Failed to retrieve resource from database because it does not exist");
+        log.info("Failed to retrieve from database because: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 

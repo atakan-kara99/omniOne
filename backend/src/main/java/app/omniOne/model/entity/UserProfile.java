@@ -13,13 +13,14 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @Entity
+@Table(name = "user_profile")
 public class UserProfile extends BaseEntity {
 
     @Id
     private UUID id;
 
-    @OneToOne(fetch = FetchType.LAZY)
     @MapsId
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 

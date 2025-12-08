@@ -48,10 +48,9 @@ public class AuthService {
 
     public boolean isCoachedByMe(UUID clientId) {
         UUID coachId = getMyId();
+        log.debug("Checking if Coach {} has permission to access Client {} info", coachId, clientId);
         Client client = clientRepo.findByIdOrThrow(clientId);
-        boolean isIt = client.getCoach().getId().equals(coachId);
-        log.debug("Claim that Coach {} and Client {} match", coachId, clientId);
-        return isIt;
+        return client.getCoach().getId().equals(coachId);
     }
 
     @Transactional
@@ -64,9 +63,9 @@ public class AuthService {
         User user = userRepo.save(
                 User.builder().email(email).password(encoder.encode(dto.password())).role(dto.role()).build());
         if (dto.role().equals(UserRole.COACH))
-            coachRepo.save(new Coach(user.getId()));
+            coachRepo.save(Coach.builder().user(user).build());
         if (dto.role().equals(UserRole.CLIENT))
-            clientRepo.save(new Client(user.getId()));
+            clientRepo.save(Client.builder().user(user).build());
         String jwt = jwtService.createActivationJwt(email);
         emailService.sendActivationMail(email, jwt);
         log.info("Successfully registered User {}", user.getId());
