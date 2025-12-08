@@ -1,6 +1,6 @@
 package app.omniOne.controller.coach;
 
-import app.omniOne.model.dto.CoachPatchDto;
+import app.omniOne.model.dto.CoachPatchRequest;
 import app.omniOne.model.dto.CoachResponseDto;
 import app.omniOne.model.mapper.CoachMapper;
 import app.omniOne.service.CoachService;
@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import static app.omniOne.auth.AuthService.getMyId;
+import static app.omniOne.authentication.AuthService.getMyId;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,7 +27,7 @@ public class CoachCoachController {
 
     @PatchMapping
     @ResponseStatus(HttpStatus.OK)
-    public CoachResponseDto patchCoach(@RequestBody @Valid CoachPatchDto dto){
+    public CoachResponseDto patchCoach(@RequestBody @Valid CoachPatchRequest dto){
         return coachMapper.map(coachService.patchCoach(getMyId(), dto));
     }
 

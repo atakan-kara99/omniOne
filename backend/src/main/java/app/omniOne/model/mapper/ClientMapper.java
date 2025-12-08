@@ -1,6 +1,6 @@
 package app.omniOne.model.mapper;
 
-import app.omniOne.model.dto.ClientPatchDto;
+import app.omniOne.model.dto.ClientPatchRequest;
 import app.omniOne.model.dto.ClientResponseDto;
 import app.omniOne.model.entity.Client;
 import org.mapstruct.Mapper;
@@ -15,7 +15,7 @@ public interface ClientMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "coach", ignore = true)
-    @Mapping(target = "nutritionPlans", ignore = true)
-    void map(ClientPatchDto dto, @MappingTarget Client client);
+    @Mapping(target = "nutriPlans", ignore = true)
+    void map(ClientPatchRequest dto, @MappingTarget Client client);
 
 }

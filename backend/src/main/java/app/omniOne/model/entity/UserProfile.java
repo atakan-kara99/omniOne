@@ -36,6 +36,4 @@ public class UserProfile extends BaseEntity {
     @Column(nullable = false)
     private Gender gender;
 
-    // PROFIL_FOTO?
-
 }

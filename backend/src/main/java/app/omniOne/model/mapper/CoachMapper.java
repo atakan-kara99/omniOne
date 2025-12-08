@@ -1,6 +1,6 @@
 package app.omniOne.model.mapper;
 
-import app.omniOne.model.dto.CoachPatchDto;
+import app.omniOne.model.dto.CoachPatchRequest;
 import app.omniOne.model.dto.CoachResponseDto;
 import app.omniOne.model.entity.Coach;
 import org.mapstruct.Mapper;
@@ -14,6 +14,6 @@ public interface CoachMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "clients", ignore = true)
-    void map(CoachPatchDto dto, @MappingTarget Coach coach);
+    void map(CoachPatchRequest dto, @MappingTarget Coach coach);
 
 }

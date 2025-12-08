@@ -1,11 +1,11 @@
 package app.omniOne.service;
 
-import app.omniOne.model.dto.ClientPatchDto;
+import app.omniOne.model.dto.ClientPatchRequest;
 import app.omniOne.model.entity.Client;
 import app.omniOne.model.entity.Coach;
 import app.omniOne.model.mapper.ClientMapper;
-import app.omniOne.repo.ClientRepo;
-import app.omniOne.repo.CoachRepo;
+import app.omniOne.repository.ClientRepo;
+import app.omniOne.repository.CoachRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,8 +16,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ClientService {
 
-    private final ClientRepo clientRepo;
     private final CoachRepo coachRepo;
+    private final ClientRepo clientRepo;
     private final ClientMapper clientMapper;
 
     public List<Client> getClients(UUID coachId) {
@@ -29,9 +29,9 @@ public class ClientService {
         return clientRepo.findByIdOrThrow(clientId);
     }
 
-    public Client patchClient(UUID clientId, ClientPatchDto dto) {
+    public Client patchClient(UUID clientId, ClientPatchRequest request) {
         Client client = clientRepo.findByIdOrThrow(clientId);
-        clientMapper.map(dto, client);
+        clientMapper.map(request, client);
         return clientRepo.save(client);
     }
 
