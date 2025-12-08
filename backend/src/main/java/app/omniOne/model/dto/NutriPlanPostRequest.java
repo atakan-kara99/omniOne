@@ -5,9 +5,9 @@ import org.hibernate.validator.constraints.Range;
 
 public record NutriPlanPostRequest(
 
-        @Range(min = 0, max = 2000)
+        @Range(min = 0, max = 2500)
         @NotNull
-        Integer carbohydrates,
+        Integer carbs,
 
         @Range(min = 0, max = 1000)
         @NotNull
@@ -15,5 +15,15 @@ public record NutriPlanPostRequest(
 
         @Range(min = 0, max = 500)
         @NotNull
-        Integer fats) {
-}
+        Integer fats,
+
+        @Range(min = 0, max = 10000)
+        Integer water,
+
+        @Range(min = 0, max = 25000)
+        Integer salt,
+
+        @Range(min = 0, max = 50000)
+        Integer fiber
+
+) {}

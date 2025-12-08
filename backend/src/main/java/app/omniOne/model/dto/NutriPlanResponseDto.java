@@ -1,6 +1,6 @@
 package app.omniOne.model.dto;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record NutriPlanResponseDto(
 
@@ -12,8 +12,12 @@ public record NutriPlanResponseDto(
 
         Integer fats,
 
-        LocalDate startDate,
+        Integer water,
 
-        LocalDate endDate
+        Integer salt,
+
+        Integer fiber,
+
+        LocalDateTime createdAt
 
 ) {}

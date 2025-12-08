@@ -1,15 +1,16 @@
 package app.omniOne.model.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @NoArgsConstructor
+@Builder
+@AllArgsConstructor
 @Entity
 @Table(name = "nutrition_plan")
 public class NutriPlan {
@@ -23,9 +24,6 @@ public class NutriPlan {
     private Client client;
 
     @Column(nullable = false)
-    private Integer calories;
-
-    @Column(nullable = false)
     private Integer carbs;
 
     @Column(nullable = false)
@@ -34,28 +32,22 @@ public class NutriPlan {
     @Column(nullable = false)
     private Integer fats;
 
-    @Column(nullable = false)
-    private LocalDate startDate;
+    private Integer calories;
 
-    private LocalDate endDate; // null = active plan
+    private Integer water;
 
-    public boolean isActive() {
-        return endDate == null;
-    }
+    private Integer salt;
+
+    private Integer fiber;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMP(0)")
+    private LocalDateTime createdAt;
 
     @PrePersist
     @PreUpdate
     private void computeCalories() {
         this.calories = (int) Math.round(carbs * 4.1 + proteins * 4.1 + fats * 9.3);
-    }
-
-    public NutriPlan(Integer carbs, Integer proteins, Integer fats, Client client) {
-        this.carbs = carbs;
-        this.proteins = proteins;
-        this.fats = fats;
-        this.startDate = LocalDate.now();
-        this.endDate = null;
-        this.client = client;
     }
 
 }

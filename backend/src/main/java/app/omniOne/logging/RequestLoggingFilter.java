@@ -32,7 +32,6 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         HttpStatus status = HttpStatus.valueOf(response.getStatus());
         long duration = System.currentTimeMillis() - start;
         log.info("{} {} completed with {} in {} ms", method, path, status, duration);
-        log.info("←");
     }
 
 }

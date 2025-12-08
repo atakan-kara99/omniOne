@@ -6,9 +6,11 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -23,6 +25,22 @@ public class GlobalExceptionHandler {
         HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
         ProblemDetail pd = pd("Send Email Failed", status, ex.getMessage());
         log.error("Failed to process or send email", ex);
+        return new ResponseEntity<>(pd, status);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ProblemDetail> handleNoResourceFound(NoResourceFoundException ex) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        ProblemDetail pd = pd("No Resource Found", status, ex.getMessage());
+        log.info("Failed to find resource because: {}", ex.getMessage());
+        return new ResponseEntity<>(pd, status);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ProblemDetail> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        HttpStatus status = HttpStatus.METHOD_NOT_ALLOWED;
+        ProblemDetail pd = pd("Http Request Method Not Supported", status, ex.getMessage());
+        log.info("Failed to process http request because: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
