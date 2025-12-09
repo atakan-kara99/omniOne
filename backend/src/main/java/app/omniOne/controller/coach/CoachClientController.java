@@ -1,7 +1,7 @@
 package app.omniOne.controller.coach;
 
 import app.omniOne.authentication.AuthService;
-import app.omniOne.model.dto.ClientResponseDto;
+import app.omniOne.model.dto.ClientResponse;
 import app.omniOne.model.mapper.ClientMapper;
 import app.omniOne.service.ClientService;
 import jakarta.validation.constraints.Email;
@@ -27,14 +27,14 @@ public class CoachClientController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<ClientResponseDto> getClients() {
+    public List<ClientResponse> getClients() {
         return clientService.getClients(getMyId()).stream().map(clientMapper::map).toList();
     }
 
     @GetMapping("{clientId}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("@authService.isCoachedByMe(#clientId)")
-    public ClientResponseDto getClient(@PathVariable UUID clientId) {
+    public ClientResponse getClient(@PathVariable UUID clientId) {
         return clientMapper.map(clientService.getClient(clientId));
     }
 

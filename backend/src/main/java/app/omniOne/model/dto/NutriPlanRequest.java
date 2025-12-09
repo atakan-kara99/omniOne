@@ -3,27 +3,27 @@ package app.omniOne.model.dto;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Range;
 
-public record NutriPlanPostRequest(
+public record NutriPlanRequest(
 
         @Range(min = 0, max = 2500)
         @NotNull
-        Integer carbs,
+        Double carbs,
 
         @Range(min = 0, max = 1000)
         @NotNull
-        Integer proteins,
+        Double proteins,
 
         @Range(min = 0, max = 500)
         @NotNull
-        Integer fats,
+        Double fats,
 
-        @Range(min = 0, max = 10000)
-        Integer water,
+        @Range(min = 0, max = 50)
+        Double water,
 
-        @Range(min = 0, max = 25000)
-        Integer salt,
+        @Range(min = 0, max = 50)
+        Double salt,
 
-        @Range(min = 0, max = 50000)
-        Integer fiber
+        @Range(min = 0, max = 100)
+        Double fiber
 
 ) {}

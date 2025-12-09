@@ -1,7 +1,7 @@
 package app.omniOne.controller.client;
 
 import app.omniOne.model.dto.ClientPatchRequest;
-import app.omniOne.model.dto.ClientResponseDto;
+import app.omniOne.model.dto.ClientResponse;
 import app.omniOne.model.mapper.ClientMapper;
 import app.omniOne.service.ClientService;
 import jakarta.validation.Valid;
@@ -21,13 +21,13 @@ public class ClientClientController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public ClientResponseDto getClient() {
+    public ClientResponse getClient() {
         return clientMapper.map(clientService.getClient(getMyId()));
     }
 
     @PatchMapping
     @ResponseStatus(HttpStatus.OK)
-    public ClientResponseDto patchClient(@RequestBody @Valid ClientPatchRequest dto) {
+    public ClientResponse patchClient(@RequestBody @Valid ClientPatchRequest dto) {
         return clientMapper.map(clientService.patchClient(getMyId(), dto));
     }
 

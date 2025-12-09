@@ -53,9 +53,17 @@ public class AuthService {
         return client.getCoach().getId().equals(coachId);
     }
 
+    public boolean isMyResource(UUID clientId) {
+        UUID coachId = getMyId();
+        log.debug("Checking if Coach {} has permission to access Client {} info", coachId, clientId);
+        Client client = clientRepo.findByIdOrThrow(clientId);
+        return client.getCoach().getId().equals(coachId);
+    }
+
     @Transactional
     public User register(RegisterRequest dto) {
         String email = dto.email().trim().toLowerCase();
+        log.debug("Trying to register User with Email {}", email);
         if (dto.role().equals(UserRole.ADMIN))
             throw new NotAllowedException("ADMIN registration is not allowed");
         if (userRepo.existsByEmail(email))
@@ -68,11 +76,12 @@ public class AuthService {
             clientRepo.save(Client.builder().user(user).build());
         String jwt = jwtService.createActivationJwt(email);
         emailService.sendActivationMail(email, jwt);
-        log.info("Successfully registered User {}", user.getId());
+        log.info("Successfully registered User");
         return user;
     }
 
     public User activate(String token) {
+        log.debug("Trying to activate User");
         DecodedJWT jwt = jwtService.verifyActivation(token);
         User user = userRepo.findByEmailOrThrow(jwt.getClaim("email").asString());
         user.setEnabled(true);
@@ -97,6 +106,7 @@ public class AuthService {
 
     @Transactional
     public User acceptInvitation(String token, PasswordRequest request) {
+        log.debug("Trying to accept invitation");
         DecodedJWT jwt = jwtService.verifyInvitation(token);
         UUID coachId = UUID.fromString(jwt.getClaim("coachId").asString());
         Coach coach = coachRepo.findByIdOrThrow(coachId);
@@ -104,8 +114,7 @@ public class AuthService {
                 jwt.getClaim("clientEmail").asString(), request.password(), UserRole.CLIENT));
         Client client = clientRepo.findByIdOrThrow(user.getId());
         client.setCoach(coach);
-        clientRepo.save(client);
-        log.info("Successfully accepted invitation Coach {}, Client {}", coachId, client.getId());
+        log.info("Successfully accepted invitation Coach {} to Client {}", coachId, client.getId());
         return user;
     }
 
@@ -116,6 +125,7 @@ public class AuthService {
     }
 
     public User reset(String token, PasswordRequest request) {
+        log.debug("Trying to reset password");
         DecodedJWT jwt = jwtService.verifyActivation(token);
         User user = userRepo.findByEmailOrThrow(jwt.getClaim("email").asString());
         user.setPassword(encoder.encode(request.password()));

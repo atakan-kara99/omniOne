@@ -2,9 +2,6 @@ package app.omniOne.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -13,7 +10,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "nutrition_plan")
-public class NutriPlan {
+public class NutriPlan extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,30 +21,26 @@ public class NutriPlan {
     private Client client;
 
     @Column(nullable = false)
-    private Integer carbs;
+    private Double carbs;
 
     @Column(nullable = false)
-    private Integer proteins;
+    private Double proteins;
 
     @Column(nullable = false)
-    private Integer fats;
+    private Double fats;
 
-    private Integer calories;
+    private Double calories;
 
-    private Integer water;
+    private Double water;
 
-    private Integer salt;
+    private Double salt;
 
-    private Integer fiber;
-
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMP(0)")
-    private LocalDateTime createdAt;
+    private Double fiber;
 
     @PrePersist
     @PreUpdate
     private void computeCalories() {
-        this.calories = (int) Math.round(carbs * 4.1 + proteins * 4.1 + fats * 9.3);
+        this.calories = carbs * 4.1 + proteins * 4.1 + fats * 9.3;
     }
 
 }

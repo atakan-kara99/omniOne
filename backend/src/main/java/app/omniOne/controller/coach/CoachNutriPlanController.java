@@ -1,7 +1,7 @@
 package app.omniOne.controller.coach;
 
-import app.omniOne.model.dto.NutriPlanPostRequest;
-import app.omniOne.model.dto.NutriPlanResponseDto;
+import app.omniOne.model.dto.NutriPlanRequest;
+import app.omniOne.model.dto.NutriPlanResponse;
 import app.omniOne.model.mapper.NutriPlanMapper;
 import app.omniOne.service.NutriPlanService;
 import jakarta.validation.Valid;
@@ -22,22 +22,30 @@ public class CoachNutriPlanController {
     private final NutriPlanMapper nutriPlanMapper;
     private final NutriPlanService nutriPlanService;
 
-    @PostMapping("/nutri-plan")
-    @ResponseStatus(HttpStatus.OK)
-    public NutriPlanResponseDto addNutriPlan(
-            @PathVariable UUID clientId, @RequestBody @Valid NutriPlanPostRequest dto) {
-        return nutriPlanMapper.map(nutriPlanService.addNutriPlan(clientId, dto));
+    @PostMapping("/nutri-plans")
+    @ResponseStatus(HttpStatus.CREATED)
+    public NutriPlanResponse addNutriPlan(
+            @PathVariable UUID clientId, @RequestBody @Valid NutriPlanRequest request) {
+        return nutriPlanMapper.map(nutriPlanService.addNutriPlan(clientId, request));
     }
 
-    @GetMapping("/nutri-plan")
+    @PutMapping("/nutri-plans/{nutriPlanId}")
     @ResponseStatus(HttpStatus.OK)
-    public NutriPlanResponseDto getNutriPlan(@PathVariable UUID clientId) {
+    public NutriPlanResponse correctNutriPlan(
+            @PathVariable UUID clientId, @PathVariable Long nutriPlanId,
+            @RequestBody @Valid NutriPlanRequest request) {
+        return nutriPlanMapper.map(nutriPlanService.correctNutriPlan(clientId, nutriPlanId, request));
+    }
+
+    @GetMapping("/nutri-plans/active")
+    @ResponseStatus(HttpStatus.OK)
+    public NutriPlanResponse getNutriPlan(@PathVariable UUID clientId) {
         return nutriPlanMapper.map((nutriPlanService.getActiveNutriPlan(clientId)));
     }
 
     @GetMapping("/nutri-plans")
     @ResponseStatus(HttpStatus.OK)
-    public List<NutriPlanResponseDto> getNutriPlans(@PathVariable UUID clientId) {
+    public List<NutriPlanResponse> getNutriPlans(@PathVariable UUID clientId) {
         return nutriPlanService.getNutriPlans(clientId)
                         .stream().map(nutriPlanMapper::map).toList();
     }

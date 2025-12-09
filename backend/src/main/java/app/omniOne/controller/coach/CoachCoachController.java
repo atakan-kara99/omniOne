@@ -1,7 +1,7 @@
 package app.omniOne.controller.coach;
 
 import app.omniOne.model.dto.CoachPatchRequest;
-import app.omniOne.model.dto.CoachResponseDto;
+import app.omniOne.model.dto.CoachResponse;
 import app.omniOne.model.mapper.CoachMapper;
 import app.omniOne.service.CoachService;
 import jakarta.validation.Valid;
@@ -21,13 +21,13 @@ public class CoachCoachController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public CoachResponseDto getCoach() {
+    public CoachResponse getCoach() {
         return coachMapper.map(coachService.getCoach(getMyId()));
     }
 
     @PatchMapping
     @ResponseStatus(HttpStatus.OK)
-    public CoachResponseDto patchCoach(@RequestBody @Valid CoachPatchRequest dto){
+    public CoachResponse patchCoach(@RequestBody @Valid CoachPatchRequest dto){
         return coachMapper.map(coachService.patchCoach(getMyId(), dto));
     }
 

@@ -44,4 +44,11 @@ public class UserController {
     public UserProfileDto putProfile(@RequestBody @Valid UserProfileRequest request) {
         return userMapper.map(userService.putProfile(getMyId(), request));
     }
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser() {
+        userService.softDeleteUser(getMyId());
+    }
+
 }

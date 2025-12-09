@@ -5,13 +5,17 @@ import app.omniOne.model.dto.ChangePasswordRequest;
 import app.omniOne.model.dto.UserProfileRequest;
 import app.omniOne.model.entity.User;
 import app.omniOne.model.entity.UserProfile;
+import app.omniOne.model.enums.Gender;
 import app.omniOne.model.mapper.UserMapper;
 import app.omniOne.repository.UserRepo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Slf4j
@@ -64,6 +68,24 @@ public class UserService {
         UserProfile profile = user.getProfile();
         log.info("Successfully retrieved UserProfile");
         return profile;
+    }
+
+    @Transactional
+    public void softDeleteUser(UUID id) {
+        log.debug("Trying to soft delete User {}", id);
+        User user = userRepo.findByIdOrThrow(id);
+        if (user.isDeleted())
+            throw new NotAllowedException("User already deleted");
+        user.setDeleted(true);
+        user.setDeletedAt(LocalDateTime.now());
+        user.setEmail(UUID.randomUUID() + "@deleted.user");
+        user.setPassword(encoder.encode(UUID.randomUUID().toString()));
+        user.getProfile().setGender(Gender.OTHER);
+        user.getProfile().setBirthDate(LocalDate.of(1970, 1, 1));
+        user.getProfile().setFirstName("deleted");
+        user.getProfile().setLastName("user");
+        //TODO: ALSO ANONYMIZE CLIENT AND COACH INFO
+        log.info("Successfully soft deleted User and UserProfile");
     }
 
 }

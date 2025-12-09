@@ -12,18 +12,25 @@ import java.util.UUID;
 @Repository
 public interface NutriPlanRepo extends JpaRepository<NutriPlan, Long> {
 
+    Optional<NutriPlan> findByIdAndClientId(Long id, UUID clientId);
+
+    default NutriPlan findByIdAndClientIdOrThrow(Long id, UUID clientId) {
+        return findByIdAndClientId(id, clientId)
+                .orElseThrow(() -> new NoSuchResourceException("NutritionPlan not found"));
+    }
+
     Optional<NutriPlan> findFirstByClientIdOrderByCreatedAtDesc(UUID clientId);
 
     default NutriPlan findFirstByClientIdOrderByCreatedAtDescOrThrow(UUID clientId) {
         return findFirstByClientIdOrderByCreatedAtDesc(clientId)
-                .orElseThrow(() -> new NoSuchResourceException("NutriPlan not found"));
+                .orElseThrow(() -> new NoSuchResourceException("NutritionPlan not found"));
     }
 
     Optional<List<NutriPlan>> findByClientIdOrderByCreatedAtDesc(UUID clientId);
 
     default List<NutriPlan> findByClientIdOrderByCreatedAtDescOrThrow(UUID clientId) {
         return findByClientIdOrderByCreatedAtDesc(clientId)
-                .orElseThrow(() -> new NoSuchResourceException("NutriPlans not found"));
+                .orElseThrow(() -> new NoSuchResourceException("NutritionPlan not found"));
     }
 
 }

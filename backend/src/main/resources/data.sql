@@ -2,14 +2,14 @@
 -- USER
 -----------------------------------------
 
-INSERT INTO user_ (id, email, password, role, created_at, enabled)
+INSERT INTO user_ (id, email, password, role, created_at, enabled, deleted)
 VALUES
-    ('00000000-0000-0000-0000-000000000001',    'admin-1@omni.one', '$2a$12$eZQ5iHOC5gmrYD77UBqpm.YSXKHnAyQ1jtP3EA1bfy1rMUYf9w8MW',  'ADMIN', '2025-12-01T00:00:00', true),
-    ('00000000-0000-0000-0000-000000000010',   'coach-10@omni.one', '$2a$12$eZQ5iHOC5gmrYD77UBqpm.YSXKHnAyQ1jtP3EA1bfy1rMUYf9w8MW',  'COACH', '2025-12-01T00:00:00', true),
-    ('00000000-0000-0000-0000-000000000011',   'coach-11@omni.one', '$2a$12$eZQ5iHOC5gmrYD77UBqpm.YSXKHnAyQ1jtP3EA1bfy1rMUYf9w8MW',  'COACH', '2025-12-01T00:00:00', true),
-    ('00000000-0000-0000-0000-000000000100', 'client-100@omni.one', '$2a$12$eZQ5iHOC5gmrYD77UBqpm.YSXKHnAyQ1jtP3EA1bfy1rMUYf9w8MW', 'CLIENT', '2025-12-01T00:00:00', true),
-    ('00000000-0000-0000-0000-000000000101', 'client-101@omni.one', '$2a$12$eZQ5iHOC5gmrYD77UBqpm.YSXKHnAyQ1jtP3EA1bfy1rMUYf9w8MW', 'CLIENT', '2025-12-01T00:00:00', true),
-    ('00000000-0000-0000-0000-000000000102', 'client-102@omni.one', '$2a$12$eZQ5iHOC5gmrYD77UBqpm.YSXKHnAyQ1jtP3EA1bfy1rMUYf9w8MW', 'CLIENT', '2025-12-01T00:00:00', true);
+    ('00000000-0000-0000-0000-000000000001',    'admin-1@omni.one', '$2a$12$eZQ5iHOC5gmrYD77UBqpm.YSXKHnAyQ1jtP3EA1bfy1rMUYf9w8MW',  'ADMIN', '2025-12-01T00:00:00', true, false),
+    ('00000000-0000-0000-0000-000000000010',   'coach-10@omni.one', '$2a$12$eZQ5iHOC5gmrYD77UBqpm.YSXKHnAyQ1jtP3EA1bfy1rMUYf9w8MW',  'COACH', '2025-12-01T00:00:00', true, false),
+    ('00000000-0000-0000-0000-000000000011',   'coach-11@omni.one', '$2a$12$eZQ5iHOC5gmrYD77UBqpm.YSXKHnAyQ1jtP3EA1bfy1rMUYf9w8MW',  'COACH', '2025-12-01T00:00:00', true, false),
+    ('00000000-0000-0000-0000-000000000100', 'client-100@omni.one', '$2a$12$eZQ5iHOC5gmrYD77UBqpm.YSXKHnAyQ1jtP3EA1bfy1rMUYf9w8MW', 'CLIENT', '2025-12-01T00:00:00', true, false),
+    ('00000000-0000-0000-0000-000000000101', 'client-101@omni.one', '$2a$12$eZQ5iHOC5gmrYD77UBqpm.YSXKHnAyQ1jtP3EA1bfy1rMUYf9w8MW', 'CLIENT', '2025-12-01T00:00:00', true, false),
+    ('00000000-0000-0000-0000-000000000102', 'client-102@omni.one', '$2a$12$eZQ5iHOC5gmrYD77UBqpm.YSXKHnAyQ1jtP3EA1bfy1rMUYf9w8MW', 'CLIENT', '2025-12-01T00:00:00', true, false);
 
 -----------------------------------------
 -- USER_PROFILE

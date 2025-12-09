@@ -4,6 +4,7 @@ import app.omniOne.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -34,5 +35,11 @@ public class User extends BaseEntity {
 
     @Column(nullable = false)
     private boolean enabled;
+
+    @Column(nullable = false)
+    private boolean deleted;
+
+    @Column(columnDefinition = "TIMESTAMP(0)")
+    private LocalDateTime deletedAt;
 
 }

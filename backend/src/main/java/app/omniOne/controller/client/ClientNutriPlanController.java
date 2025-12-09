@@ -1,6 +1,6 @@
 package app.omniOne.controller.client;
 
-import app.omniOne.model.dto.NutriPlanResponseDto;
+import app.omniOne.model.dto.NutriPlanResponse;
 import app.omniOne.model.mapper.NutriPlanMapper;
 import app.omniOne.service.NutriPlanService;
 import lombok.RequiredArgsConstructor;
@@ -25,13 +25,13 @@ public class ClientNutriPlanController {
 
     @GetMapping("/nutri-plan")
     @ResponseStatus(HttpStatus.OK)
-    public NutriPlanResponseDto getNutriPlan() {
+    public NutriPlanResponse getNutriPlan() {
         return nutriPlanMapper.map(nutriPlanService.getActiveNutriPlan(getMyId()));
     }
 
     @GetMapping("/nutri-plans")
     @ResponseStatus(HttpStatus.OK)
-    public List<NutriPlanResponseDto> getNutriPlans() {
+    public List<NutriPlanResponse> getNutriPlans() {
         return nutriPlanService.getNutriPlans(getMyId())
                         .stream().map(nutriPlanMapper::map).collect(Collectors.toList());
     }
