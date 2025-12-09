@@ -6,6 +6,6 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface AuthMapper {
 
-    AuthDto map(User user);
+    AuthResponse map(User user);
 
 }

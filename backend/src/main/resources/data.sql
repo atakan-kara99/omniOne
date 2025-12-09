@@ -18,7 +18,7 @@ VALUES
 INSERT INTO user_profile (user_id, created_at, updated_at, birth_date, first_name, last_name, gender)
 VALUES
     ((SELECT id FROM user_ WHERE email =    'admin-1@omni.one'), '2025-12-01 00:00:00.000000', NULL, '1980-05-14',   'Alex',    'Admin',   'MALE'),
-    --((SELECT id FROM user_ WHERE email =   'coach-10@omni.one'), '2025-12-01 00:00:00.000000', NULL, '1985-02-20', 'Jordan', 'Maverick',   'MALE'),
+    ((SELECT id FROM user_ WHERE email =   'coach-10@omni.one'), '2025-12-01 00:00:00.000000', NULL, '1985-02-20', 'Jordan', 'Maverick',   'MALE'),
     ((SELECT id FROM user_ WHERE email =   'coach-11@omni.one'), '2025-12-01 00:00:00.000000', NULL, '1990-11-03', 'Taylor',    'Stone', 'FEMALE'),
     ((SELECT id FROM user_ WHERE email = 'client-100@omni.one'), '2025-12-01 00:00:00.000000', NULL, '1995-01-12',  'Casey',   'Rivera', 'FEMALE'),
     ((SELECT id FROM user_ WHERE email = 'client-101@omni.one'), '2025-12-01 00:00:00.000000', NULL, '1998-07-28', 'Morgan',      'Lee',   'MALE'),

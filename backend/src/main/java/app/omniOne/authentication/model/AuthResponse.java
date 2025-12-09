@@ -5,7 +5,7 @@ import app.omniOne.model.enums.UserRole;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record AuthDto(
+public record AuthResponse(
 
         UUID id,
 

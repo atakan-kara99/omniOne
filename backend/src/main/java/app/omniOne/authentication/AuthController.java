@@ -1,7 +1,7 @@
 package app.omniOne.authentication;
 
-import app.omniOne.authentication.model.AuthDto;
 import app.omniOne.authentication.model.AuthMapper;
+import app.omniOne.authentication.model.AuthResponse;
 import app.omniOne.authentication.model.PasswordRequest;
 import app.omniOne.authentication.model.RegisterRequest;
 import jakarta.validation.Valid;
@@ -23,13 +23,13 @@ public class AuthController {
 
     @PostMapping("/account/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthDto register(@RequestBody @Valid RegisterRequest dto) {
+    public AuthResponse register(@RequestBody @Valid RegisterRequest dto) {
         return authMapper.map(authService.register(dto));
     }
 
     @GetMapping("/account/activate")
     @ResponseStatus(HttpStatus.OK)
-    public AuthDto activate(@RequestParam @NotBlank String token) {
+    public AuthResponse activate(@RequestParam @NotBlank String token) {
         return authMapper.map(authService.activate(token));
     }
 
@@ -47,13 +47,13 @@ public class AuthController {
 
     @PostMapping("/password/reset")
     @ResponseStatus(HttpStatus.OK)
-    public AuthDto reset(@RequestParam @NotBlank String token, @RequestBody @Valid PasswordRequest request) {
+    public AuthResponse reset(@RequestParam @NotBlank String token, @RequestBody @Valid PasswordRequest request) {
         return authMapper.map(authService.reset(token, request));
     }
 
     @GetMapping("/invitation/accept")
     @ResponseStatus(HttpStatus.OK)
-    public AuthDto accept(@RequestParam @NotBlank String token, @RequestBody @Valid PasswordRequest request) {
+    public AuthResponse accept(@RequestParam @NotBlank String token, @RequestBody @Valid PasswordRequest request) {
         return authMapper.map(authService.acceptInvitation(token, request));
     }
 

@@ -6,6 +6,7 @@ import app.omniOne.model.dto.UserProfileRequest;
 import app.omniOne.model.entity.User;
 import app.omniOne.model.entity.UserProfile;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
@@ -15,6 +16,8 @@ public interface UserMapper {
 
     UserProfileDto map(UserProfile profile);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "user", ignore = true)
     void map(UserProfileRequest request, @MappingTarget UserProfile profile);
 
 }

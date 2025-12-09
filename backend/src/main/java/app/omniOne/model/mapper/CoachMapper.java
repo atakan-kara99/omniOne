@@ -13,6 +13,7 @@ public interface CoachMapper {
     CoachResponseDto map(Coach coach);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "user", ignore = true)
     @Mapping(target = "clients", ignore = true)
     void map(CoachPatchRequest dto, @MappingTarget Coach coach);
 

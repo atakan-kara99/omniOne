@@ -3,6 +3,7 @@ package app.omniOne.configuration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -31,8 +32,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(AbstractHttpConfigurer::disable)                        //TODO: JUST FOR POSTMAN
-                .httpBasic(httpBasic -> {})     //TODO: JUST FOR POSTMAN
+                .httpBasic(Customizer.withDefaults())     //TODO: JUST FOR POSTMAN
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(Customizer.withDefaults())
+                .logout(Customizer.withDefaults())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                         .sessionFixation().migrateSession()
@@ -42,8 +45,7 @@ public class SecurityConfig {
                         .requestMatchers("/client/**").hasRole("CLIENT")
                         .requestMatchers("/coach/**").hasRole("COACH")
                         .requestMatchers("/user/**").hasAnyRole("COACH", "CLIENT")
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .anyRequest().authenticated())
+                        .requestMatchers("/admin/**", "/docs/**").hasRole("ADMIN"))
                 .build();
     }
 
