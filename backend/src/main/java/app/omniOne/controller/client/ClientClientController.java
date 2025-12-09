@@ -31,4 +31,6 @@ public class ClientClientController {
         return clientMapper.map(clientService.patchClient(getMyId(), dto));
     }
 
+    //TODO: soft delete client
+
 }

@@ -1,50 +1,63 @@
-# 📌 API Endpoints Overview
+# 🗂️ Tasks
 
-## 🔐 Authentication & Account
+<div style="display:flex; gap: 40px;">
+<div>
 
-| Method   | Endpoint                         | Description                       |
-| -------- | -------------------------------- | --------------------------------- |
-| **POST** | `/auth/account/register`         | Register user (CLIENT or COACH)   |
-| **GET**  | `/auth/account/resend?email=`    | Resend activation email           |
-| **GET**  | `/auth/account/activate?token=`  | Activate account                  |
-| **GET**  | `/auth/invitation/accept?token=` | Accept invitation                 |
-| **GET**  | `/auth/password/forgot?email=`   | Send email for forgotten password |
-| **POST** | `/auth/password/reset`           | Reset password                    |
+### Status Options
+* 🔴 Not Started
+* 🟡 In Progress
+* 🟢 Done
+* ⚠️ Blocked
+</div>
+<div>
 
----
+### Priority Options
+* ⭐ Low
+* ⭐⭐ Medium
+* ⭐⭐⭐ High
+</div>
+</div>
 
-## 👤 User
 
-| Method   | Endpoint         | Description                |
-| -------- | ---------------- | -------------------------- |
-| **GET**  | `/user`          | Get user data              |
-| **GET**  | `/user/profile`  | Get user profile           |
-| **PUT**  | `/user/profile`  | Set or update user profile |
-| **POST** | `/user/password` | Change password            |
 
----
 
-## 🧑‍🏫 Coach
+## **Frontend**
 
-| Method     | Endpoint                               | Description                          |
-| ---------- | -------------------------------------- | ------------------------------------ |
-| **GET**    | `/coach`                               | Get coach                            |
-| **PATCH**  | `/coach`                               | Update coach                         |
-| **DELETE** | `/coach`                               | Remove coach                         |
-| **GET**    | `/coach/clients`                       | Get all clients from a coach         |
-| **GET**    | `/coach/clients/{clientId}`            | Get a specific client                |
-| **POST**   | `/coach/clients/invite?email=`         | Send client invitation               |
-| **GET**    | `/coach/clients/{clientId}/nutri-plan` | Get client's nutrition plan          |
-| **POST**   | `/coach/clients/{clientId}/nutri-plan` | Add nutrition plan for client        |
-| **GET**    | `/coach/clients/{clientId}/nutri-plans` | Get all nutrition plans for a client |
+| Task                                   | Status | Priority |
+|----------------------------------------|--------|--------|
+| Decide on Framework (React or Angular) | 🔴     | ⭐⭐     |
+| Learn the basics with some Videos      | 🔴     | ⭐⭐   |
+| Set up the first environment           | 🔴     | ⭐⭐     |
+| ...                                    | 🔴     | ⭐⭐     |
+| Email Templates auf Vordermann bringen |   🔴     |  ⭐      |
+
 
 ---
 
-## 🧑‍💼 Client
+## **Backend**
 
-| Method    | Endpoint              | Description                      |
-| --------- |-----------------------| -------------------------------- |
-| **GET**   | `/client`             | Get client                       |
-| **PATCH** | `/client`             | Update client                    |
-| **GET**   | `/client/nutri-plan`  | Get client's nutrition plan      |
-| **GET**   | `/client/nutri-plans` | Get all client's nutrition plans |
+| Task                                                                                               | Status | Priority |
+|----------------------------------------------------------------------------------------------------| ------ | ------- |
+| Soft delete client genauso wie coach, aber coach auch überarbeiten, also alles in user löschen     |   🔴     |  ⭐⭐⭐       |
+| Als Coach Client entfernen, nicht löschen                                                          |   🔴     |  ⭐⭐⭐       |
+| Fragebogen nach Client Aktivierung                                                                 | 🔴     | ⭐⭐⭐     |
+| Fragebogen nach Coach Aktivierung                                                                  |   🔴     |     ⭐⭐⭐  |
+| Check-Ins (Gewicht, NutritionPlan (voreingestellt, ggf anpassung), Kommentar, Datum, Fotos/Videos) |   🔴     |   ⭐⭐⭐    |
+| Fotos und Video in Dev umgebung checken und machen                                                 |   🔴     |   ⭐⭐    |
+| Devumgebung und Produmgebungen definieruen und umsetzetn                                           |   🔴     |    ⭐    |
+
+---
+
+## **DevOps**
+
+| Task                             | Status | Priority |
+|----------------------------------| ------ | ------- |
+| Write unit and integration tests | 🔴     | ⭐⭐     |
+
+---
+
+## **Cloud**
+
+| Task                         | Status | Priority |
+|------------------------------| ------ | -------- |
+| Cloud aufsetzen und deployen | 🔴     | ⭐        |

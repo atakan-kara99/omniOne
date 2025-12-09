@@ -23,7 +23,7 @@ public class ClientNutriPlanController {
     private final NutriPlanMapper nutriPlanMapper;
     private final NutriPlanService nutriPlanService;
 
-    @GetMapping("/nutri-plan")
+    @GetMapping("/nutri-plans/active")
     @ResponseStatus(HttpStatus.OK)
     public NutriPlanResponse getNutriPlan() {
         return nutriPlanMapper.map(nutriPlanService.getActiveNutriPlan(getMyId()));

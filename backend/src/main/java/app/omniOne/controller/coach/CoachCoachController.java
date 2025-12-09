@@ -34,7 +34,7 @@ public class CoachCoachController {
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCoach() {
-        coachService.deleteCoach(getMyId());
+        coachService.softDeleteCoach(getMyId());
     }
 
 }
