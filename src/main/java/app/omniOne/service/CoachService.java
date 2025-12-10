@@ -34,12 +34,4 @@ public class CoachService {
         return savedCoach;
     }
 
-    public void softDeleteCoach(UUID coachId) {
-        log.debug("Trying to soft delete Coach {}", coachId);
-        Coach coach = coachRepo.findByIdOrThrow(coachId);
-        //TODO: coach.setClients(null) funktuniert??
-        coach.getClients().forEach(c -> c.setCoach(null));
-        log.info("Successfully soft deleted Coach");
-    }
-
 }

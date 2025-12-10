@@ -31,10 +31,4 @@ public class CoachCoachController {
         return coachMapper.map(coachService.patchCoach(getMyId(), dto));
     }
 
-    @DeleteMapping
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteCoach() {
-        coachService.softDeleteCoach(getMyId());
-    }
-
 }
