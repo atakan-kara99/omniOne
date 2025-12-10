@@ -1,8 +1,8 @@
 package app.omniOne.controller.client;
 
-import app.omniOne.model.dto.NutriPlanResponse;
-import app.omniOne.model.mapper.NutriPlanMapper;
-import app.omniOne.service.NutriPlanService;
+import app.omniOne.model.dto.NutritionPlanResponse;
+import app.omniOne.model.mapper.NutritionPlanMapper;
+import app.omniOne.service.NutritionPlanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,22 +18,22 @@ import static app.omniOne.authentication.AuthService.getMyId;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/client")
-public class ClientNutriPlanController {
+public class ClientNutritionPlanController {
 
-    private final NutriPlanMapper nutriPlanMapper;
-    private final NutriPlanService nutriPlanService;
+    private final NutritionPlanMapper nutritionPlanMapper;
+    private final NutritionPlanService nutritionPlanService;
 
     @GetMapping("/nutri-plans/active")
     @ResponseStatus(HttpStatus.OK)
-    public NutriPlanResponse getNutriPlan() {
-        return nutriPlanMapper.map(nutriPlanService.getActiveNutriPlan(getMyId()));
+    public NutritionPlanResponse getNutriPlan() {
+        return nutritionPlanMapper.map(nutritionPlanService.getActiveNutriPlan(getMyId()));
     }
 
     @GetMapping("/nutri-plans")
     @ResponseStatus(HttpStatus.OK)
-    public List<NutriPlanResponse> getNutriPlans() {
-        return nutriPlanService.getNutriPlans(getMyId())
-                        .stream().map(nutriPlanMapper::map).collect(Collectors.toList());
+    public List<NutritionPlanResponse> getNutriPlans() {
+        return nutritionPlanService.getNutriPlans(getMyId())
+                        .stream().map(nutritionPlanMapper::map).collect(Collectors.toList());
     }
 
 }

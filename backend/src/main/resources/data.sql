@@ -69,3 +69,11 @@ VALUES
     (2600, 310, 130, 90, '2024-02-15 00:00:00.000000', (SELECT id FROM user_ WHERE email = 'client-102@omni.one')),
     (2400, 280, 115, 85, '2023-05-01 00:00:00.000000', (SELECT id FROM user_ WHERE email = 'client-102@omni.one'));
 
+-----------------------------------------
+-- QUESTIONNAIRE
+-----------------------------------------
+
+INSERT INTO questionnaire_question (coach_id, text)
+VALUES
+    (null,                                                     'This is my one and only standard question!'),
+    ((SELECT id FROM user_ WHERE email = 'coach-10@omni.one'), 'coach-10s custom question')

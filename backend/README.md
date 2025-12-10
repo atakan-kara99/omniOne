@@ -11,7 +11,6 @@
 ## Backend
 
 * Q&A after client activation
-* Q&A after coach activation
 * Profile picture for users
   * Check which is best approach for dev and prod
 * Check-Ins

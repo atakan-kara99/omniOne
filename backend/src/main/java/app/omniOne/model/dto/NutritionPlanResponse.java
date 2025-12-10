@@ -2,7 +2,7 @@ package app.omniOne.model.dto;
 
 import java.time.LocalDateTime;
 
-public record NutriPlanResponse(
+public record NutritionPlanResponse(
 
         Double calories,
 

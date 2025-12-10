@@ -1,7 +1,7 @@
 package app.omniOne.repository;
 
 import app.omniOne.exception.NoSuchResourceException;
-import app.omniOne.model.entity.NutriPlan;
+import app.omniOne.model.entity.NutritionPlan;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,25 +10,25 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface NutriPlanRepo extends JpaRepository<NutriPlan, Long> {
+public interface NutritionPlanRepo extends JpaRepository<NutritionPlan, Long> {
 
-    Optional<NutriPlan> findByIdAndClientId(Long id, UUID clientId);
+    Optional<NutritionPlan> findByIdAndClientId(Long id, UUID clientId);
 
-    default NutriPlan findByIdAndClientIdOrThrow(Long id, UUID clientId) {
+    default NutritionPlan findByIdAndClientIdOrThrow(Long id, UUID clientId) {
         return findByIdAndClientId(id, clientId)
                 .orElseThrow(() -> new NoSuchResourceException("NutritionPlan not found"));
     }
 
-    Optional<NutriPlan> findFirstByClientIdOrderByCreatedAtDesc(UUID clientId);
+    Optional<NutritionPlan> findFirstByClientIdOrderByCreatedAtDesc(UUID clientId);
 
-    default NutriPlan findFirstByClientIdOrderByCreatedAtDescOrThrow(UUID clientId) {
+    default NutritionPlan findFirstByClientIdOrderByCreatedAtDescOrThrow(UUID clientId) {
         return findFirstByClientIdOrderByCreatedAtDesc(clientId)
                 .orElseThrow(() -> new NoSuchResourceException("NutritionPlan not found"));
     }
 
-    Optional<List<NutriPlan>> findByClientIdOrderByCreatedAtDesc(UUID clientId);
+    Optional<List<NutritionPlan>> findByClientIdOrderByCreatedAtDesc(UUID clientId);
 
-    default List<NutriPlan> findByClientIdOrderByCreatedAtDescOrThrow(UUID clientId) {
+    default List<NutritionPlan> findByClientIdOrderByCreatedAtDescOrThrow(UUID clientId) {
         return findByClientIdOrderByCreatedAtDesc(clientId)
                 .orElseThrow(() -> new NoSuchResourceException("NutritionPlan not found"));
     }

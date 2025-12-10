@@ -3,7 +3,7 @@ package app.omniOne.model.dto;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Range;
 
-public record NutriPlanRequest(
+public record NutritionPlanRequest(
 
         @Range(min = 0, max = 2500)
         @NotNull

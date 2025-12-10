@@ -1,5 +1,6 @@
 package app.omniOne.model.entity;
 
+import app.omniOne.model.entity.questionnaire.QuestionnaireAnswer;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,6 +29,9 @@ public class Client extends BaseEntity {
     private Coach coach;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
-    private List<NutriPlan> nutriPlans;
+    private List<NutritionPlan> nutritionPlans;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
+    private List<QuestionnaireAnswer> answers;
 
 }

@@ -1,21 +1,21 @@
 package app.omniOne.model.mapper;
 
-import app.omniOne.model.dto.NutriPlanRequest;
-import app.omniOne.model.dto.NutriPlanResponse;
-import app.omniOne.model.entity.NutriPlan;
+import app.omniOne.model.dto.NutritionPlanRequest;
+import app.omniOne.model.dto.NutritionPlanResponse;
+import app.omniOne.model.entity.NutritionPlan;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
-public interface NutriPlanMapper {
+public interface NutritionPlanMapper {
 
-    NutriPlanResponse map(NutriPlan nutriPlan);
+    NutritionPlanResponse map(NutritionPlan nutritionPlan);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "client", ignore = true)
     @Mapping(target = "calories", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
-    void map(NutriPlanRequest request, @MappingTarget NutriPlan nutriPlan);
+    void map(NutritionPlanRequest request, @MappingTarget NutritionPlan nutritionPlan);
 
 }

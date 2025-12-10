@@ -14,7 +14,7 @@ public interface ClientMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "coach", ignore = true)
-    @Mapping(target = "nutriPlans", ignore = true)
+    @Mapping(target = "nutritionPlans", ignore = true)
     void map(ClientPatchRequest dto, @MappingTarget Client client);
 
 }
