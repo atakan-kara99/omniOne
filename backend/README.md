@@ -10,8 +10,6 @@
 
 ## Backend
 
-* Soft delete client and coach after user was deleted
-* Coach should remove relation to client
 * Q&A after client activation
 * Q&A after coach activation
 * Profile picture for users
