@@ -44,6 +44,14 @@ VALUES
     ((SELECT id FROM user_ WHERE email = 'client-102@omni.one'), (SELECT id FROM user_ WHERE email = 'coach-11@omni.one'), '2025-12-01 00:00:00.000000', NULL);
 
 -----------------------------------------
+-- COACHING
+-----------------------------------------
+
+INSERT INTO coaching (coach_id, client_id, start_date, end_date)
+VALUES
+    ((SELECT id FROM user_ WHERE email = 'coach-10@omni.one'), (SELECT id FROM user_ WHERE email = 'client-100@omni.one'), '2020-01-01', '2021-12-12');
+
+-----------------------------------------
 -- NUTRITION PLAN (link via client email)
 -----------------------------------------
 
@@ -60,3 +68,4 @@ INSERT INTO nutrition_plan (calories, carbs, proteins, fats, created_at, client_
 VALUES
     (2600, 310, 130, 90, '2024-02-15 00:00:00.000000', (SELECT id FROM user_ WHERE email = 'client-102@omni.one')),
     (2400, 280, 115, 85, '2023-05-01 00:00:00.000000', (SELECT id FROM user_ WHERE email = 'client-102@omni.one'));
+

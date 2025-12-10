@@ -51,7 +51,7 @@ public class AuthController {
         return authMapper.map(authService.reset(token, request));
     }
 
-    @GetMapping("/invitation/accept")
+    @PostMapping("/invitation/accept")
     @ResponseStatus(HttpStatus.OK)
     public AuthResponse accept(@RequestParam @NotBlank String token, @RequestBody @Valid PasswordRequest request) {
         return authMapper.map(authService.acceptInvitation(token, request));

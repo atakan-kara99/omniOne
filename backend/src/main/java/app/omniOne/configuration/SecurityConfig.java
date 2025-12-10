@@ -41,11 +41,11 @@ public class SecurityConfig {
                         .sessionFixation().migrateSession()
                         .maximumSessions(1))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/auth/**", "/docs/**").permitAll()
                         .requestMatchers("/client/**").hasRole("CLIENT")
                         .requestMatchers("/coach/**").hasRole("COACH")
                         .requestMatchers("/user/**").hasAnyRole("COACH", "CLIENT")
-                        .requestMatchers("/admin/**", "/docs/**").hasRole("ADMIN"))
+                        .requestMatchers("/admin/**").hasRole("ADMIN"))
                 .build();
     }
 

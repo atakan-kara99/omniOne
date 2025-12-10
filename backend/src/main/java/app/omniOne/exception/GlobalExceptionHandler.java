@@ -1,5 +1,6 @@
 package app.omniOne.exception;
 
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -28,6 +29,13 @@ public class GlobalExceptionHandler {
         log.error("Failed to process or send email", ex);
         return new ResponseEntity<>(pd, status);
     }
+
+    @ExceptionHandler(JWTDecodeException.class)
+    public ResponseEntity<ProblemDetail> handleJWTDecode(JWTDecodeException ex) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ProblemDetail pd = pd("JWT Decode", status, ex.getMessage());
+        log.info("Failed to decode provided JWT because: {}", ex.getMessage());
+        return new ResponseEntity<>(pd, status);}
 
     @ExceptionHandler(AuthorizationDeniedException.class)
     public ResponseEntity<ProblemDetail> handleNoAuthorization(AuthorizationDeniedException ex) {

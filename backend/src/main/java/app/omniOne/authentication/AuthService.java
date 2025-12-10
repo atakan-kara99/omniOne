@@ -14,6 +14,7 @@ import app.omniOne.model.enums.UserRole;
 import app.omniOne.repository.ClientRepo;
 import app.omniOne.repository.CoachRepo;
 import app.omniOne.repository.UserRepo;
+import app.omniOne.service.CoachingService;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final PasswordEncoder encoder;
     private final EmailService emailService;
+    private final CoachingService coachingService;
 
     public static UserDetails getMe() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -102,11 +104,11 @@ public class AuthService {
         log.debug("Trying to accept invitation");
         DecodedJWT jwt = jwtService.verifyInvitation(token);
         UUID coachId = UUID.fromString(jwt.getClaim("coachId").asString());
-        Coach coach = coachRepo.findByIdOrThrow(coachId);
+        coachRepo.findByIdOrThrow(coachId);
         User user = register(new RegisterRequest(
                 jwt.getClaim("clientEmail").asString(), request.password(), UserRole.CLIENT));
         Client client = clientRepo.findByIdOrThrow(user.getId());
-        client.setCoach(coach);
+        coachingService.startCoaching(coachId, client.getId());
         log.info("Successfully accepted invitation Coach {} to Client {}", coachId, client.getId());
         return user;
     }

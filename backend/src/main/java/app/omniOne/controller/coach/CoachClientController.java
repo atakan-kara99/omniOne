@@ -4,6 +4,7 @@ import app.omniOne.authentication.AuthService;
 import app.omniOne.model.dto.ClientResponse;
 import app.omniOne.model.mapper.ClientMapper;
 import app.omniOne.service.ClientService;
+import app.omniOne.service.CoachingService;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class CoachClientController {
     private final AuthService authService;
     private final ClientMapper clientMapper;
     private final ClientService clientService;
+    private final CoachingService coachingService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -42,6 +44,12 @@ public class CoachClientController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void invite(@RequestParam @Email @NotBlank String email) {
         authService.sendInvitationMail(email, getMyId());
+    }
+
+    @DeleteMapping("/{clientId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void endCoaching(@PathVariable UUID clientId) {
+        coachingService.endCoaching(clientId);
     }
 
 }
