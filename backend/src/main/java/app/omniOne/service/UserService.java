@@ -84,7 +84,7 @@ public class UserService {
         user.getProfile().setBirthDate(LocalDate.of(1970, 1, 1));
         user.getProfile().setFirstName("deleted");
         user.getProfile().setLastName("user");
-        //TODO: ALSO ANONYMIZE CLIENT AND COACH INFO
+        //TODO: ALSO ANONYMIZE CLIENT AND COACH INFO; DISCONNECT COACH AND CLIENTS;
         log.info("Successfully soft deleted User and UserProfile");
     }
 

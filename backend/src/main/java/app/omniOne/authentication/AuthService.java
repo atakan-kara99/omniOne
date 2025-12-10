@@ -53,13 +53,6 @@ public class AuthService {
         return client.getCoach().getId().equals(coachId);
     }
 
-    public boolean isMyResource(UUID clientId) {
-        UUID coachId = getMyId();
-        log.debug("Checking if Coach {} has permission to access Client {} info", coachId, clientId);
-        Client client = clientRepo.findByIdOrThrow(clientId);
-        return client.getCoach().getId().equals(coachId);
-    }
-
     @Transactional
     public User register(RegisterRequest dto) {
         String email = dto.email().trim().toLowerCase();
@@ -133,4 +126,5 @@ public class AuthService {
         log.info("Successfully reset password from User {}", user.getId());
         return savedUser;
     }
+
 }

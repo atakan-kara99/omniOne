@@ -1,63 +1,36 @@
-# 🗂️ Tasks
+# omniOne
 
-<div style="display:flex; gap: 40px;">
-<div>
+## Frontend
 
-### Status Options
-* 🔴 Not Started
-* 🟡 In Progress
-* 🟢 Done
-* ⚠️ Blocked
-</div>
-<div>
+* Decide on framework (React or Angular)
+* Lean the basics with some videos
+* Set up basic environment
+* ...
+* Improve email templates
 
-### Priority Options
-* ⭐ Low
-* ⭐⭐ Medium
-* ⭐⭐⭐ High
-</div>
-</div>
+## Backend
 
+* Soft delete client and coach after user was deleted
+* Coach should remove relation to client
+* Q&A after client activation
+* Q&A after coach activation
+* Profile picture for users
+  * Check which is best approach for dev and prod
+* Check-Ins
+  * Weight, NutriPlan, Comment, Date, Photos, Videos, Satiation/Hunger, Energielevel, Sleep, Steps
+* Define different env/profile (prod, dev)
+* Reminder system (for Check-In)
+* Supplements
+* Statistics (w graphs over time)
+* Messaging system (Chat)
+* Peakweek planning
+* Training
 
+## DevOps
 
+* Write unit and integration tests
+* Setup CI/CD with GitHub Actions
 
-## **Frontend**
+## Cloud
 
-| Task                                   | Status | Priority |
-|----------------------------------------|--------|--------|
-| Decide on Framework (React or Angular) | 🔴     | ⭐⭐     |
-| Learn the basics with some Videos      | 🔴     | ⭐⭐   |
-| Set up the first environment           | 🔴     | ⭐⭐     |
-| ...                                    | 🔴     | ⭐⭐     |
-| Email Templates auf Vordermann bringen |   🔴     |  ⭐      |
-
-
----
-
-## **Backend**
-
-| Task                                                                                               | Status | Priority |
-|----------------------------------------------------------------------------------------------------| ------ | ------- |
-| Soft delete client genauso wie coach, aber coach auch überarbeiten, also alles in user löschen     |   🔴     |  ⭐⭐⭐       |
-| Als Coach Client entfernen, nicht löschen                                                          |   🔴     |  ⭐⭐⭐       |
-| Fragebogen nach Client Aktivierung                                                                 | 🔴     | ⭐⭐⭐     |
-| Fragebogen nach Coach Aktivierung                                                                  |   🔴     |     ⭐⭐⭐  |
-| Check-Ins (Gewicht, NutritionPlan (voreingestellt, ggf anpassung), Kommentar, Datum, Fotos/Videos) |   🔴     |   ⭐⭐⭐    |
-| Fotos und Video in Dev umgebung checken und machen                                                 |   🔴     |   ⭐⭐    |
-| Devumgebung und Produmgebungen definieruen und umsetzetn                                           |   🔴     |    ⭐    |
-
----
-
-## **DevOps**
-
-| Task                             | Status | Priority |
-|----------------------------------| ------ | ------- |
-| Write unit and integration tests | 🔴     | ⭐⭐     |
-
----
-
-## **Cloud**
-
-| Task                         | Status | Priority |
-|------------------------------| ------ | -------- |
-| Cloud aufsetzen und deployen | 🔴     | ⭐        |
+* Check out how this should work

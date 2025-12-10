@@ -32,7 +32,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .httpBasic(Customizer.withDefaults())     //TODO: JUST FOR POSTMAN
+                .httpBasic(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(Customizer.withDefaults())
                 .logout(Customizer.withDefaults())
