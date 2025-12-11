@@ -24,6 +24,8 @@ public class EmailService {
 
     @Value("${spring.application.name}")
     private String applicationName;
+    @Value("${email.from}")
+    private String from;
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
@@ -42,23 +44,23 @@ public class EmailService {
 
     public void sendActivationMail(String to, String jwt) {
         sendTemplateMail(to, jwt,
-                activationProps.from(), activationProps.url(), activationProps.path(), activationProps.subject());
+                activationProps.url(), activationProps.path(), activationProps.subject());
         log.info("Successfully send activation mail to {}", to);
     }
 
     public void sendResetPasswordMail(String to, String jwt) {
         sendTemplateMail(to, jwt,
-                resetPasswordProps.from(), resetPasswordProps.url(), resetPasswordProps.path(), resetPasswordProps.subject());
+                resetPasswordProps.url(), resetPasswordProps.path(), resetPasswordProps.subject());
         log.info("Successfully send reset-password mail to {}", to);
     }
 
     public void sendInvitationMail(String to, String jwt) {
         sendTemplateMail(to, jwt,
-                invitationProps.from(), invitationProps.url(), invitationProps.path(), invitationProps.subject());
+                invitationProps.url(), invitationProps.path(), invitationProps.subject());
         log.info("Successfully send invitation mail to {}", to);
     }
 
-    private void sendTemplateMail(String to, String jwt, String from, String url, String path, String subject) {
+    private void sendTemplateMail(String to, String jwt, String url, String path, String subject) {
         log.debug("Trying to send mail to {}", to);
         String link = url + "?token=" + jwt;
         String text = render(path, Map.of("link", link, "appName", applicationName));
