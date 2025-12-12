@@ -1,7 +1,6 @@
 package app.omniOne.authentication.model;
 
 import app.omniOne.model.entity.User;
-import app.omniOne.model.enums.UserRole;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -21,13 +20,13 @@ public class UserDetails implements org.springframework.security.core.userdetail
         return user.getId();
     }
 
-    public UserRole getRole() {
-        return user.getRole();
+    public String getRole() {
+        return "ROLE_" + user.getRole().name();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + getRole().name()));
+        return List.of(new SimpleGrantedAuthority(getRole()));
     }
 
     @Override

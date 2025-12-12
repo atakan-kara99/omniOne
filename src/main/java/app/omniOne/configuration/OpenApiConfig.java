@@ -10,12 +10,13 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @SecurityScheme(
-        name = "basicAuth",
+        name = "BearerAuth",
         type = SecuritySchemeType.HTTP,
-        scheme = "basic")
+        bearerFormat = "JWT",
+        scheme = "bearer")
 @OpenAPIDefinition(
         info = @Info(title = "omniOne API", version = "0.0.1"),
-        security = @SecurityRequirement(name = "basicAuth"))
+        security = @SecurityRequirement(name = "BearerAuth"))
 public class OpenApiConfig {
 
 }

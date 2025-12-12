@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -35,14 +36,14 @@ public class JwtFilter extends OncePerRequestFilter {
             try {
                 String jwt = authHeader.substring(7);
                 DecodedJWT decodedJwt = jwtService.verifyAuth(jwt);
-                String username = decodedJwt.getSubject();
-                log.debug("Trying to authenticate via JWT for user {}", username);
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                String id = decodedJwt.getClaim("id").asString();
+                String role = decodedJwt.getClaim("role").asString();
+                if (id != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
+                            new UsernamePasswordAuthenticationToken(
+                                    id, null, Collections.singleton(new SimpleGrantedAuthority(role)));
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    log.info("Successfully authorized with JWT");
                 }
             } catch (Exception ex) {
                 ObjectMapper mapper = new ObjectMapper();

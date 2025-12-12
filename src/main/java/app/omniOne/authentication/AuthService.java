@@ -1,6 +1,7 @@
 package app.omniOne.authentication;
 
 import app.omniOne.authentication.jwt.JwtService;
+import app.omniOne.authentication.model.LoginRequest;
 import app.omniOne.authentication.model.PasswordRequest;
 import app.omniOne.authentication.model.RegisterRequest;
 import app.omniOne.authentication.model.UserDetails;
@@ -19,6 +20,8 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,14 +41,10 @@ public class AuthService {
     private final PasswordEncoder encoder;
     private final EmailService emailService;
     private final CoachingService coachingService;
-
-    public static UserDetails getMe() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return (UserDetails) auth.getPrincipal();
-    }
+    private final AuthenticationManager authenticationManager;
 
     public static UUID getMyId() {
-        return getMe().getId();
+        return UUID.fromString((String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
     }
 
     public boolean isCoachedByMe(UUID clientId) {
@@ -53,6 +52,19 @@ public class AuthService {
         log.debug("Checking if Coach {} has permission to access Client {} info", coachId, clientId);
         Client client = clientRepo.findByIdOrThrow(clientId);
         return client.getCoach().getId().equals(coachId);
+    }
+
+    public String login(LoginRequest request) {
+        log.debug("Trying to log in User {}", request.username());
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.username(),
+                        request.password()
+                )
+        );
+        String jwt = jwtService.createAuthJwt((UserDetails) authentication.getPrincipal());
+        log.info("Successfully logged in");
+        return jwt;
     }
 
     @Transactional

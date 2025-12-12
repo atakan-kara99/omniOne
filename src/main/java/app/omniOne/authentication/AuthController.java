@@ -1,9 +1,7 @@
 package app.omniOne.authentication;
 
-import app.omniOne.authentication.model.AuthMapper;
-import app.omniOne.authentication.model.AuthResponse;
-import app.omniOne.authentication.model.PasswordRequest;
-import app.omniOne.authentication.model.RegisterRequest;
+import app.omniOne.authentication.jwt.JwtResponse;
+import app.omniOne.authentication.model.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -20,6 +18,12 @@ public class AuthController {
 
     private final AuthMapper authMapper;
     private final AuthService authService;
+
+    @PostMapping("/account/login")
+    @ResponseStatus(HttpStatus.OK)
+    public JwtResponse login(@RequestBody @Valid LoginRequest request) {
+        return new JwtResponse(authService.login(request));
+    }
 
     @PostMapping("/account/register")
     @ResponseStatus(HttpStatus.CREATED)

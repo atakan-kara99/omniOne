@@ -1,5 +1,6 @@
 package app.omniOne.authentication.jwt;
 
+import app.omniOne.authentication.model.UserDetails;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator.Builder;
 import com.auth0.jwt.JWTVerifier;
@@ -43,8 +44,8 @@ public class JwtService {
         this.initVerifier = JWT.require(initAlgorithm).withIssuer(applicationName).build();
     }
 
-    public String createAuthJwt(String email) {
-        Map<String, String> claims = Map.of("email", email);
+    public String createAuthJwt(UserDetails user) {
+        Map<String, String> claims = Map.of("id", user.getId().toString(), "role", user.getRole());
         return createTemplateJwt("authorization", claims, 60, authAlgorithm);
     }
 
@@ -66,7 +67,7 @@ public class JwtService {
     }
 
     private String createTemplateJwt(String subject, Map<String, String> claims, long minutes, Algorithm algorithm) {
-        log.info("Creating JWT for {} purposes", subject);
+        log.info("Creating JWT for {}", subject);
         Builder jwtBuilder = JWT.create()
                 .withIssuer(applicationName)
                 .withSubject(subject)
@@ -91,7 +92,7 @@ public class JwtService {
     private DecodedJWT verify(String jwt, JWTVerifier verifier) {
         log.debug("Trying to verify JWT");
         DecodedJWT decodedJWT = verifier.verify(jwt);
-        log.info("Successfully verified JWT");
+        log.info("Successfully verified JWT for {}", decodedJWT.getSubject());
         return decodedJWT;
     }
 
