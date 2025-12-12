@@ -35,7 +35,8 @@ public class GlobalExceptionHandler {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         ProblemDetail pd = pd("JWT Decode", status, ex.getMessage());
         log.info("Failed to decode provided JWT because: {}", ex.getMessage());
-        return new ResponseEntity<>(pd, status);}
+        return new ResponseEntity<>(pd, status);
+    }
 
     @ExceptionHandler(AuthorizationDeniedException.class)
     public ResponseEntity<ProblemDetail> handleNoAuthorization(AuthorizationDeniedException ex) {
