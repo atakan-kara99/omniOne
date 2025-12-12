@@ -4,6 +4,7 @@ import app.omniOne.model.dto.NutritionPlanRequest;
 import app.omniOne.model.dto.NutritionPlanResponse;
 import app.omniOne.model.mapper.NutritionPlanMapper;
 import app.omniOne.service.NutritionPlanService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
+@Tag(name = "Coach - Nutrition Plan")
 @RequiredArgsConstructor
 @RequestMapping("/coach/clients/{clientId}")
 @PreAuthorize("@authService.isCoachedByMe(#clientId)")

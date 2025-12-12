@@ -2,6 +2,7 @@ package app.omniOne.authentication;
 
 import app.omniOne.authentication.jwt.JwtResponse;
 import app.omniOne.authentication.model.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
+@Tag(name = "Auth")
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {

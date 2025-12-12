@@ -6,6 +6,7 @@ import app.omniOne.model.dto.UserProfileDto;
 import app.omniOne.model.dto.UserProfileRequest;
 import app.omniOne.model.mapper.UserMapper;
 import app.omniOne.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import static app.omniOne.authentication.AuthService.getMyId;
 
 @RestController
+@Tag(name = "User")
 @RequiredArgsConstructor
 @RequestMapping("/user")
 public class UserController {

@@ -3,6 +3,7 @@ package app.omniOne.controller.client;
 import app.omniOne.model.dto.NutritionPlanResponse;
 import app.omniOne.model.mapper.NutritionPlanMapper;
 import app.omniOne.service.NutritionPlanService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 import static app.omniOne.authentication.AuthService.getMyId;
 
 @RestController
+@Tag(name = "Client - Nutrition Plan")
 @RequiredArgsConstructor
 @RequestMapping("/client")
 public class ClientNutritionPlanController {

@@ -5,6 +5,7 @@ import app.omniOne.model.dto.ClientResponse;
 import app.omniOne.model.mapper.ClientMapper;
 import app.omniOne.service.ClientService;
 import app.omniOne.service.CoachingService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.UUID;
 import static app.omniOne.authentication.AuthService.getMyId;
 
 @RestController
+@Tag(name = "Coach - Client")
 @RequiredArgsConstructor
 @RequestMapping("/coach/clients/")
 public class CoachClientController {

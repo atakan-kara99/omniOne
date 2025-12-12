@@ -4,6 +4,7 @@ import app.omniOne.model.dto.ClientPatchRequest;
 import app.omniOne.model.dto.ClientResponse;
 import app.omniOne.model.mapper.ClientMapper;
 import app.omniOne.service.ClientService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import static app.omniOne.authentication.AuthService.getMyId;
 
 @RestController
+@Tag(name = "Client")
 @RequiredArgsConstructor
 @RequestMapping("/client")
 public class ClientClientController {

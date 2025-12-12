@@ -5,6 +5,7 @@ import app.omniOne.model.dto.QuestionnaireAnswerResponse;
 import app.omniOne.model.dto.QuestionnaireQuestionResponse;
 import app.omniOne.model.mapper.QuestionnaireMapper;
 import app.omniOne.service.QuestionnaireService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import java.util.List;
 import static app.omniOne.authentication.AuthService.getMyId;
 
 @RestController
+@Tag(name = "Client - Questionnaire")
 @RequiredArgsConstructor
 @RequestMapping("/client/questionnaire")
 public class ClientQuestionnaireController {

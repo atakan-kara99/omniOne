@@ -4,6 +4,7 @@ import app.omniOne.model.dto.CoachPatchRequest;
 import app.omniOne.model.dto.CoachResponse;
 import app.omniOne.model.mapper.CoachMapper;
 import app.omniOne.service.CoachService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import static app.omniOne.authentication.AuthService.getMyId;
 
 @RestController
+@Tag(name = "Coach")
 @RequiredArgsConstructor
 @RequestMapping("/coach")
 public class CoachCoachController {
