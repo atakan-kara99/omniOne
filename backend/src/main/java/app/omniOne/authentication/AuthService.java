@@ -133,7 +133,7 @@ public class AuthService {
 
     public User reset(String token, PasswordRequest request) {
         log.debug("Trying to reset password");
-        DecodedJWT jwt = jwtService.verifyActivation(token);
+        DecodedJWT jwt = jwtService.verifyResetPassword(token);
         User user = userRepo.findByEmailOrThrow(jwt.getClaim("email").asString());
         user.setPassword(encoder.encode(request.password()));
         User savedUser = userRepo.save(user);

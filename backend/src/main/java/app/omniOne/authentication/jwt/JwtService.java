@@ -49,14 +49,14 @@ public class JwtService {
         return createTemplateJwt("authorization", claims, 60, authAlgorithm);
     }
 
+    public String createResetPasswordJwt(String email) {
+        Map<String, String> claims = Map.of("email", email);
+        return createTemplateJwt("reset-password", claims, 60, authAlgorithm);
+    }
+
     public String createActivationJwt(String email) {
         Map<String, String> claims = Map.of("email", email);
         return createTemplateJwt("activation", claims, 60*24, initAlgorithm);
-    }
-
-    public String createResetPasswordJwt(String email) {
-        Map<String, String> claims = Map.of("email", email);
-        return createTemplateJwt("reset-password", claims, 60, initAlgorithm);
     }
 
     public String createInvitationJwt(String clientEmail, UUID coachId) {
@@ -78,6 +78,10 @@ public class JwtService {
     }
 
     public DecodedJWT verifyAuth(String jwt) {
+        return verify(jwt, authVerifier);
+    }
+
+    public DecodedJWT verifyResetPassword(String jwt) {
         return verify(jwt, authVerifier);
     }
 
