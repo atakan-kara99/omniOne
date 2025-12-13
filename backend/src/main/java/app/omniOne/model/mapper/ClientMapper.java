@@ -13,7 +13,9 @@ public interface ClientMapper {
     ClientResponse map(Client client);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "user", ignore = true)
     @Mapping(target = "coach", ignore = true)
+    @Mapping(target = "answers", ignore = true)
     @Mapping(target = "nutritionPlans", ignore = true)
     void map(ClientPatchRequest dto, @MappingTarget Client client);
 
