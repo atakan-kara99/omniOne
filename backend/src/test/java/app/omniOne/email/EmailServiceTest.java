@@ -1,0 +1,117 @@
+package app.omniOne.email;
+
+import app.omniOne.email.properties.ActivationProps;
+import app.omniOne.email.properties.InvitationProps;
+import app.omniOne.email.properties.ResetPasswordProps;
+import app.omniOne.exception.SendEmailException;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class EmailServiceTest {
+
+    @Mock private JavaMailSender mailSender;
+    @Mock private TemplateEngine templateEngine;
+
+    private MimeMessage mimeMessage;
+
+    private EmailService emailService;
+
+    @BeforeEach void setUp() {
+        ActivationProps activationProps = new ActivationProps(
+                "https://activate", "activation-template", "Activate");
+        InvitationProps invitationProps = new InvitationProps(
+                "https://invite", "invitation-template", "Invite");
+        ResetPasswordProps resetPasswordProps = new ResetPasswordProps(
+                "https://reset", "reset-template", "Reset");
+        emailService = new EmailService(
+                mailSender, templateEngine, activationProps, invitationProps, resetPasswordProps);
+        ReflectionTestUtils.setField(emailService, "applicationName", "omniOne");
+        ReflectionTestUtils.setField(emailService, "from", "noreply@omni.one");
+        mimeMessage = new MimeMessage((Session) null);
+    }
+
+    @Test void sendSimpleMail_buildsAndSendsSimpleMessage() {
+        ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
+
+        emailService.sendSimpleMail("user@omni.one", "Subject", "Body");
+
+        verify(mailSender).send(captor.capture());
+        SimpleMailMessage sent = captor.getValue();
+        assertEquals("noreply@omni.one", sent.getFrom());
+        assertEquals("Subject", sent.getSubject());
+        assertEquals("Body", sent.getText());
+        Assertions.assertNotNull(sent.getTo());
+        assertEquals(1, sent.getTo().length);
+        assertEquals("user@omni.one", sent.getTo()[0]);
+    }
+
+    @Test void sendActivationMail_rendersTemplateAndSetsMailFields() throws Exception {
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(any(String.class), any(Context.class))).thenReturn("<html>body</html>");
+
+        emailService.sendActivationMail("user@omni.one", "jwt-token");
+
+        verify(mailSender).send(mimeMessage);
+        assertEquals("Activate", mimeMessage.getSubject());
+        assertEquals("user@omni.one", mimeMessage.getAllRecipients()[0].toString());
+        assertEquals("noreply@omni.one", mimeMessage.getFrom()[0].toString());
+        Context context = captureContext("activation-template");
+        assertEquals("https://activate?token=jwt-token", context.getVariable("link"));
+        assertEquals("omniOne", context.getVariable("appName"));
+    }
+
+    @Test void sendInvitationMail_usesInvitationProps() throws Exception {
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(any(String.class), any(Context.class))).thenReturn("<html>body</html>");
+
+        emailService.sendInvitationMail("invitee@omni.one", "invite-token");
+
+        assertEquals("Invite", mimeMessage.getSubject());
+        assertEquals("invitee@omni.one", mimeMessage.getAllRecipients()[0].toString());
+        assertEquals("noreply@omni.one", mimeMessage.getFrom()[0].toString());
+        Context context = captureContext("invitation-template");
+        assertEquals("https://invite?token=invite-token", context.getVariable("link"));
+        assertEquals("omniOne", context.getVariable("appName"));
+    }
+
+    @Test
+    void sendResetPasswordMail_wrapsFailures() {
+        MimeMessage mimeMessage = new MimeMessage((Session) null);
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(any(String.class), any(Context.class))).thenReturn("<html>body</html>");
+        doThrow(new RuntimeException("boom")).when(mailSender).send(mimeMessage);
+
+        SendEmailException exception = assertThrows(
+                SendEmailException.class,
+                () -> emailService.sendResetPasswordMail("user@omni.one", "reset-token"));
+
+        assertEquals("boom", exception.getMessage());
+        verify(mailSender).createMimeMessage();
+        verify(mailSender).send(mimeMessage);
+    }
+
+    private Context captureContext(String expectedTemplate) {
+        ArgumentCaptor<Context> contextCaptor = ArgumentCaptor.forClass(Context.class);
+        verify(templateEngine).process(eq(expectedTemplate), contextCaptor.capture());
+        return contextCaptor.getValue();
+    }
+}
