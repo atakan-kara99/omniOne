@@ -21,7 +21,7 @@ import static app.omniOne.authentication.AuthService.getMyId;
 @RestController
 @Tag(name = "Coach - Client")
 @RequiredArgsConstructor
-@RequestMapping("/coach/clients/")
+@RequestMapping("/coach/clients")
 public class CoachClientController {
 
     private final AuthService authService;
@@ -35,7 +35,7 @@ public class CoachClientController {
         return clientService.getClients(getMyId()).stream().map(clientMapper::map).toList();
     }
 
-    @GetMapping("{clientId}")
+    @GetMapping("/{clientId}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("@authService.isCoachedByMe(#clientId)")
     public ClientResponse getClient(@PathVariable UUID clientId) {
