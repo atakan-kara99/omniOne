@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
     }
 
     @Test void patchCoach_mapsAndSavesCoach() {
-        CoachPatchRequest request = new CoachPatchRequest("new@mail.com");
+        CoachPatchRequest request = new CoachPatchRequest("new@omni.one");
         Coach savedCoach = new Coach();
         savedCoach.setId(coachId);
 

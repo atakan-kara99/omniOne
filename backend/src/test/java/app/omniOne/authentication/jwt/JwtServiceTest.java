@@ -48,34 +48,34 @@ class JwtServiceTest {
     }
 
     @Test void createResetPasswordJwt_isVerifiableWithEmailClaim() {
-        String token = jwtService.createResetPasswordJwt("user@mail.com");
+        String token = jwtService.createResetPasswordJwt("user@omni.one");
 
         DecodedJWT decoded = jwtService.verifyResetPassword(token);
 
         assertEquals("reset-password", decoded.getSubject());
-        assertEquals("user@mail.com", decoded.getClaim("email").asString());
+        assertEquals("user@omni.one", decoded.getClaim("email").asString());
         assertTrue(isExpiresWithin(decoded, Duration.ofMinutes(60)));
     }
 
     @Test void createActivationJwt_usesInitSecretAndContainsEmail() {
-        String token = jwtService.createActivationJwt("user@mail.com");
+        String token = jwtService.createActivationJwt("user@omni.one");
 
         DecodedJWT decoded = jwtService.verifyActivation(token);
 
         assertEquals("activation", decoded.getSubject());
-        assertEquals("user@mail.com", decoded.getClaim("email").asString());
+        assertEquals("user@omni.one", decoded.getClaim("email").asString());
         assertTrue(isExpiresWithin(decoded, Duration.ofMinutes(60 * 24)));
     }
 
     @Test void createInvitationJwt_containsClientEmailAndCoachId() {
         UUID coachId = UUID.randomUUID();
 
-        String token = jwtService.createInvitationJwt("client@mail.com", coachId);
+        String token = jwtService.createInvitationJwt("client@omni.one", coachId);
 
         DecodedJWT decoded = jwtService.verifyInvitation(token);
 
         assertEquals("invitation", decoded.getSubject());
-        assertEquals("client@mail.com", decoded.getClaim("clientEmail").asString());
+        assertEquals("client@omni.one", decoded.getClaim("clientEmail").asString());
         assertEquals(coachId.toString(), decoded.getClaim("coachId").asString());
         assertTrue(isExpiresWithin(decoded, Duration.ofMinutes(60 * 24)));
     }

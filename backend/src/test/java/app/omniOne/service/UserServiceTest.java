@@ -134,7 +134,7 @@ import static org.mockito.Mockito.*;
     }
 
     @Test void softDeleteUser_marksDeletedAndAnonymizes() {
-        user.setEmail("user@mail.com");
+        user.setEmail("user@omni.one");
         user.setPassword("password");
         user.setDeleted(false);
         UserProfile profile = new UserProfile();
