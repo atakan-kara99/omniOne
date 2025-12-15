@@ -5,6 +5,8 @@ import app.omniOne.model.entity.questionnaire.QuestionnaireAnswer;
 import app.omniOne.model.entity.questionnaire.QuestionnaireQuestion;
 import app.omniOne.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
@@ -14,6 +16,7 @@ import java.time.LocalDateTime;
 
 @DataJpaTest
 @ActiveProfiles("test")
+@AutoConfigureTestDatabase(replace = Replace.NONE)
 abstract class RepositoryTestBase {
 
     @Autowired protected TestEntityManager entityManager;
