@@ -34,10 +34,8 @@ import static org.mockito.Mockito.*;
     @BeforeEach void setUp() {
         coachId = UUID.randomUUID();
         clientId = UUID.randomUUID();
-        coach = new Coach();
-        coach.setId(coachId);
-        client = new Client();
-        client.setId(clientId);
+        coach = coach(coachId);
+        client = client(clientId);
     }
 
     @Test void getClients_returnsClientsOfCoach() {

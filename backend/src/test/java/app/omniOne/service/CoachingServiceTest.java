@@ -17,6 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import static app.omniOne.TestFixtures.client;
+import static app.omniOne.TestFixtures.coach;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,10 +38,8 @@ import static org.mockito.Mockito.when;
     @BeforeEach void setUp() {
         coachId = UUID.randomUUID();
         clientId = UUID.randomUUID();
-        coach = new Coach();
-        coach.setId(coachId);
-        client = new Client();
-        client.setId(clientId);
+        coach = coach(coachId);
+        client = client(clientId);
     }
 
     @Test void startCoaching_linksCoachAndClientAndPersistsCoaching() {

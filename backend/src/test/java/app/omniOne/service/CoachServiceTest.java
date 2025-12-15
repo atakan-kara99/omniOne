@@ -13,11 +13,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static app.omniOne.TestFixtures.coach;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class) class CoachServiceTest {
 
@@ -30,8 +28,7 @@ import static org.mockito.Mockito.when;
 
     @BeforeEach void setUp() {
         coachId = UUID.randomUUID();
-        coach = new Coach();
-        coach.setId(coachId);
+        coach = coach(coachId);
     }
 
     @Test void getCoach_returnsCoachFromRepository() {

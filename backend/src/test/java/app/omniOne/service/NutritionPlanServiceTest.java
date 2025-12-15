@@ -17,6 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.UUID;
 
+import static app.omniOne.TestFixtures.client;
+import static app.omniOne.TestFixtures.nutritionPlan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,15 +37,13 @@ import static org.mockito.Mockito.*;
 
     @BeforeEach void setUp() {
         clientId = UUID.randomUUID();
-        client = new Client();
-        client.setId(clientId);
+        client = client(clientId);
     }
 
     @Test void addNutriPlan_mapsAndSavesNewPlan() {
         NutritionPlanRequest request = new NutritionPlanRequest(
                 150.0, 100.0, 50.0, 3.0, 2.0, 5.0);
-        NutritionPlan savedPlan = new NutritionPlan();
-        savedPlan.setId(1L);
+        NutritionPlan savedPlan = nutritionPlan(1L);
 
         when(clientRepo.findByIdOrThrow(clientId)).thenReturn(client);
         when(nutritionPlanRepo.save(any(NutritionPlan.class))).thenReturn(savedPlan);
@@ -65,8 +65,7 @@ import static org.mockito.Mockito.*;
     }
 
     @Test void getActiveNutriPlan_returnsLatestPlan() {
-        NutritionPlan activePlan = new NutritionPlan();
-        activePlan.setId(2L);
+        NutritionPlan activePlan = nutritionPlan(2L);
         when(nutritionPlanRepo.findFirstByClientIdOrderByCreatedAtDescOrThrow(clientId)).thenReturn(activePlan);
 
         NutritionPlan result = nutritionPlanService.getActiveNutriPlan(clientId);
@@ -77,7 +76,7 @@ import static org.mockito.Mockito.*;
     }
 
     @Test void getNutriPlans_returnsPlansForClient() {
-        List<NutritionPlan> plans = List.of(new NutritionPlan(), new NutritionPlan());
+        List<NutritionPlan> plans = List.of(nutritionPlan(null), nutritionPlan(null));
 
         when(nutritionPlanRepo.findByClientIdOrderByCreatedAtDescOrThrow(clientId)).thenReturn(plans);
 
@@ -93,10 +92,8 @@ import static org.mockito.Mockito.*;
         Long planId = 5L;
         NutritionPlanRequest request = new NutritionPlanRequest(
                 120.0, 80.0, 40.0, null, null, null);
-        NutritionPlan existingPlan = new NutritionPlan();
-        existingPlan.setId(planId);
-        NutritionPlan savedPlan = new NutritionPlan();
-        savedPlan.setId(planId);
+        NutritionPlan existingPlan = nutritionPlan(planId);
+        NutritionPlan savedPlan = nutritionPlan(planId);
 
         when(nutritionPlanRepo.findByIdAndClientIdOrThrow(planId, clientId)).thenReturn(existingPlan);
         when(nutritionPlanRepo.save(existingPlan)).thenReturn(savedPlan);

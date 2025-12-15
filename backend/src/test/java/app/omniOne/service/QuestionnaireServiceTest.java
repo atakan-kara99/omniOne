@@ -25,6 +25,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static app.omniOne.TestFixtures.answer;
+import static app.omniOne.TestFixtures.client;
+import static app.omniOne.TestFixtures.coach;
+import static app.omniOne.TestFixtures.question;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -47,10 +51,8 @@ import static org.mockito.Mockito.*;
     @BeforeEach void setUp() {
         coachId = UUID.randomUUID();
         clientId = UUID.randomUUID();
-        coach = new Coach();
-        coach.setId(coachId);
-        client = new Client();
-        client.setId(clientId);
+        coach = coach(coachId);
+        client = client(clientId);
     }
 
     @Test void getQuestionsForCoach_returnsQuestionsFromRepo() {
@@ -108,16 +110,10 @@ import static org.mockito.Mockito.*;
     @Test void putAnswers_updatesExistingAndCreatesNewAnswers() {
         client.setCoach(coach);
 
-        QuestionnaireQuestion q1 = new QuestionnaireQuestion();
-        q1.setId(1L);
-        q1.setCoach(coach);
-        QuestionnaireQuestion q2 = new QuestionnaireQuestion();
-        q2.setId(2L);
-        q2.setCoach(coach);
+        QuestionnaireQuestion q1 = question(1L, coach, null);
+        QuestionnaireQuestion q2 = question(2L, coach, null);
 
-        QuestionnaireAnswer existingAnswer = new QuestionnaireAnswer();
-        existingAnswer.setQuestion(q1);
-        existingAnswer.setClient(client);
+        QuestionnaireAnswer existingAnswer = answer(q1, client, null);
 
         when(clientRepo.findByIdOrThrow(clientId)).thenReturn(client);
         when(questionRepo.findByIdAOrThrow(1L)).thenReturn(q1);
@@ -150,17 +146,11 @@ import static org.mockito.Mockito.*;
     @Test void putAnswers_throwsWhenQuestionBelongsToDifferentCoach() {
         UUID otherCoachId = UUID.randomUUID();
 
-        Coach coach = new Coach();
-        coach.setId(coachId);
-        Coach otherCoach = new Coach();
-        otherCoach.setId(otherCoachId);
-        Client client = new Client();
-        client.setId(clientId);
-        client.setCoach(coach);
+        Coach coach = coach(coachId);
+        Coach otherCoach = coach(otherCoachId);
+        Client client = client(clientId, coach);
 
-        QuestionnaireQuestion question = new QuestionnaireQuestion();
-        question.setId(5L);
-        question.setCoach(otherCoach);
+        QuestionnaireQuestion question = question(5L, otherCoach, null);
 
         when(clientRepo.findByIdOrThrow(clientId)).thenReturn(client);
         when(questionRepo.findByIdAOrThrow(5L)).thenReturn(question);
@@ -176,19 +166,11 @@ import static org.mockito.Mockito.*;
     }
 
     @Test void getAnswers_mapsEntitiesToResponses() {
-        QuestionnaireQuestion q1 = new QuestionnaireQuestion();
-        q1.setId(1L);
-        q1.setText("Q1");
-        QuestionnaireAnswer a1 = new QuestionnaireAnswer();
-        a1.setQuestion(q1);
-        a1.setAnswer("A1");
+        QuestionnaireQuestion q1 = question(1L, null, "Q1");
+        QuestionnaireAnswer a1 = answer(q1, null, "A1");
 
-        QuestionnaireQuestion q2 = new QuestionnaireQuestion();
-        q2.setId(2L);
-        q2.setText("Q2");
-        QuestionnaireAnswer a2 = new QuestionnaireAnswer();
-        a2.setQuestion(q2);
-        a2.setAnswer("A2");
+        QuestionnaireQuestion q2 = question(2L, null, "Q2");
+        QuestionnaireAnswer a2 = answer(q2, null, "A2");
 
         when(answerRepo.findAllByClientId(clientId)).thenReturn(List.of(a1, a2));
 

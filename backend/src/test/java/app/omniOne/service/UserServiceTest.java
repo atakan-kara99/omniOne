@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import static app.omniOne.TestFixtures.user;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -35,8 +36,7 @@ import static org.mockito.Mockito.*;
 
     @BeforeEach void setUp() {
         userId = UUID.randomUUID();
-        user = new User();
-        user.setId(userId);
+        user = user(userId);
     }
 
     @Test void getUser_returnsUserFromRepository() {
