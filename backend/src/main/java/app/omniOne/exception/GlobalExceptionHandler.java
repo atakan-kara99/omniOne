@@ -8,14 +8,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Slf4j
@@ -88,6 +91,22 @@ public class GlobalExceptionHandler {
         );
         pd.setProperty("errors", errors);
         log.info("Failed to validate http request because: {}", ex.getMessage());
+        return new ResponseEntity<>(pd, status);
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ProblemDetail> handleMethodValidation(HandlerMethodValidationException ex) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ProblemDetail pd = pd("Validation Failed", status);
+        Map<String, String> errors = new LinkedHashMap<>();
+        ex.getAllErrors().forEach(error -> {
+            String field = error instanceof FieldError fe
+                    ? fe.getField()
+                    : "request";
+            errors.put(field, error.getDefaultMessage());
+        });
+        pd.setProperty("errors", errors);
+        log.info("Failed to validate method because: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
