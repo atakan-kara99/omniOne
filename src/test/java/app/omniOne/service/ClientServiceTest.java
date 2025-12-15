@@ -1,5 +1,6 @@
 package app.omniOne.service;
 
+import app.omniOne.model.dto.ClientPatchRequest;
 import app.omniOne.model.entity.Client;
 import app.omniOne.model.entity.Coach;
 import app.omniOne.model.mapper.ClientMapper;
@@ -15,6 +16,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.UUID;
 
+import static app.omniOne.TestFixtures.client;
+import static app.omniOne.TestFixtures.coach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.*;
