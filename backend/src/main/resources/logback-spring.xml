@@ -9,9 +9,8 @@
 
 
     <springProfile name="test">
-        <logger name="app.omniOne" level="INFO"/>
         <property name="PATTERN" value="%d{HH:mm:ss} - %-40.40logger{39} %5p - %8X{correlationId} : %m%n"/>
-        <root level="WARN">
+        <root level="INFO">
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
