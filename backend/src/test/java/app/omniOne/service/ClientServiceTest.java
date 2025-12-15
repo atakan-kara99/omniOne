@@ -64,20 +64,20 @@ import static org.mockito.Mockito.*;
     }
 
     //TODO
-//    @Test void patchClient_mapsAndSavesUpdatedClient() {
-//        ClientPatchRequest request = new ClientPatchRequest("new@mail.com");
-//        Client savedClient = new Client();
-//        savedClient.setId(clientId);
-//
-//        when(clientRepo.findByIdOrThrow(clientId)).thenReturn(client);
-//        when(clientRepo.save(client)).thenReturn(savedClient);
-//
-//        Client result = clientService.patchClient(clientId, request);
-//
-//        assertSame(savedClient, result);
-//        verify(clientRepo).findByIdOrThrow(clientId);
-//        verify(clientMapper).map(request, client);
-//        verify(clientRepo).save(client);
-//        verifyNoInteractions(coachRepo);
-//    }
+    @Test void patchClient_mapsAndSavesUpdatedClient() {
+        ClientPatchRequest request = new ClientPatchRequest();
+        Client savedClient = new Client();
+        savedClient.setId(clientId);
+
+        when(clientRepo.findByIdOrThrow(clientId)).thenReturn(client);
+        when(clientRepo.save(client)).thenReturn(savedClient);
+
+        Client result = clientService.patchClient(clientId, request);
+
+        assertSame(savedClient, result);
+        verify(clientRepo).findByIdOrThrow(clientId);
+        verify(clientMapper).map(request, client);
+        verify(clientRepo).save(client);
+        verifyNoInteractions(coachRepo);
+    }
 }

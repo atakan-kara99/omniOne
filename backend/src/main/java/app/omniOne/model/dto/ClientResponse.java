@@ -4,8 +4,6 @@ import java.util.UUID;
 
 public record ClientResponse(
 
-        UUID id,
-
-        String email
+        UUID id
 
 ) {}
