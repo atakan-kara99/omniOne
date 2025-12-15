@@ -62,7 +62,8 @@ class AuthServiceTest {
         coach.setId(coachId);
         client.setCoach(coach);
         when(clientRepo.findByIdOrThrow(clientId)).thenReturn(client);
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(coachId.toString(), null);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(coachId.toString(), null);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         boolean result = authService.isCoachedByMe(clientId);
