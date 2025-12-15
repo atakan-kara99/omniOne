@@ -73,7 +73,7 @@ class AuthServiceTest {
     }
 
     @Test void login_returnsJwtAfterAuthentication() {
-        LoginRequest request = new LoginRequest("user@mail.com", "pass");
+        LoginRequest request = new LoginRequest("user@omni.one", "pass");
         Authentication authentication = mock(Authentication.class);
         UserDetails principal = mock(UserDetails.class);
         when(authenticationManager.authenticate(any(Authentication.class))).thenReturn(authentication);
@@ -88,42 +88,42 @@ class AuthServiceTest {
     }
 
     @Test void register_savesCoachAndSendsActivationMail() {
-        RegisterRequest dto = new RegisterRequest(" Coach@Email.com ", "pwd", UserRole.COACH);
+        RegisterRequest dto = new RegisterRequest(" Coach@Omni.One ", "pwd", UserRole.COACH);
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         User savedUser = User.builder().id(UUID.randomUUID()).build();
         when(encoder.encode(anyString())).thenReturn("encoded");
-        when(userRepo.existsByEmail("coach@email.com")).thenReturn(false);
+        when(userRepo.existsByEmail("coach@omni.one")).thenReturn(false);
         when(userRepo.save(any(User.class))).thenReturn(savedUser);
-        when(jwtService.createActivationJwt("coach@email.com")).thenReturn("activation-jwt");
+        when(jwtService.createActivationJwt("coach@omni.one")).thenReturn("activation-jwt");
 
         User result = authService.register(dto);
 
         assertSame(savedUser, result);
-        verify(userRepo).existsByEmail("coach@email.com");
+        verify(userRepo).existsByEmail("coach@omni.one");
         verify(userRepo).save(userCaptor.capture());
         User captured = userCaptor.getValue();
-        assertEquals("coach@email.com", captured.getEmail());
+        assertEquals("coach@omni.one", captured.getEmail());
         assertEquals("encoded", captured.getPassword());
         assertEquals(UserRole.COACH, captured.getRole());
         verify(coachRepo).save(any(Coach.class));
-        verify(emailService).sendActivationMail("coach@email.com", "activation-jwt");
+        verify(emailService).sendActivationMail("coach@omni.one", "activation-jwt");
     }
 
     @Test void register_throwsForAdminRole() {
-        RegisterRequest dto = new RegisterRequest("admin@mail.com", "pwd", UserRole.ADMIN);
+        RegisterRequest dto = new RegisterRequest("admin@omni.one", "pwd", UserRole.ADMIN);
 
         assertThrows(NotAllowedException.class, () -> authService.register(dto));
     }
 
     @Test void register_throwsForDuplicateEmail() {
-        RegisterRequest dto = new RegisterRequest("user@mail.com", "pwd", UserRole.CLIENT);
-        when(userRepo.existsByEmail("user@mail.com")).thenReturn(true);
+        RegisterRequest dto = new RegisterRequest("user@omni.one", "pwd", UserRole.CLIENT);
+        when(userRepo.existsByEmail("user@omni.one")).thenReturn(true);
 
         assertThrows(DuplicateResourceException.class, () -> authService.register(dto));
     }
 
     @Test void activate_enablesUserFromVerifiedToken() {
-        String email = "user@mail.com";
+        String email = "user@omni.one";
         User user = new User();
         user.setEnabled(false);
         user.setEmail(email);
@@ -144,30 +144,30 @@ class AuthServiceTest {
     @Test void sendActivationMail_throwsWhenAlreadyEnabled() {
         User user = new User();
         user.setEnabled(true);
-        when(userRepo.findByEmailOrThrow("user@mail.com")).thenReturn(user);
+        when(userRepo.findByEmailOrThrow("user@omni.one")).thenReturn(user);
 
-        assertThrows(NotAllowedException.class, () -> authService.sendActivationMail("user@mail.com"));
+        assertThrows(NotAllowedException.class, () -> authService.sendActivationMail("user@omni.one"));
     }
 
     @Test void sendActivationMail_sendsMailWhenNotEnabled() {
         User user = new User();
         user.setEnabled(false);
-        when(userRepo.findByEmailOrThrow("user@mail.com")).thenReturn(user);
-        when(jwtService.createActivationJwt("user@mail.com")).thenReturn("jwt");
+        when(userRepo.findByEmailOrThrow("user@omni.one")).thenReturn(user);
+        when(jwtService.createActivationJwt("user@omni.one")).thenReturn("jwt");
 
-        authService.sendActivationMail("user@mail.com");
+        authService.sendActivationMail("user@omni.one");
 
-        verify(emailService).sendActivationMail("user@mail.com", "jwt");
+        verify(emailService).sendActivationMail("user@omni.one", "jwt");
     }
 
     @Test void sendInvitationMail_createsAndSendsToken() {
         UUID coachId = UUID.randomUUID();
         when(userRepo.findByIdOrThrow(coachId)).thenReturn(new User());
-        when(jwtService.createInvitationJwt("client@mail.com", coachId)).thenReturn("jwt");
+        when(jwtService.createInvitationJwt("client@omni.one", coachId)).thenReturn("jwt");
 
-        authService.sendInvitationMail("client@mail.com", coachId);
+        authService.sendInvitationMail("client@omni.one", coachId);
 
-        verify(emailService).sendInvitationMail("client@mail.com", "jwt");
+        verify(emailService).sendInvitationMail("client@omni.one", "jwt");
     }
 
     @Test void acceptInvitation_registersClientAndStartsCoaching() {
@@ -178,7 +178,7 @@ class AuthServiceTest {
         Claim coachClaim = mock(Claim.class);
         when(jwt.getClaim("clientEmail")).thenReturn(emailClaim);
         when(jwt.getClaim("coachId")).thenReturn(coachClaim);
-        when(emailClaim.asString()).thenReturn("client@mail.com");
+        when(emailClaim.asString()).thenReturn("client@omni.one");
         when(coachClaim.asString()).thenReturn(coachId.toString());
         when(jwtService.verifyInvitation("token")).thenReturn(jwt);
         when(coachRepo.findByIdOrThrow(coachId)).thenReturn(new Coach());
@@ -197,16 +197,16 @@ class AuthServiceTest {
     }
 
     @Test void sendForgotMail_createsResetTokenAndSendsMail() {
-        when(userRepo.findByEmailOrThrow("user@mail.com")).thenReturn(new User());
-        when(jwtService.createResetPasswordJwt("user@mail.com")).thenReturn("reset-jwt");
+        when(userRepo.findByEmailOrThrow("user@omni.one")).thenReturn(new User());
+        when(jwtService.createResetPasswordJwt("user@omni.one")).thenReturn("reset-jwt");
 
-        authService.sendForgotMail("user@mail.com");
+        authService.sendForgotMail("user@omni.one");
 
-        verify(emailService).sendResetPasswordMail("user@mail.com", "reset-jwt");
+        verify(emailService).sendResetPasswordMail("user@omni.one", "reset-jwt");
     }
 
     @Test void reset_setsEncodedPasswordAndSavesUser() {
-        String email = "user@mail.com";
+        String email = "user@omni.one";
         User user = new User();
         user.setEmail(email);
         User saved = new User();
