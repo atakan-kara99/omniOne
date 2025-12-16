@@ -21,8 +21,7 @@ public abstract class AuthTestSupport {
         authStatic.when(AuthService::getMyId).thenReturn(userId);
     }
 
-    @AfterEach
-    void closeAuthMock() {
+    @AfterEach void closeAuthMock() {
         if (authStatic != null) {
             authStatic.close();
             authStatic = null;

@@ -37,8 +37,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-class AuthServiceTest {
+@ExtendWith(MockitoExtension.class) class AuthServiceTest {
 
     @Mock private UserRepo userRepo;
     @Mock private CoachRepo coachRepo;
