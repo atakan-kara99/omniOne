@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
+import static app.omniOne.TestFixtures.coachEmail;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -39,14 +40,13 @@ class AuthFlowIntegrationTest {
     @MockitoBean private EmailService emailService;
 
     @Test void coach_registers_activates_logs_in_and_fetches_user() throws Exception {
-        String email = "coach@omni.one";
         String password = "Passw0rd!";
 
         JsonNode registerJson = objectMapper.readTree(
                 mockMvc.perform(post("/auth/account/register")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsBytes(
-                                        new RegisterRequest(email, password, UserRole.COACH))))
+                                        new RegisterRequest(coachEmail, password, UserRole.COACH))))
                         .andExpect(status().isCreated())
                         .andReturn()
                         .getResponse()
@@ -55,7 +55,7 @@ class AuthFlowIntegrationTest {
         UUID userId = UUID.fromString(registerJson.get("id").asText());
         assertFalse(userRepo.findByIdOrThrow(userId).isEnabled(), "User should be disabled before activation");
 
-        String activationToken = jwtService.createActivationJwt(email);
+        String activationToken = jwtService.createActivationJwt(coachEmail);
         mockMvc.perform(get("/auth/account/activate").param("token", activationToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.enabled").value(true));
@@ -64,7 +64,7 @@ class AuthFlowIntegrationTest {
         JsonNode loginJson = objectMapper.readTree(
                 mockMvc.perform(post("/auth/account/login")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsBytes(new LoginRequest(email, password))))
+                                .content(objectMapper.writeValueAsBytes(new LoginRequest(coachEmail, password))))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.token").exists())
                         .andReturn()
@@ -76,7 +76,7 @@ class AuthFlowIntegrationTest {
         mockMvc.perform(get("/user").header("Authorization", bearerToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(userId.toString()))
-                .andExpect(jsonPath("$.email").value(email))
+                .andExpect(jsonPath("$.email").value(coachEmail))
                 .andExpect(jsonPath("$.role").value("COACH"));
     }
 

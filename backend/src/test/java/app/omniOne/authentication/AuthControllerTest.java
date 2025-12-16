@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static app.omniOne.TestFixtures.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -41,7 +42,7 @@ class AuthControllerTest {
     @MockitoBean private AuthService authService;
 
     @Test void login_returnsJwtResponse() throws Exception {
-        LoginRequest request = new LoginRequest("user@omni.one", "pass");
+        LoginRequest request = new LoginRequest(userEmail, "pass");
         when(authService.login(request)).thenReturn("jwt-token");
 
         mockMvc.perform(post("/auth/account/login")
@@ -54,10 +55,10 @@ class AuthControllerTest {
     }
 
     @Test void register_returnsMappedAuthResponse() throws Exception {
-        RegisterRequest request = new RegisterRequest("coach@omni.one", "pwd", UserRole.COACH);
+        RegisterRequest request = new RegisterRequest(coachEmail, "pwd", UserRole.COACH);
         User savedUser = new User();
         savedUser.setId(UUID.randomUUID());
-        AuthResponse response = new AuthResponse(savedUser.getId(), "coach@omni.one", UserRole.COACH,
+        AuthResponse response = new AuthResponse(savedUser.getId(), coachEmail, UserRole.COACH,
                 LocalDateTime.of(2025, 1, 1, 12, 0), false);
 
         when(authService.register(any(RegisterRequest.class))).thenReturn(savedUser);
@@ -68,12 +69,12 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(savedUser.getId().toString()))
-                .andExpect(jsonPath("$.email").value("coach@omni.one"))
+                .andExpect(jsonPath("$.email").value(coachEmail))
                 .andExpect(jsonPath("$.role").value("COACH"));
 
         ArgumentCaptor<RegisterRequest> captor = ArgumentCaptor.forClass(RegisterRequest.class);
         verify(authService).register(captor.capture());
-        assertEquals("coach@omni.one", captor.getValue().email());
+        assertEquals(coachEmail, captor.getValue().email());
         verify(authMapper).map(savedUser);
     }
 
@@ -81,7 +82,7 @@ class AuthControllerTest {
         String token = "activation-token";
         User user = new User();
         user.setId(UUID.randomUUID());
-        AuthResponse response = new AuthResponse(user.getId(), "user@omni.one", UserRole.CLIENT,
+        AuthResponse response = new AuthResponse(user.getId(), userEmail, UserRole.CLIENT,
                 LocalDateTime.of(2025, 2, 2, 9, 0), true);
 
         when(authService.activate(token)).thenReturn(user);
@@ -97,17 +98,17 @@ class AuthControllerTest {
     }
 
     @Test void resend_sendsActivationMail() throws Exception {
-        mockMvc.perform(get("/auth/account/resend").param("email", "user@omni.one"))
+        mockMvc.perform(get("/auth/account/resend").param("email", userEmail))
                 .andExpect(status().isNoContent());
 
-        verify(authService).sendActivationMail("user@omni.one");
+        verify(authService).sendActivationMail(userEmail);
     }
 
     @Test void forgot_sendsForgotMail() throws Exception {
-        mockMvc.perform(get("/auth/password/forgot").param("email", "user@omni.one"))
+        mockMvc.perform(get("/auth/password/forgot").param("email", userEmail))
                 .andExpect(status().isNoContent());
 
-        verify(authService).sendForgotMail("user@omni.one");
+        verify(authService).sendForgotMail(userEmail);
     }
 
     @Test void reset_updatesPasswordAndReturnsAuthResponse() throws Exception {
@@ -115,7 +116,7 @@ class AuthControllerTest {
         PasswordRequest request = new PasswordRequest("newPass");
         User user = new User();
         user.setId(UUID.randomUUID());
-        AuthResponse response = new AuthResponse(user.getId(), "user@omni.one", UserRole.CLIENT,
+        AuthResponse response = new AuthResponse(user.getId(), userEmail, UserRole.CLIENT,
                 LocalDateTime.of(2025, 3, 3, 8, 30), true);
 
         when(authService.reset(eq(token), any(PasswordRequest.class))).thenReturn(user);
@@ -137,7 +138,7 @@ class AuthControllerTest {
         PasswordRequest request = new PasswordRequest("secret");
         User user = new User();
         user.setId(UUID.randomUUID());
-        AuthResponse response = new AuthResponse(user.getId(), "client@omni.one", UserRole.CLIENT,
+        AuthResponse response = new AuthResponse(user.getId(), clientEmail, UserRole.CLIENT,
                 LocalDateTime.of(2025, 4, 4, 7, 0), true);
 
         when(authService.acceptInvitation(eq(token), any(PasswordRequest.class))).thenReturn(user);
@@ -148,7 +149,7 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(user.getId().toString()))
-                .andExpect(jsonPath("$.email").value("client@omni.one"));
+                .andExpect(jsonPath("$.email").value(clientEmail));
 
         verify(authService).acceptInvitation(eq(token), any(PasswordRequest.class));
         verify(authMapper).map(user);

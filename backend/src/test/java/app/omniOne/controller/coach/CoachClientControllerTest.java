@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static app.omniOne.TestFixtures.client;
+import static app.omniOne.TestFixtures.clientEmail;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -81,12 +82,10 @@ class CoachClientControllerTest extends AuthTestSupport {
     }
 
     @Test void invite_sendsInvitationMail() throws Exception {
-        String email = "client@omni.one";
-
-        mockMvc.perform(get("/coach/clients/invite").param("email", email))
+        mockMvc.perform(get("/coach/clients/invite").param("email", clientEmail))
                 .andExpect(status().isNoContent());
 
-        verify(authService).sendInvitationMail(email, coachId);
+        verify(authService).sendInvitationMail(clientEmail, coachId);
     }
 
     @Test void endCoaching_endsRelationship() throws Exception {

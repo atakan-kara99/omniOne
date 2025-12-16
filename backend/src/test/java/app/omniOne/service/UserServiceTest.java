@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import static app.omniOne.TestFixtures.user;
+import static app.omniOne.TestFixtures.userEmail;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -134,7 +135,7 @@ import static org.mockito.Mockito.*;
     }
 
     @Test void softDeleteUser_marksDeletedAndAnonymizes() {
-        user.setEmail("user@omni.one");
+        user.setEmail(userEmail);
         user.setPassword("password");
         user.setDeleted(false);
         UserProfile profile = new UserProfile();

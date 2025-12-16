@@ -19,6 +19,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import static app.omniOne.TestFixtures.userEmail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,7 +52,7 @@ import static org.mockito.Mockito.*;
     @Test void sendSimpleMail_buildsAndSendsSimpleMessage() {
         ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
 
-        emailService.sendSimpleMail("user@omni.one", "Subject", "Body");
+        emailService.sendSimpleMail(userEmail, "Subject", "Body");
 
         verify(mailSender).send(captor.capture());
         SimpleMailMessage sent = captor.getValue();
@@ -60,18 +61,18 @@ import static org.mockito.Mockito.*;
         assertEquals("Body", sent.getText());
         Assertions.assertNotNull(sent.getTo());
         assertEquals(1, sent.getTo().length);
-        assertEquals("user@omni.one", sent.getTo()[0]);
+        assertEquals(userEmail, sent.getTo()[0]);
     }
 
     @Test void sendActivationMail_rendersTemplateAndSetsMailFields() throws Exception {
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(any(String.class), any(Context.class))).thenReturn("<html>body</html>");
 
-        emailService.sendActivationMail("user@omni.one", "jwt-token");
+        emailService.sendActivationMail(userEmail, "jwt-token");
 
         verify(mailSender).send(mimeMessage);
         assertEquals("Activate", mimeMessage.getSubject());
-        assertEquals("user@omni.one", mimeMessage.getAllRecipients()[0].toString());
+        assertEquals(userEmail, mimeMessage.getAllRecipients()[0].toString());
         assertEquals("noreply@omni.one", mimeMessage.getFrom()[0].toString());
         Context context = captureContext("activation-template");
         assertEquals("https://activate?token=jwt-token", context.getVariable("link"));
@@ -101,7 +102,7 @@ import static org.mockito.Mockito.*;
 
         SendEmailException exception = assertThrows(
                 SendEmailException.class,
-                () -> emailService.sendResetPasswordMail("user@omni.one", "reset-token"));
+                () -> emailService.sendResetPasswordMail(userEmail, "reset-token"));
 
         assertEquals("boom", exception.getMessage());
         verify(mailSender).createMimeMessage();

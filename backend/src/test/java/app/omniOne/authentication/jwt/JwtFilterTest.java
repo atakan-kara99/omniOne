@@ -90,4 +90,5 @@ import static org.mockito.Mockito.*;
         assertEquals("/coach/clients", body.get("path"));
         assertEquals(401, body.get("status"));
     }
+
 }

@@ -1,7 +1,6 @@
 package app.omniOne.controller.coach;
 
 import app.omniOne.AuthTestSupport;
-import app.omniOne.authentication.AuthService;
 import app.omniOne.authentication.jwt.JwtFilter;
 import app.omniOne.model.dto.CoachPatchRequest;
 import app.omniOne.model.dto.CoachResponse;
@@ -23,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.UUID;
 
 import static app.omniOne.TestFixtures.coach;
+import static app.omniOne.TestFixtures.coachEmail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -67,7 +67,7 @@ class CoachCoachControllerTest extends AuthTestSupport {
     }
 
     @Test void patchCoach_updatesAndReturnsResponse() throws Exception {
-        CoachPatchRequest request = new CoachPatchRequest("coach@omni.one");
+        CoachPatchRequest request = new CoachPatchRequest(coachEmail);
         Coach coach = coach(coachId);
         CoachResponse response = new CoachResponse(coachId);
 
@@ -82,7 +82,7 @@ class CoachCoachControllerTest extends AuthTestSupport {
 
         ArgumentCaptor<CoachPatchRequest> captor = ArgumentCaptor.forClass(CoachPatchRequest.class);
         verify(coachService).patchCoach(eq(coachId), captor.capture());
-        assertEquals("coach@omni.one", captor.getValue().email());
+        assertEquals(coachEmail, captor.getValue().email());
         verify(coachMapper).map(coach);
     }
 

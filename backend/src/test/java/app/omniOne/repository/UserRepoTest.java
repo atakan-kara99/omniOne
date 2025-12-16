@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Optional;
 import java.util.UUID;
 
+import static app.omniOne.TestFixtures.userEmail;
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserRepoTest extends RepositoryTestBase {
@@ -19,12 +20,12 @@ class UserRepoTest extends RepositoryTestBase {
     private User user;
 
     @BeforeEach void setUp() {
-        user = persistUser("user@omni.one", UserRole.ADMIN);
+        user = persistUser(userEmail, UserRole.ADMIN);
         flushAndClear();
     }
 
     @Test void existsByEmail_matchesPersistedUser() {
-        boolean exists = userRepo.existsByEmail("user@omni.one");
+        boolean exists = userRepo.existsByEmail(userEmail);
         boolean missing = userRepo.existsByEmail("missing@omni.one");
 
         assertTrue(exists);
@@ -32,7 +33,7 @@ class UserRepoTest extends RepositoryTestBase {
     }
 
     @Test void findByEmail_returnsOptionalWhenPresent() {
-        Optional<User> result = userRepo.findByEmail("user@omni.one");
+        Optional<User> result = userRepo.findByEmail(userEmail);
 
         assertTrue(result.isPresent());
         assertEquals(user.getId(), result.get().getId());
@@ -59,7 +60,7 @@ class UserRepoTest extends RepositoryTestBase {
     }
 
     @Test void findByEmailOrThrow_returnsUserWhenPresent() {
-        User result = userRepo.findByEmailOrThrow("user@omni.one");
+        User result = userRepo.findByEmailOrThrow(userEmail);
 
         assertEquals(user.getId(), result.getId());
     }

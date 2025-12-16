@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Optional;
 
+import static app.omniOne.TestFixtures.clientEmail;
+import static app.omniOne.TestFixtures.coachEmail;
 import static org.junit.jupiter.api.Assertions.*;
 
 class QuestionnaireAnswerRepoTest extends RepositoryTestBase {
@@ -23,8 +25,8 @@ class QuestionnaireAnswerRepoTest extends RepositoryTestBase {
     private QuestionnaireAnswer savedAnswer;
 
     @BeforeEach void setUp() {
-        Coach coach = persistCoach(persistUser("coach@omni.one", UserRole.COACH));
-        client = persistClient(persistUser("client@omni.one", UserRole.CLIENT), coach);
+        Coach coach = persistCoach(persistUser(coachEmail, UserRole.COACH));
+        client = persistClient(persistUser(clientEmail, UserRole.CLIENT), coach);
         question = persistQuestion("Coach question", coach);
         savedAnswer = persistAnswer(client, question, "Yes");
         flushAndClear();

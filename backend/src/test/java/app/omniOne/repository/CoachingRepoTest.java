@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.UUID;
 
+import static app.omniOne.TestFixtures.clientEmail;
+import static app.omniOne.TestFixtures.coachEmail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -22,8 +24,8 @@ class CoachingRepoTest extends RepositoryTestBase {
     private Client client;
 
     @BeforeEach void setUp() {
-        coach = persistCoach(persistUser("coach@omni.one", UserRole.COACH));
-        client = persistClient(persistUser("client@omni.one", UserRole.CLIENT), coach);
+        coach = persistCoach(persistUser(coachEmail, UserRole.COACH));
+        client = persistClient(persistUser(clientEmail, UserRole.CLIENT), coach);
         persistCoaching(coach, client);
         flushAndClear();
     }

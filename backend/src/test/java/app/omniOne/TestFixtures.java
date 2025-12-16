@@ -14,6 +14,11 @@ import java.util.UUID;
  */
 public final class TestFixtures {
 
+    public static String userEmail = "user@omni.one";
+    public static String adminEmail = "admin@omni.one";
+    public static String coachEmail = "coach@omni.one";
+    public static String clientEmail = "client@omni.one";
+
     private TestFixtures() {}
 
     public static User user(UUID id) {
@@ -61,4 +66,5 @@ public final class TestFixtures {
         plan.setId(id);
         return plan;
     }
+
 }

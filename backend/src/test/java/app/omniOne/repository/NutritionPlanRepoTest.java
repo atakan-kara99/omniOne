@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import static app.omniOne.TestFixtures.clientEmail;
+import static app.omniOne.TestFixtures.coachEmail;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NutritionPlanRepoTest extends RepositoryTestBase {
@@ -24,8 +26,8 @@ class NutritionPlanRepoTest extends RepositoryTestBase {
     private NutritionPlan olderPlan;
 
     @BeforeEach void setUp() {
-        Coach coach = persistCoach(persistUser("coach@omni.one", UserRole.COACH));
-        client = persistClient(persistUser("client@omni.one", UserRole.CLIENT), coach);
+        Coach coach = persistCoach(persistUser(coachEmail, UserRole.COACH));
+        client = persistClient(persistUser(clientEmail, UserRole.CLIENT), coach);
         olderPlan = persistNutritionPlan(client, 200.0, 100.0, 50.0,
                 LocalDateTime.of(2024, 1, 1, 12, 0));
         recentPlan = persistNutritionPlan(client, 220.0, 110.0, 60.0,

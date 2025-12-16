@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
+import static app.omniOne.TestFixtures.coachEmail;
 import static org.junit.jupiter.api.Assertions.*;
 
 class QuestionnaireQuestionRepoTest extends RepositoryTestBase {
@@ -21,7 +22,7 @@ class QuestionnaireQuestionRepoTest extends RepositoryTestBase {
     private QuestionnaireQuestion standardQuestion;
 
     @BeforeEach void setUp() {
-        coach = persistCoach(persistUser("coach@omni.one", UserRole.COACH));
+        coach = persistCoach(persistUser(coachEmail, UserRole.COACH));
         coachQuestion = persistQuestion("Coach question", coach);
         standardQuestion = persistQuestion("Standard question", null);
         flushAndClear();

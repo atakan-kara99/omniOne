@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static app.omniOne.TestFixtures.userEmail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -57,7 +58,7 @@ class UserControllerTest extends AuthTestSupport {
 
     @Test void getUser_returnsMappedDto() throws Exception {
         User user = new User();
-        UserDto dto = new UserDto(userId, "user@omni.one", UserRole.CLIENT,
+        UserDto dto = new UserDto(userId, userEmail, UserRole.CLIENT,
                 LocalDateTime.of(2025, 1, 1, 12, 0));
 
         when(userService.getUser(userId)).thenReturn(user);
@@ -66,7 +67,7 @@ class UserControllerTest extends AuthTestSupport {
         mockMvc.perform(get("/user"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(userId.toString()))
-                .andExpect(jsonPath("$.email").value("user@omni.one"))
+                .andExpect(jsonPath("$.email").value(userEmail))
                 .andExpect(jsonPath("$.role").value("CLIENT"))
                 .andExpect(jsonPath("$.updatedAt").value("2025-01-01T12:00:00"));
 
@@ -77,7 +78,7 @@ class UserControllerTest extends AuthTestSupport {
     @Test void changePassword_updatesUserAndReturnsDto() throws Exception {
         ChangePasswordRequest request = new ChangePasswordRequest("oldPass", "newPass");
         User user = new User();
-        UserDto dto = new UserDto(userId, "user@omni.one", UserRole.COACH,
+        UserDto dto = new UserDto(userId, userEmail, UserRole.COACH,
                 LocalDateTime.of(2025, 2, 2, 8, 30));
 
         when(userService.changePassword(eq(userId), any(ChangePasswordRequest.class))).thenReturn(user);

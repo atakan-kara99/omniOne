@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.UUID;
 
+import static app.omniOne.TestFixtures.coachEmail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -19,7 +20,7 @@ class CoachRepoTest extends RepositoryTestBase {
     private Coach coach;
 
     @BeforeEach void setUp() {
-        coach = persistCoach(persistUser("coach@omni.one", UserRole.COACH));
+        coach = persistCoach(persistUser(coachEmail, UserRole.COACH));
         flushAndClear();
     }
 

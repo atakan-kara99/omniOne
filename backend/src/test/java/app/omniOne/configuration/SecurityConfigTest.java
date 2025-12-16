@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import static app.omniOne.TestFixtures.*;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -36,44 +37,44 @@ class SecurityConfigTest {
     @Test void clientEndpoints_requireClientRole() throws Exception {
         mockMvc.perform(get("/client/area"))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(get("/client/area").with(user("client").roles("CLIENT")))
-                .andExpect(status().isOk());
-        mockMvc.perform(get("/client/area").with(user("coach").roles("COACH")))
+        mockMvc.perform(get("/client/area").with(user(coachEmail).roles("COACH")))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(get("/client/area").with(user("admin").roles("ADMIN")))
+        mockMvc.perform(get("/client/area").with(user(clientEmail).roles("CLIENT")))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/client/area").with(user(adminEmail).roles("ADMIN")))
                 .andExpect(status().isForbidden());
     }
 
     @Test void coachEndpoints_requireCoachRole() throws Exception {
         mockMvc.perform(get("/coach/area"))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(get("/coach/area").with(user("coach").roles("COACH")))
+        mockMvc.perform(get("/coach/area").with(user(coachEmail).roles("COACH")))
                 .andExpect(status().isOk());
-        mockMvc.perform(get("/coach/area").with(user("client").roles("CLIENT")))
+        mockMvc.perform(get("/coach/area").with(user(clientEmail).roles("CLIENT")))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(get("/coach/area").with(user("admin").roles("ADMIN")))
+        mockMvc.perform(get("/coach/area").with(user(adminEmail).roles("ADMIN")))
                 .andExpect(status().isForbidden());
     }
 
     @Test void userEndpoints_allowCoachOrClient() throws Exception {
         mockMvc.perform(get("/user/area"))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(get("/user/area").with(user("coach").roles("COACH")))
+        mockMvc.perform(get("/user/area").with(user(coachEmail).roles("COACH")))
                 .andExpect(status().isOk());
-        mockMvc.perform(get("/user/area").with(user("client").roles("CLIENT")))
+        mockMvc.perform(get("/user/area").with(user(clientEmail).roles("CLIENT")))
                 .andExpect(status().isOk());
-        mockMvc.perform(get("/user/area").with(user("admin").roles("ADMIN")))
+        mockMvc.perform(get("/user/area").with(user(adminEmail).roles("ADMIN")))
                 .andExpect(status().isForbidden());
     }
 
     @Test void adminEndpoints_requireAdminRole() throws Exception {
         mockMvc.perform(get("/admin/area"))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(get("/admin/area").with(user("coach").roles("COACH")))
+        mockMvc.perform(get("/admin/area").with(user(coachEmail).roles("COACH")))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(get("/admin/area").with(user("client").roles("CLIENT")))
+        mockMvc.perform(get("/admin/area").with(user(clientEmail).roles("CLIENT")))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(get("/admin/area").with(user("admin").roles("ADMIN")))
+        mockMvc.perform(get("/admin/area").with(user(adminEmail).roles("ADMIN")))
                 .andExpect(status().isOk());
     }
 

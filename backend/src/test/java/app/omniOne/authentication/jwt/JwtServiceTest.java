@@ -13,6 +13,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
+import static app.omniOne.TestFixtures.clientEmail;
+import static app.omniOne.TestFixtures.userEmail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -47,34 +49,34 @@ import static org.mockito.Mockito.when;
     }
 
     @Test void createResetPasswordJwt_isVerifiableWithEmailClaim() {
-        String token = jwtService.createResetPasswordJwt("user@omni.one");
+        String token = jwtService.createResetPasswordJwt(userEmail);
 
         DecodedJWT decoded = jwtService.verifyResetPassword(token);
 
         assertEquals("reset-password", decoded.getSubject());
-        assertEquals("user@omni.one", decoded.getClaim("email").asString());
+        assertEquals(userEmail, decoded.getClaim("email").asString());
         assertTrue(isExpiresWithin(decoded, Duration.ofMinutes(60)));
     }
 
     @Test void createActivationJwt_usesInitSecretAndContainsEmail() {
-        String token = jwtService.createActivationJwt("user@omni.one");
+        String token = jwtService.createActivationJwt(userEmail);
 
         DecodedJWT decoded = jwtService.verifyActivation(token);
 
         assertEquals("activation", decoded.getSubject());
-        assertEquals("user@omni.one", decoded.getClaim("email").asString());
+        assertEquals(userEmail, decoded.getClaim("email").asString());
         assertTrue(isExpiresWithin(decoded, Duration.ofMinutes(60 * 24)));
     }
 
     @Test void createInvitationJwt_containsClientEmailAndCoachId() {
         UUID coachId = UUID.randomUUID();
 
-        String token = jwtService.createInvitationJwt("client@omni.one", coachId);
+        String token = jwtService.createInvitationJwt(clientEmail, coachId);
 
         DecodedJWT decoded = jwtService.verifyInvitation(token);
 
         assertEquals("invitation", decoded.getSubject());
-        assertEquals("client@omni.one", decoded.getClaim("clientEmail").asString());
+        assertEquals(clientEmail, decoded.getClaim("clientEmail").asString());
         assertEquals(coachId.toString(), decoded.getClaim("coachId").asString());
         assertTrue(isExpiresWithin(decoded, Duration.ofMinutes(60 * 24)));
     }

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.UUID;
 
+import static app.omniOne.TestFixtures.clientEmail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -19,7 +20,7 @@ class ClientRepoTest extends RepositoryTestBase {
     private Client client;
 
     @BeforeEach void setUp() {
-        client = persistClient(persistUser("client@omni.one", UserRole.CLIENT), null);
+        client = persistClient(persistUser(clientEmail, UserRole.CLIENT), null);
         flushAndClear();
     }
 
