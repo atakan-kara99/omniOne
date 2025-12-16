@@ -18,13 +18,10 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U postgres"
+          --health-cmd="pg_isready -U yak"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-
-    env:
-      DATABASE_URL: postgres://yak:testpq12@localhost:5432/testdb
 
     steps:
       - name: Checkout code
@@ -37,5 +34,5 @@ jobs:
           java-version: '21'
           cache: 'maven'
 
-      - name: Run tests
-        run: mvn test
+      - name: Run verify
+        run: mvn verify
