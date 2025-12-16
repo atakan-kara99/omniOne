@@ -38,7 +38,7 @@ jobs:
       - name: Run test
         run: mvn test
 
-      - name: Upload coverage repor
+      - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v6
         with:
