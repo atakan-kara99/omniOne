@@ -10,7 +10,7 @@
 
     <springProfile name="test">
         <property name="PATTERN" value="%d{HH:mm:ss} - %-40.40logger{39} %5p - %8X{correlationId} : %m%n"/>
-        <root level="INFO">
+        <root level="WARN">
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
