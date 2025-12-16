@@ -1,42 +1,64 @@
-# omniOne (under Construction 🏗️)
+# omniØne Coaching Platform
 
-## [WARN] THIS README IS FOR INTERNAL PURPOSES
+## Key Features
 
-### Frontend
+### 🔐 Security & Authentication
 
-* Decide on framework (React or Angular)
-* Lean the basics with some videos
-* Set up basic environment
-* ...
-* Improve email templates
+* **JWT-based authentication** for protected endpoints
+* Full auth flow support: **registration**, **login**, and common account lifecycle actions
+* **Email-driven flows** for: Account activation, Invitations, Password reset
 
-### Backend
+---
 
-* Messaging system (Chat)
-* Profile picture for users
-  * Check which is best approach for dev and prod
-* Check-Ins
-  * Weight, NutriPlan, Comment, Date, Photos, Videos, Satiation/Hunger, Energielevel, Sleep, Steps
-* Define different env/profile (prod, dev)
-* Reminder system (for Check-In)
-* Supplements
-* Statistics (w graphs over time)
-* Peakweek planning
-* Training
-* Q&A after client activation (my version is not complete, need templating)
+### 🧱 Architecture & Code Quality
 
-### DevOps
+* Clear separation using **DTOs** to isolate internal domain models from API payloads
+* DTO-level **validation** to enforce input constraints consistently
+* **MapStruct** for fast, maintainable mapping between **Entities ↔ DTOs**
+* **Lombok** to reduce boilerplate (getters/setters/builders, etc.)
+* **Global exception handling** with a centralized handler and **custom exceptions**
 
-* Write unit and integration tests --------------- CONTROLLERS/AUTHCONTORLLER
-* Setup CI/CD with GitHub Actions
+---
 
-### Cloud
+### 🗄️ Data & Persistence
 
-* Adopt flyway for DB
-* JSON logs + Promtail → Loki
-* Prometheus and Grafana with Actuator
-* Check out how this should work
+* **PostgreSQL** integration
+* Persistence layer built with **Spring Data JPA**
+* **Hibernate** for ORM and entity management
 
-### CV
+---
 
-* Test (JUnit, Mockito)
+### 🌐 API & Documentation
+
+* **REST API controllers** running on the embedded **Tomcat** web server
+* **OpenAPI specification** included for interactive **Swagger UI** documentation
+
+---
+
+### 📝 Logging & Observability
+
+* Logging configured via **custom Logback** setup to keep logs structured and useful across environments
+
+---
+
+### 🧪 Testing
+
+* Unit and service testing with **JUnit**
+* Mocking and behavioral testing with **Mockito**
+
+---
+
+### ⚙️ Configuration & Build
+
+* **Maven** as the build tool
+* Multiple Spring profile configurations: `dev`, `test`, `prod`
+
+---
+
+### 🐳 Local Development (Docker)
+
+* **Docker Compose** setup to run the whole stack locally, including:
+
+  * **PostgreSQL** as database
+  * **Adminer** for DB inspection/management
+  * **MailHog** for capturing and previewing outgoing emails during development
