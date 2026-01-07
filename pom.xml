@@ -101,6 +101,13 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Quality of Life -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
         <!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
