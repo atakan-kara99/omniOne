@@ -15,12 +15,14 @@ import app.omniOne.model.entity.User;
 import app.omniOne.repository.UserRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatService {
@@ -32,18 +34,25 @@ public class ChatService {
     private final ChatConversationRepo conversationRepo;
 
     public List<ChatsDto> getChats(UUID userId) {
-        return conversationRepo.findChats(userId);
+        log.debug("Trying to retrieve ChatConversations from User {}", userId);
+        List<ChatsDto> chats = conversationRepo.findChats(userId);
+        log.info("Successfully retrieved ChatConversations");
+        return chats;
     }
 
     public ChatDto getChat(UUID conversationId) {
+        log.debug("Trying to retrieve ChatConversation {}", conversationId);
         ChatConversation conversation = conversationRepo.findByIdOrThrow(conversationId);
         List<ChatMessageDto> messages = messageRepo.findAllByConversationIdOrderBySentAtDesc(conversationId)
                 .stream().map(chatMapper::map).toList();
-        return new ChatDto(conversationId, conversation.getCreatedAt(), messages);
+        ChatDto chat = new ChatDto(conversationId, conversation.getCreatedAt(), messages);
+        log.info("Successfully retrieved ChatConversation");
+        return chat;
     }
 
     @Transactional
     public void saveMessage(UUID fromId, UUID toId, String content) {
+        log.debug("Trying to save ChatMessage from User {} to User {}", fromId, toId);
         LocalDateTime now = LocalDateTime.now();
         User from = userRepo.findByIdOrThrow(fromId);
         ChatConversation conversation = conversationRepo.findConversationBetween(fromId, toId)
@@ -51,10 +60,12 @@ public class ChatService {
         conversation.setLastMessageAt(now);
         ChatMessage message = ChatMessage.builder().conversation(conversation).sender(from).content(content).build();
         messageRepo.save(message);
+        log.info("Successfully saved ChatMessage");
     }
 
     private ChatConversation createConversationWithParticipants(
             UUID fromId, UUID toId, User from, LocalDateTime now) {
+        log.debug("Trying to create ChatConversation from User {} to User {}", fromId, toId);
         User to = userRepo.findByIdOrThrow(toId);
         ChatConversation conversation = conversationRepo.save(ChatConversation.builder()
                 .lastMessageAt(now).build());
@@ -63,6 +74,7 @@ public class ChatService {
         ChatParticipant participantTo = ChatParticipant.builder()
                 .id(new ChatParticipantId()).user(to).conversation(conversation).build();
         participantRepo.saveAll(List.of(participantFrom, participantTo));
+        log.info("Successfully created ChatConversation");
         return conversation;
     }
 
