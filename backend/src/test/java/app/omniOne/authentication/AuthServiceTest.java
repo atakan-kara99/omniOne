@@ -14,6 +14,7 @@ import app.omniOne.model.entity.User;
 import app.omniOne.model.enums.UserRole;
 import app.omniOne.repository.ClientRepo;
 import app.omniOne.repository.CoachRepo;
+import app.omniOne.repository.CoachingRepo;
 import app.omniOne.repository.UserRepo;
 import app.omniOne.service.CoachingService;
 import com.auth0.jwt.interfaces.Claim;
@@ -46,6 +47,7 @@ import static org.mockito.Mockito.*;
     @Mock private JwtService jwtService;
     @Mock private PasswordEncoder encoder;
     @Mock private EmailService emailService;
+    @Mock private CoachingRepo coachingRepo;
     @Mock private CoachingService coachingService;
     @Mock private AuthenticationManager authenticationManager;
     @InjectMocks private AuthService authService;
@@ -61,7 +63,7 @@ import static org.mockito.Mockito.*;
         Coach coach = new Coach();
         coach.setId(coachId);
         client.setCoach(coach);
-        when(clientRepo.findByIdOrThrow(clientId)).thenReturn(client);
+        when(coachingRepo.existsByCoachIdAndClientId(coachId, clientId)).thenReturn(true);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(coachId.toString(), null);
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -69,7 +71,7 @@ import static org.mockito.Mockito.*;
         boolean result = authService.isCoachedByMe(clientId);
 
         assertTrue(result);
-        verify(clientRepo).findByIdOrThrow(clientId);
+        verify(coachingRepo).existsByCoachIdAndClientId(coachId, clientId);
     }
 
     @Test void login_returnsJwtAfterAuthentication() {

@@ -108,7 +108,13 @@
 			<scope>runtime</scope>
 		</dependency>
 
-        <!-- Testing -->
+		<!-- Chatting -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+
+		<!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
