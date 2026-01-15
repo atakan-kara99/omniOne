@@ -5,6 +5,7 @@ import app.omniOne.authentication.model.LoginRequest;
 import app.omniOne.authentication.model.PasswordRequest;
 import app.omniOne.authentication.model.RegisterRequest;
 import app.omniOne.authentication.model.UserDetails;
+import app.omniOne.chatting.repository.ChatParticipantRepo;
 import app.omniOne.email.EmailService;
 import app.omniOne.exception.DuplicateResourceException;
 import app.omniOne.exception.NotAllowedException;
@@ -14,6 +15,7 @@ import app.omniOne.model.entity.User;
 import app.omniOne.model.enums.UserRole;
 import app.omniOne.repository.ClientRepo;
 import app.omniOne.repository.CoachRepo;
+import app.omniOne.repository.CoachingRepo;
 import app.omniOne.repository.UserRepo;
 import app.omniOne.service.CoachingService;
 import com.auth0.jwt.interfaces.DecodedJWT;
@@ -34,14 +36,18 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthService {
 
+    private final PasswordEncoder encoder;
+    private final AuthenticationManager authenticationManager;
+
     private final UserRepo userRepo;
     private final CoachRepo coachRepo;
     private final ClientRepo clientRepo;
+    private final CoachingRepo coachingRepo;
+    private final ChatParticipantRepo chatParticipantRepo;
+
     private final JwtService jwtService;
-    private final PasswordEncoder encoder;
     private final EmailService emailService;
     private final CoachingService coachingService;
-    private final AuthenticationManager authenticationManager;
 
     public static UUID getMyId() {
         return UUID.fromString((String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
@@ -50,8 +56,19 @@ public class AuthService {
     public boolean isCoachedByMe(UUID clientId) {
         UUID coachId = getMyId();
         log.debug("Checking if Coach {} has permission to access Client {} info", coachId, clientId);
-        Client client = clientRepo.findByIdOrThrow(clientId);
-        return client.getCoach().getId().equals(coachId);
+        return coachingRepo.existsByCoachIdAndClientId(coachId, clientId);
+    }
+
+    public boolean isRelated(UUID userId1, UUID userId2) {
+        log.debug("Checking if User {} has permission to message User {}", userId1, userId2);
+        return coachingRepo.existsByCoachIdAndClientId(userId1, userId2) ||
+                coachingRepo.existsByCoachIdAndClientId(userId2, userId1);
+    }
+
+    public boolean isMyChat(UUID conversationId) {
+        UUID userId = getMyId();
+        log.debug("Checking if User {} has permission to access ChatConversation {}", userId, conversationId);
+        return chatParticipantRepo.existsByConversationIdAndUserId(conversationId, userId);
     }
 
     public String login(LoginRequest request) {
