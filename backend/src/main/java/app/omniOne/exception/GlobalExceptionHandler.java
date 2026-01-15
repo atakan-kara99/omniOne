@@ -1,6 +1,7 @@
 package app.omniOne.exception;
 
 import com.auth0.jwt.exceptions.JWTDecodeException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -38,6 +39,14 @@ public class GlobalExceptionHandler {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         ProblemDetail pd = pd("JWT Decode", status, ex.getMessage());
         log.info("Failed to decode provided JWT because: {}", ex.getMessage());
+        return new ResponseEntity<>(pd, status);
+    }
+
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<ProblemDetail> handleJWTExpiry(TokenExpiredException ex) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        ProblemDetail pd = pd("JWT Expired", status, ex.getMessage());
+        log.info("Failed to validate provided JWT because: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
