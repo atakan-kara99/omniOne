@@ -94,14 +94,14 @@ import static org.mockito.Mockito.*;
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         User savedUser = User.builder().id(UUID.randomUUID()).build();
         when(encoder.encode(anyString())).thenReturn("encoded");
-        when(userRepo.existsByEmail(coachEmail)).thenReturn(false);
+        when(userRepo.findByEmail(coachEmail)).thenReturn(java.util.Optional.empty());
         when(userRepo.save(any(User.class))).thenReturn(savedUser);
         when(jwtService.createActivationJwt(coachEmail)).thenReturn("activation-jwt");
 
         User result = authService.register(dto);
 
         assertSame(savedUser, result);
-        verify(userRepo).existsByEmail(coachEmail);
+        verify(userRepo).findByEmail(coachEmail);
         verify(userRepo).save(userCaptor.capture());
         User captured = userCaptor.getValue();
         assertEquals(coachEmail, captured.getEmail());
@@ -119,7 +119,9 @@ import static org.mockito.Mockito.*;
 
     @Test void register_throwsForDuplicateEmail() {
         RegisterRequest dto = new RegisterRequest(userEmail, "pwd", UserRole.CLIENT);
-        when(userRepo.existsByEmail(userEmail)).thenReturn(true);
+        User existing = new User();
+        existing.setEnabled(true);
+        when(userRepo.findByEmail(userEmail)).thenReturn(java.util.Optional.of(existing));
 
         assertThrows(DuplicateResourceException.class, () -> authService.register(dto));
     }
@@ -198,7 +200,9 @@ import static org.mockito.Mockito.*;
     }
 
     @Test void sendForgotMail_createsResetTokenAndSendsMail() {
-        when(userRepo.findByEmailOrThrow(userEmail)).thenReturn(new User());
+        User user = new User();
+        user.setEnabled(true);
+        when(userRepo.findByEmailOrThrow(userEmail)).thenReturn(user);
         when(jwtService.createResetPasswordJwt(userEmail)).thenReturn("reset-jwt");
 
         authService.sendForgotMail(userEmail);

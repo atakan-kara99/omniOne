@@ -74,7 +74,7 @@ import static org.mockito.Mockito.when;
         coachingService.endCoaching(clientId);
 
         assertNull(client.getCoach());
-        assertEquals(LocalDate.now(), coaching.getEndDate());
+        assertEquals(LocalDate.now(), coaching.getEndDate().toLocalDate());
 
         verify(clientRepo).findByIdOrThrow(clientId);
         verify(coachingRepo).findByCoachIdAndClientIdOrThrow(coachId, clientId);

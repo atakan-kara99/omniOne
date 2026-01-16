@@ -46,6 +46,7 @@ import static org.mockito.Mockito.*;
                 mailSender, templateEngine, activationProps, invitationProps, resetPasswordProps);
         ReflectionTestUtils.setField(emailService, "applicationName", "omniOne");
         ReflectionTestUtils.setField(emailService, "from", "noreply@omni.one");
+        ReflectionTestUtils.setField(emailService, "baseUrl", "https://app.omni.one");
         mimeMessage = new MimeMessage((Session) null);
     }
 
@@ -75,7 +76,8 @@ import static org.mockito.Mockito.*;
         assertEquals(userEmail, mimeMessage.getAllRecipients()[0].toString());
         assertEquals("noreply@omni.one", mimeMessage.getFrom()[0].toString());
         Context context = captureContext("activation-template");
-        assertEquals("https://activate?token=jwt-token", context.getVariable("link"));
+        assertEquals("https://app.omni.one", context.getVariable("baseUrl"));
+        assertEquals("https://activate?token=jwt-token", context.getVariable("urlPath"));
         assertEquals("omniOne", context.getVariable("appName"));
     }
 
@@ -89,7 +91,8 @@ import static org.mockito.Mockito.*;
         assertEquals("invitee@omni.one", mimeMessage.getAllRecipients()[0].toString());
         assertEquals("noreply@omni.one", mimeMessage.getFrom()[0].toString());
         Context context = captureContext("invitation-template");
-        assertEquals("https://invite?token=invite-token", context.getVariable("link"));
+        assertEquals("https://app.omni.one", context.getVariable("baseUrl"));
+        assertEquals("https://invite?token=invite-token", context.getVariable("urlPath"));
         assertEquals("omniOne", context.getVariable("appName"));
     }
 
