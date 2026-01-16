@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -28,9 +28,10 @@ public class Coaching {
     private Client client;
 
     @CreationTimestamp
-    @Column(nullable = false)
-    private LocalDate startDate;
+    @Column(nullable = false, columnDefinition = "TIMESTAMP(0)")
+    private LocalDateTime startDate;
 
-    private LocalDate endDate;
+    @Column(columnDefinition = "TIMESTAMP(0)")
+    private LocalDateTime endDate;
 
 }
