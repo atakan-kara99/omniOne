@@ -8,6 +8,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -25,6 +26,14 @@ import java.util.Map;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ProblemDetail> handleDisabled(DisabledException ex) {
+        HttpStatus status = HttpStatus.FORBIDDEN;
+        ProblemDetail pd = pd("User Account Disabled", status, ex.getMessage());
+        log.warn("Failed to login to account because: {}", ex.getMessage());
+        return new ResponseEntity<>(pd, status);
+    }
 
     @ExceptionHandler(SendEmailException.class)
     public ResponseEntity<ProblemDetail> handleSendMail(SendEmailException ex) {
@@ -147,7 +156,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleUnexpected(Exception ex) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         ProblemDetail pd = pd("Something went wrong", status);
-        log.info("Failed to exists", ex);
+        log.error("Failed to exists", ex);
         return new ResponseEntity<>(pd, status);
     }
 
