@@ -91,17 +91,21 @@ public class AuthService {
         log.debug("Trying to register User with Email {}", email);
         if (dto.role().equals(UserRole.ADMIN))
             throw new NotAllowedException("ADMIN registration is not allowed");
-        if (userRepo.existsByEmail(email))
-            throw new DuplicateResourceException("User already exists");
-        User user = userRepo.save(
-                User.builder().email(email).password(encoder.encode(dto.password())).role(dto.role()).build());
-        if (dto.role().equals(UserRole.COACH))
-            coachRepo.save(Coach.builder().user(user).build());
-        if (dto.role().equals(UserRole.CLIENT))
-            clientRepo.save(Client.builder().user(user).build());
+        User user = userRepo.findByEmail(email).orElse(null);
+        if (user != null) {
+            if (user.isEnabled())
+                throw new DuplicateResourceException("User already exists");
+        } else {
+            user = userRepo.save(
+                    User.builder().email(email).password(encoder.encode(dto.password())).role(dto.role()).build());
+            if (dto.role() == UserRole.COACH)
+                coachRepo.save(Coach.builder().user(user).build());
+            if (dto.role()  == UserRole.CLIENT)
+                clientRepo.save(Client.builder().user(user).build());
+            log.info("Successfully registered User");
+        }
         String jwt = jwtService.createActivationJwt(email);
         emailService.sendActivationMail(email, jwt);
-        log.info("Successfully registered User");
         return user;
     }
 
