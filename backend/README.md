@@ -1,15 +1,7 @@
-<div style="display: flex; align-items: center; gap: 12px;">
-  <img src="src/main/resources/omniOne.svg" width="66" alt="omniOne logo" />
-
-  <div style="display: flex; flex-direction: column; justify-content: center;">
-    <div style="font-size: 32px; font-weight: 700; line-height: 1.1;">
-      omniOne
-    </div>
-    <div style="font-size: 14px; line-height: 1.2;">
-      Bodybuilding Coaching Platform
-    </div>
-  </div>
-</div>
+<h1>
+  <img src="src/main/resources/omniOne.svg" width="22" alt=""/>
+  omniOne Bodybuilding Coaching Platform
+</h1>
 
 ## Key Features
 
