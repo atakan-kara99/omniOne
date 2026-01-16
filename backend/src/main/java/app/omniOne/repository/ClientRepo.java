@@ -5,6 +5,7 @@ import app.omniOne.model.entity.Client;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -14,5 +15,7 @@ public interface ClientRepo extends JpaRepository<Client, UUID> {
         return findById(id)
                 .orElseThrow(() -> new NoSuchResourceException("Client not found"));
     }
+
+    List<Client> findAllByCoachId(UUID coachId);
 
 }

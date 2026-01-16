@@ -2,7 +2,6 @@ package app.omniOne.service;
 
 import app.omniOne.model.dto.ClientPatchRequest;
 import app.omniOne.model.entity.Client;
-import app.omniOne.model.entity.Coach;
 import app.omniOne.model.mapper.ClientMapper;
 import app.omniOne.repository.ClientRepo;
 import app.omniOne.repository.CoachRepo;
@@ -24,8 +23,7 @@ public class ClientService {
 
     public List<Client> getClients(UUID coachId) {
         log.debug("Trying to retrieve Clients from Coach {}", coachId);
-        Coach coach = coachRepo.findByIdOrThrow(coachId);
-        List<Client> clients = coach.getClients();
+        List<Client> clients = clientRepo.findAllByCoachId(coachId);
         log.info("Successfully retrieved Clients");
         return clients;
     }
