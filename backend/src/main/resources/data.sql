@@ -17,12 +17,12 @@ VALUES
 
 INSERT INTO user_profile (user_id, created_at, updated_at, birth_date, first_name, last_name, gender)
 VALUES
-    ((SELECT id FROM user_ WHERE email =    'admin-1@omni.one'), '2025-12-01 00:00:00.000000', NULL, '1980-05-14',   'Alex',    'Admin',   'MALE'),
-    ((SELECT id FROM user_ WHERE email =   'coach-10@omni.one'), '2025-12-01 00:00:00.000000', NULL, '1985-02-20', 'Jordan', 'Maverick',   'MALE'),
-    ((SELECT id FROM user_ WHERE email =   'coach-11@omni.one'), '2025-12-01 00:00:00.000000', NULL, '1990-11-03', 'Taylor',    'Stone', 'FEMALE'),
-    ((SELECT id FROM user_ WHERE email = 'client-100@omni.one'), '2025-12-01 00:00:00.000000', NULL, '1995-01-12',  'Casey',   'Rivera', 'FEMALE'),
-    ((SELECT id FROM user_ WHERE email = 'client-101@omni.one'), '2025-12-01 00:00:00.000000', NULL, '1998-07-28', 'Morgan',      'Lee',   'MALE'),
-    ((SELECT id FROM user_ WHERE email = 'client-102@omni.one'), '2025-12-01 00:00:00.000000', NULL, '2000-09-09',  'Riley',  'Kendall',  'OTHER');
+    ((SELECT id FROM user_ WHERE email =    'admin-1@omni.one'), '2025-12-01 00:00:00', NULL, '1980-05-14',   'Alex',    'Admin',   'MALE'),
+    ((SELECT id FROM user_ WHERE email =   'coach-10@omni.one'), '2025-12-01 00:00:00', NULL, '1985-02-20', 'Jordan', 'Maverick',   'MALE'),
+    ((SELECT id FROM user_ WHERE email =   'coach-11@omni.one'), '2025-12-01 00:00:00', NULL, '1990-11-03', 'Taylor',    'Stone', 'FEMALE'),
+    ((SELECT id FROM user_ WHERE email = 'client-100@omni.one'), '2025-12-01 00:00:00', NULL, '1995-01-12',  'Casey',   'Rivera', 'FEMALE'),
+    ((SELECT id FROM user_ WHERE email = 'client-101@omni.one'), '2025-12-01 00:00:00', NULL, '1998-07-28', 'Morgan',      'Lee',   'MALE'),
+    ((SELECT id FROM user_ WHERE email = 'client-102@omni.one'), '2025-12-01 00:00:00', NULL, '2000-09-09',  'Riley',  'Kendall',  'OTHER');
 
 -----------------------------------------
 -- COACH  (IDs discovered via email)
@@ -30,8 +30,8 @@ VALUES
 
 INSERT INTO coach (user_id, created_at, updated_at)
 VALUES
-    ((SELECT id FROM user_ WHERE email = 'coach-10@omni.one'), '2025-12-01 00:00:00.000000', NULL),
-    ((SELECT id FROM user_ WHERE email = 'coach-11@omni.one'), '2025-12-01 00:00:00.000000', NULL);
+    ((SELECT id FROM user_ WHERE email = 'coach-10@omni.one'), '2025-12-01 00:00:00', NULL),
+    ((SELECT id FROM user_ WHERE email = 'coach-11@omni.one'), '2025-12-01 00:00:00', NULL);
 
 -----------------------------------------
 -- CLIENT  (link to coaches via email lookup)
@@ -39,9 +39,9 @@ VALUES
 
 INSERT INTO client (user_id, coach_id, created_at, updated_at)
 VALUES
-    ((SELECT id FROM user_ WHERE email = 'client-100@omni.one'), (SELECT id FROM user_ WHERE email = 'coach-10@omni.one'), '2025-12-01 00:00:00.000000', NULL),
-    ((SELECT id FROM user_ WHERE email = 'client-101@omni.one'), (SELECT id FROM user_ WHERE email = 'coach-10@omni.one'), '2025-12-01 00:00:00.000000', NULL),
-    ((SELECT id FROM user_ WHERE email = 'client-102@omni.one'), (SELECT id FROM user_ WHERE email = 'coach-11@omni.one'), '2025-12-01 00:00:00.000000', NULL);
+    ((SELECT id FROM user_ WHERE email = 'client-100@omni.one'), (SELECT id FROM user_ WHERE email = 'coach-10@omni.one'), '2025-12-01 00:00:00', NULL),
+    ((SELECT id FROM user_ WHERE email = 'client-101@omni.one'), (SELECT id FROM user_ WHERE email = 'coach-10@omni.one'), '2025-12-01 00:00:00', NULL),
+    ((SELECT id FROM user_ WHERE email = 'client-102@omni.one'), (SELECT id FROM user_ WHERE email = 'coach-11@omni.one'), '2025-12-01 00:00:00', NULL);
 
 -----------------------------------------
 -- COACHING
@@ -49,7 +49,9 @@ VALUES
 
 INSERT INTO coaching (coach_id, client_id, start_date, end_date)
 VALUES
-    ((SELECT id FROM user_ WHERE email = 'coach-10@omni.one'), (SELECT id FROM user_ WHERE email = 'client-100@omni.one'), '2020-01-01', '2021-12-12');
+    ((SELECT id FROM user_ WHERE email = 'coach-10@omni.one'), (SELECT id FROM user_ WHERE email = 'client-100@omni.one'), '2020-01-01 00:00:00', NULL),
+    ((SELECT id FROM user_ WHERE email = 'coach-10@omni.one'), (SELECT id FROM user_ WHERE email = 'client-101@omni.one'), '2020-01-01 00:00:00', NULL),
+    ((SELECT id FROM user_ WHERE email = 'coach-11@omni.one'), (SELECT id FROM user_ WHERE email = 'client-102@omni.one'), '2020-01-01 00:00:00', NULL);
 
 -----------------------------------------
 -- NUTRITION PLAN (link via client email)
@@ -57,17 +59,17 @@ VALUES
 
 INSERT INTO nutrition_plan (calories, carbs, proteins, fats, created_at, client_id)
 VALUES
-    (2400, 300, 120, 80, '2024-01-01 00:00:00.000000', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
-    (2200, 250, 110, 70, '2023-09-01 00:00:00.000000', (SELECT id FROM user_ WHERE email = 'client-100@omni.one'));
+    (2400, 300, 120, 80, '2024-01-01 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
+    (2200, 250, 110, 70, '2023-09-01 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one'));
 
 INSERT INTO nutrition_plan (calories, carbs, proteins, fats, created_at, client_id)
 VALUES
-    (1800, 200, 90, 60, '2023-01-01 00:00:00.000000', (SELECT id FROM user_ WHERE email = 'client-101@omni.one'));
+    (1800, 200, 90, 60, '2023-01-01 00:00:00', (SELECT id FROM user_ WHERE email = 'client-101@omni.one'));
 
 INSERT INTO nutrition_plan (calories, carbs, proteins, fats, created_at, client_id)
 VALUES
-    (2600, 310, 130, 90, '2024-02-15 00:00:00.000000', (SELECT id FROM user_ WHERE email = 'client-102@omni.one')),
-    (2400, 280, 115, 85, '2023-05-01 00:00:00.000000', (SELECT id FROM user_ WHERE email = 'client-102@omni.one'));
+    (2600, 310, 130, 90, '2024-02-15 00:00:00', (SELECT id FROM user_ WHERE email = 'client-102@omni.one')),
+    (2400, 280, 115, 85, '2023-05-01 00:00:00', (SELECT id FROM user_ WHERE email = 'client-102@omni.one'));
 
 -----------------------------------------
 -- QUESTIONNAIRE
