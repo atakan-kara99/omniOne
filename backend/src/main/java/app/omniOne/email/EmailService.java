@@ -26,6 +26,8 @@ public class EmailService {
     private String applicationName;
     @Value("${email.from}")
     private String from;
+    @Value("${frontend.base.url}")
+    private String baseUrl;
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
@@ -44,26 +46,26 @@ public class EmailService {
 
     public void sendActivationMail(String to, String jwt) {
         sendTemplateMail(to, jwt,
-                activationProps.url(), activationProps.path(), activationProps.subject());
+                activationProps.urlPath(), activationProps.filePath(), activationProps.subject());
         log.info("Successfully send activation mail to {}", to);
     }
 
     public void sendResetPasswordMail(String to, String jwt) {
         sendTemplateMail(to, jwt,
-                resetPasswordProps.url(), resetPasswordProps.path(), resetPasswordProps.subject());
+                resetPasswordProps.urlPath(), resetPasswordProps.filePath(), resetPasswordProps.subject());
         log.info("Successfully send reset-password mail to {}", to);
     }
 
     public void sendInvitationMail(String to, String jwt) {
         sendTemplateMail(to, jwt,
-                invitationProps.url(), invitationProps.path(), invitationProps.subject());
+                invitationProps.urlPath(), invitationProps.filePath(), invitationProps.subject());
         log.info("Successfully send invitation mail to {}", to);
     }
 
-    private void sendTemplateMail(String to, String jwt, String url, String path, String subject) {
+    private void sendTemplateMail(String to, String jwt, String urlPath, String filePath, String subject) {
         log.debug("Trying to send mail to {}", to);
-        String link = url + "?token=" + jwt;
-        String text = render(path, Map.of("link", link, "appName", applicationName));
+        urlPath += "?token=" + jwt;
+        String text = render(filePath, Map.of("baseUrl", baseUrl, "urlPath", urlPath, "appName", applicationName));
         MimeMessage message = mailSender.createMimeMessage();
         try {
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
