@@ -5,9 +5,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "invitation")
 public record InvitationProps(
 
-        String url,
+        String urlPath,
 
-        String path,
+        String filePath,
 
         String subject
 

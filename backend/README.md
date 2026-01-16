@@ -1,5 +1,5 @@
 <h1>
-  <img src="src/main/resources/omniOne.svg" width="22" alt=""/>
+  <img src="src/main/resources/logo.svg" width="22" alt=""/>
   omniOne Bodybuilding Coaching Platform
 </h1>
 

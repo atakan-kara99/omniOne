@@ -5,9 +5,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "activation")
 public record ActivationProps(
 
-        String url,
+        String urlPath,
 
-        String path,
+        String filePath,
 
         String subject
 
