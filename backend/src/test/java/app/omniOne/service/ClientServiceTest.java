@@ -43,15 +43,13 @@ import static org.mockito.Mockito.*;
 
     @Test void getClients_returnsClientsOfCoach() {
         List<Client> clients = List.of(new Client(), new Client());
-        coach.setClients(clients);
-
-        when(coachRepo.findByIdOrThrow(coachId)).thenReturn(coach);
+        when(clientRepo.findAllByCoachId(coachId)).thenReturn(clients);
 
         List<Client> result = clientService.getClients(coachId);
 
         assertEquals(clients, result);
-        verify(coachRepo).findByIdOrThrow(coachId);
-        verifyNoInteractions(clientRepo, clientMapper);
+        verify(clientRepo).findAllByCoachId(coachId);
+        verifyNoInteractions(coachRepo, clientMapper);
     }
 
     @Test void getClient_returnsClientFromRepository() {

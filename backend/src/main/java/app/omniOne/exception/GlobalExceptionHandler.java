@@ -156,7 +156,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleUnexpected(Exception ex) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         ProblemDetail pd = pd("Something went wrong", status);
-        log.error("Failed to exists", ex);
+        log.error("Failed to exist", ex);
         return new ResponseEntity<>(pd, status);
     }
 
