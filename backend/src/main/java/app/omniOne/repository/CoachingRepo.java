@@ -5,6 +5,7 @@ import app.omniOne.model.entity.Coaching;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,5 +20,7 @@ public interface CoachingRepo extends JpaRepository<Coaching, Long> {
         return findByCoachIdAndClientId(coachId, clientId)
                 .orElseThrow(() -> new NoSuchResourceException("Coaching not found"));
     }
+
+    List<Coaching> findAllByCoachId(UUID coachId);
 
 }
