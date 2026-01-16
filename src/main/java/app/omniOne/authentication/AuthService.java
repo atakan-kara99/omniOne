@@ -23,6 +23,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -143,7 +144,9 @@ public class AuthService {
     }
 
     public void sendForgotMail(String email) {
-        userRepo.findByEmailOrThrow(email);
+        User user = userRepo.findByEmailOrThrow(email);
+        if (!user.isEnabled())
+            throw new DisabledException("User account is disabled");
         String jwt = jwtService.createResetPasswordJwt(email);
         emailService.sendResetPasswordMail(email, jwt);
     }
