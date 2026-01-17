@@ -57,7 +57,7 @@ public class JwtFilter extends OncePerRequestFilter {
                         "path", request.getRequestURI()
                 );
                 mapper.writeValue(response.getWriter(), body);
-                log.error("Invalid JWToken or Unauthorized access", ex);
+                log.warn("Invalid JWToken or Unauthorized access {}", ex.getMessage());
                 return;
             }
         }
