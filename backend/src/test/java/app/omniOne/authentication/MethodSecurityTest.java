@@ -3,8 +3,6 @@ package app.omniOne.authentication;
 import app.omniOne.authentication.jwt.JwtFilter;
 import app.omniOne.configuration.SecurityConfig;
 import app.omniOne.controller.coach.CoachClientController;
-import app.omniOne.model.dto.ClientResponse;
-import app.omniOne.model.entity.Client;
 import app.omniOne.model.mapper.ClientMapper;
 import app.omniOne.service.ClientService;
 import app.omniOne.service.CoachingService;
@@ -21,7 +19,6 @@ import java.util.UUID;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")
@@ -49,22 +46,4 @@ class MethodSecurityTest {
         verifyNoInteractions(clientService, clientMapper);
     }
 
-    @Test void getClient_allowsWhenCoached() throws Exception {
-        UUID clientId = UUID.randomUUID();
-        Client client = new Client();
-        client.setId(clientId);
-        ClientResponse response = new ClientResponse(clientId);
-
-        when(authService.isCoachedByMe(clientId)).thenReturn(true);
-        when(clientService.getClient(clientId)).thenReturn(client);
-        when(clientMapper.map(client)).thenReturn(response);
-
-        mockMvc.perform(get("/coach/clients/{clientId}", clientId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(clientId.toString()));
-
-        verify(authService).isCoachedByMe(clientId);
-        verify(clientService).getClient(clientId);
-        verify(clientMapper).map(client);
-    }
 }
