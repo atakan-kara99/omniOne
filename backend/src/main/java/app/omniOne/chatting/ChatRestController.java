@@ -32,6 +32,11 @@ public class ChatRestController {
         return chatService.getChat(conversationId);
     }
 
+    @GetMapping("/start/{userId}")
+    public ChatDto startChat(@PathVariable UUID userId) {
+        return chatService.startChat(getMyId(), userId);
+    }
+
 }
 
 

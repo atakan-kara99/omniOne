@@ -54,28 +54,33 @@ public class ChatService {
     public void saveMessage(UUID fromId, UUID toId, String content) {
         log.debug("Trying to save ChatMessage from User {} to User {}", fromId, toId);
         LocalDateTime now = LocalDateTime.now();
-        User from = userRepo.findByIdOrThrow(fromId);
         ChatConversation conversation = conversationRepo.findConversationBetween(fromId, toId)
-                .orElseGet(() -> createConversationWithParticipants(fromId, toId, from, now));
+                .orElseGet(() -> createConversationWithParticipants(fromId, toId));
+        User from = userRepo.findByIdOrThrow(fromId);
         conversation.setLastMessageAt(now);
         ChatMessage message = ChatMessage.builder().conversation(conversation).sender(from).content(content).build();
         messageRepo.save(message);
         log.info("Successfully saved ChatMessage");
     }
 
-    private ChatConversation createConversationWithParticipants(
-            UUID fromId, UUID toId, User from, LocalDateTime now) {
+    private ChatConversation createConversationWithParticipants(UUID fromId, UUID toId) {
         log.debug("Trying to create ChatConversation from User {} to User {}", fromId, toId);
         User to = userRepo.findByIdOrThrow(toId);
-        ChatConversation conversation = conversationRepo.save(ChatConversation.builder()
-                .lastMessageAt(now).build());
+        User from = userRepo.findByIdOrThrow(fromId);
+        ChatConversation conversation = conversationRepo.save(new ChatConversation());
         ChatParticipant participantFrom = ChatParticipant.builder()
-                .id(new ChatParticipantId()).user(from).conversation(conversation).lastReadAt(now).build();
+                .id(new ChatParticipantId()).user(from).conversation(conversation).build();
         ChatParticipant participantTo = ChatParticipant.builder()
                 .id(new ChatParticipantId()).user(to).conversation(conversation).build();
         participantRepo.saveAll(List.of(participantFrom, participantTo));
         log.info("Successfully created ChatConversation");
         return conversation;
+    }
+
+    public ChatDto startChat(UUID myId, UUID otherId) {
+        ChatConversation conversation = conversationRepo.findConversationBetween(myId, otherId)
+                .orElseGet(() -> createConversationWithParticipants(myId, otherId));
+        return new ChatDto(conversation.getId(), conversation.getCreatedAt(), null);
     }
 
 }
