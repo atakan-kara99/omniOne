@@ -18,9 +18,9 @@ public class ChatController {
     private final SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/chat")
-    @PreAuthorize("@authService.isRelated(#p1.name, #p0.to())")
-    public void sendPrivate(ChatRequest request, Principal principal) {
-        chatService.saveMessage(
+    @PreAuthorize("@authService.isRelated(#principal.name, #request.to())")
+    public void sendPrivateMessage(ChatMessageRequest request, Principal principal) {
+        ChatMessageDto message = chatService.saveMessage(
                 UUID.fromString(principal.getName()), request.to(), request.content());
         messagingTemplate.convertAndSendToUser(
                 String.valueOf(request.to()), "/queue/reply", request.content());

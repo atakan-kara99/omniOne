@@ -23,7 +23,7 @@ public interface ChatConversationRepo extends JpaRepository<ChatConversation, UU
     WHERE p1.user.id = :userA
       AND p2.user.id = :userB
     """)
-    Optional<ChatConversation> findConversationBetween(@Param("userA") UUID userA, @Param("userB") UUID userB);
+    Optional<ChatConversation> findConversationBetween(UUID userA, UUID userB);
 
     @Query("""
     SELECT new app.omniOne.chatting.model.dto.ChatsDto(
@@ -37,7 +37,7 @@ public interface ChatConversationRepo extends JpaRepository<ChatConversation, UU
       AND pOther.user.id <> :userId
     ORDER BY c.lastMessageAt DESC NULLS LAST, c.createdAt DESC
     """)
-    List<ChatsDto> findChats(@Param("userId") UUID userId);
+    List<ChatConversationDto> findConversationsOf(UUID userId);
 
     default ChatConversation findByIdOrThrow(UUID chatId) {
         return findById(chatId)
