@@ -66,8 +66,7 @@ public class AuthService {
                 coachingRepo.existsByCoachIdAndClientId(userId2, userId1);
     }
 
-    public boolean isMyChat(UUID conversationId) {
-        UUID userId = getMyId();
+    public boolean isChatOf(UUID userId, UUID conversationId) {
         log.debug("Checking if User {} has permission to access ChatConversation {}", userId, conversationId);
         return chatParticipantRepo.existsByConversationIdAndUserId(conversationId, userId);
     }
