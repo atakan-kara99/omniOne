@@ -3,11 +3,15 @@ package app.omniOne.chatting.model.dto;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record ChatsDto(
+public record ChatConversationDto(
 
         UUID conversationId,
 
+        LocalDateTime startedAt,
+
         LocalDateTime lastMessageAt,
+
+        String lastMessagePreview,
 
         UUID otherUserId,
 

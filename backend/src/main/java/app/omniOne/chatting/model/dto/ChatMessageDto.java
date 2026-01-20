@@ -5,7 +5,9 @@ import java.util.UUID;
 
 public record ChatMessageDto(
 
-        UUID messageId,
+        Long messageId,
+
+        UUID conversationId,
 
         UUID senderId,
 
