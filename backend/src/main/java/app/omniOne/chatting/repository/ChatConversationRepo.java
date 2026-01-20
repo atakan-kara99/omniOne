@@ -1,11 +1,10 @@
 package app.omniOne.chatting.repository;
 
-import app.omniOne.chatting.model.dto.ChatsDto;
+import app.omniOne.chatting.model.dto.ChatConversationDto;
 import app.omniOne.chatting.model.entity.ChatConversation;
 import app.omniOne.exception.NoSuchResourceException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -26,8 +25,8 @@ public interface ChatConversationRepo extends JpaRepository<ChatConversation, UU
     Optional<ChatConversation> findConversationBetween(UUID userA, UUID userB);
 
     @Query("""
-    SELECT new app.omniOne.chatting.model.dto.ChatsDto(
-        c.id, c.lastMessageAt, u.id, up.firstName, up.lastName)
+    SELECT new app.omniOne.chatting.model.dto.ChatConversationDto(
+        c.id, c.startedAt, c.lastMessageAt, c.lastMessagePreview, u.id, up.firstName, up.lastName)
     FROM ChatConversation c
       JOIN c.participants pMe
       JOIN c.participants pOther
@@ -35,7 +34,6 @@ public interface ChatConversationRepo extends JpaRepository<ChatConversation, UU
       JOIN u.profile up
     WHERE pMe.user.id = :userId
       AND pOther.user.id <> :userId
-    ORDER BY c.lastMessageAt DESC NULLS LAST, c.createdAt DESC
     """)
     List<ChatConversationDto> findConversationsOf(UUID userId);
 
