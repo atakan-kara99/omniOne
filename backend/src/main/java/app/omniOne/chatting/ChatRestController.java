@@ -6,6 +6,7 @@ import app.omniOne.chatting.model.dto.ChatMessageDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -24,6 +25,7 @@ public class ChatRestController {
 
     @GetMapping("/{conversationId}/messages")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("@authService.isMyChat(#conversationId)")
     public Slice<ChatMessageDto> getSliceOfMessages(
             @PathVariable UUID conversationId,
             @RequestParam(required = false) LocalDateTime beforeSentAt,
@@ -39,6 +41,7 @@ public class ChatRestController {
 
     @GetMapping("/start/{userId}")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("@authService.isRelated(@authService.getMyId(), #userId)")
     public ChatConversationDto startChatConversation(@PathVariable UUID userId) {
         return chatService.startChatConversation(getMyId(), userId);
     }
