@@ -18,13 +18,19 @@ public class ChatController {
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
 
-    @MessageMapping("/chat")
+    @MessageMapping("/chat.send")
     @PreAuthorize("@authService.isRelated(#principal.name, #request.to())")
-    public void sendPrivateMessage(ChatMessageRequest request, Principal principal) {
+    public void sendMessage(ChatMessageRequest request, Principal principal) {
         ChatMessageDto message = chatService.saveMessage(
                 UUID.fromString(principal.getName()), request.to(), request.content());
         messagingTemplate.convertAndSendToUser(
                 String.valueOf(request.to()), "/queue/reply", message);
+    }
+
+    @MessageMapping("/chat.read")
+    @PreAuthorize("@authService.isChatOf(#principal.name, #conversationId)")
+    public void readMessage(UUID conversationId, Principal principal) {
+        chatService.readMessage(UUID.fromString(principal.getName()), conversationId);
     }
 
 }

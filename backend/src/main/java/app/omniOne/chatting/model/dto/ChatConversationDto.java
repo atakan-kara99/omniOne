@@ -13,6 +13,8 @@ public record ChatConversationDto(
 
         String lastMessagePreview,
 
+        LocalDateTime lastReadAt,
+
         UUID otherUserId,
 
         String otherFirstName,

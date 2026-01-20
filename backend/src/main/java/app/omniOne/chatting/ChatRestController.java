@@ -25,11 +25,13 @@ public class ChatRestController {
 
     @GetMapping("/{conversationId}/messages")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("@authService.isMyChat(#conversationId)")
+    @PreAuthorize("@authService.isChatOf(@authService.getMyId(), #conversationId)")
     public Slice<ChatMessageDto> getSliceOfMessages(
             @PathVariable UUID conversationId,
             @RequestParam(required = false) LocalDateTime beforeSentAt,
             @RequestParam(defaultValue = "10") int size) {
+        if (beforeSentAt == null)
+            chatService.readMessage(getMyId(), conversationId);
         return chatService.getSliceOfMessages(conversationId, beforeSentAt, size).map(chatMapper::map);
     }
 
