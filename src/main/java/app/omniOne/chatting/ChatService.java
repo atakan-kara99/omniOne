@@ -1,9 +1,8 @@
 package app.omniOne.chatting;
 
 import app.omniOne.chatting.model.ChatMapper;
-import app.omniOne.chatting.model.dto.ChatDto;
+import app.omniOne.chatting.model.dto.ChatConversationDto;
 import app.omniOne.chatting.model.dto.ChatMessageDto;
-import app.omniOne.chatting.model.dto.ChatsDto;
 import app.omniOne.chatting.model.entity.ChatConversation;
 import app.omniOne.chatting.model.entity.ChatMessage;
 import app.omniOne.chatting.model.entity.ChatParticipant;
@@ -12,10 +11,14 @@ import app.omniOne.chatting.repository.ChatConversationRepo;
 import app.omniOne.chatting.repository.ChatMessageRepo;
 import app.omniOne.chatting.repository.ChatParticipantRepo;
 import app.omniOne.model.entity.User;
+import app.omniOne.model.entity.UserProfile;
 import app.omniOne.repository.UserRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -33,34 +36,41 @@ public class ChatService {
     private final ChatParticipantRepo participantRepo;
     private final ChatConversationRepo conversationRepo;
 
-    public List<ChatsDto> getChats(UUID userId) {
+    public List<ChatConversationDto> getChatConversations(UUID userId) {
         log.debug("Trying to retrieve ChatConversations from User {}", userId);
-        List<ChatsDto> chats = conversationRepo.findChats(userId);
+        List<ChatConversationDto> chats = conversationRepo.findConversationsOf(userId);
         log.info("Successfully retrieved ChatConversations");
         return chats;
     }
 
-    public ChatDto getChat(UUID conversationId) {
-        log.debug("Trying to retrieve ChatConversation {}", conversationId);
-        ChatConversation conversation = conversationRepo.findByIdOrThrow(conversationId);
-        List<ChatMessageDto> messages = messageRepo.findAllByConversationIdOrderBySentAtDesc(conversationId)
-                .stream().map(chatMapper::map).toList();
-        ChatDto chat = new ChatDto(conversationId, conversation.getCreatedAt(), messages);
-        log.info("Successfully retrieved ChatConversation");
-        return chat;
+    public Slice<ChatMessage> getSliceOfMessages(UUID conversationId, LocalDateTime beforeSentAt, int size) {
+        log.debug("Trying to retrieve slice of {} ChatMessages of ChatConversation {} before {}"
+                , size, conversationId, beforeSentAt);
+        Pageable pageable = PageRequest.of(0, size);
+        Slice<ChatMessage> chatMessages;
+        if (beforeSentAt == null) {
+            chatMessages = messageRepo.findByConversationIdOrderBySentAtDescIdDesc(conversationId, pageable);
+        } else {
+            chatMessages = messageRepo.findMessagesOlderThan(conversationId, beforeSentAt, pageable);
+        }
+        log.info("Successfully retrieve slice of ChatMessages");
+        return chatMessages;
     }
 
     @Transactional
-    public void saveMessage(UUID fromId, UUID toId, String content) {
+    public ChatMessageDto saveMessage(UUID fromId, UUID toId, String content) {
         log.debug("Trying to save ChatMessage from User {} to User {}", fromId, toId);
         LocalDateTime now = LocalDateTime.now();
         ChatConversation conversation = conversationRepo.findConversationBetween(fromId, toId)
                 .orElseGet(() -> createConversationWithParticipants(fromId, toId));
         User from = userRepo.findByIdOrThrow(fromId);
         conversation.setLastMessageAt(now);
-        ChatMessage message = ChatMessage.builder().conversation(conversation).sender(from).content(content).build();
-        messageRepo.save(message);
+        conversation.setLastMessagePreview(content);
+        ChatMessage message = messageRepo.save(ChatMessage.builder()
+                .conversation(conversation).sender(from).sentAt(now).content(content).build());
+        ChatMessageDto messageDto = chatMapper.map(message);
         log.info("Successfully saved ChatMessage");
+        return messageDto;
     }
 
     private ChatConversation createConversationWithParticipants(UUID fromId, UUID toId) {
@@ -77,10 +87,14 @@ public class ChatService {
         return conversation;
     }
 
-    public ChatDto startChat(UUID myId, UUID otherId) {
+    public ChatConversationDto startChatConversation(UUID myId, UUID otherId) {
+        log.debug("Trying to start a ChatConversation between User {} and User {}", myId, otherId);
         ChatConversation conversation = conversationRepo.findConversationBetween(myId, otherId)
                 .orElseGet(() -> createConversationWithParticipants(myId, otherId));
-        return new ChatDto(conversation.getId(), conversation.getCreatedAt(), null);
+        UserProfile otherProfile = userRepo.findByIdOrThrow(otherId).getProfile();
+        ChatConversationDto conversationDto = chatMapper.map(conversation, otherProfile);
+        log.info("Successfully started ChatConversation");
+        return conversationDto;
     }
 
 }
