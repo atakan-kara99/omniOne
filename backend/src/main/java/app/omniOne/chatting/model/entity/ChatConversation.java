@@ -24,15 +24,24 @@ public class ChatConversation {
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatParticipant> participants;
 
-    @OrderBy("sentAt DESC")
-    @OneToMany(mappedBy = "conversation", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "conversation")
     private List<ChatMessage> messages;
 
-    @CreationTimestamp
-    @Column(nullable = false, columnDefinition = "TIMESTAMP(0)")
-    private LocalDateTime createdAt;
+    @Column(length = 80)
+    private String lastMessagePreview;
 
-    @Column(columnDefinition = "TIMESTAMP(0)")
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime startedAt;
+
     private LocalDateTime lastMessageAt;
+
+    @PrePersist
+    @PreUpdate
+    private void trimMessage() {
+        final int LENGTH = 80;
+        if (lastMessagePreview != null && lastMessagePreview.length() > LENGTH)
+            lastMessagePreview = lastMessagePreview.substring(0, LENGTH - 3) + "..";
+    }
 
 }

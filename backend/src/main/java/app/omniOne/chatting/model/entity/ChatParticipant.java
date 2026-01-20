@@ -30,10 +30,9 @@ public class ChatParticipant {
     private User user;
 
     @CreationTimestamp
-    @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMP(0)")
+    @Column(nullable = false, updatable = false)
     private LocalDateTime joinedAt;
 
-    @Column(columnDefinition = "TIMESTAMP(0)")
     private LocalDateTime lastReadAt;
 
 }
