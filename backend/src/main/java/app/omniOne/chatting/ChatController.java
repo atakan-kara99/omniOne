@@ -1,6 +1,7 @@
 package app.omniOne.chatting;
 
-import app.omniOne.chatting.model.dto.ChatRequest;
+import app.omniOne.chatting.model.dto.ChatMessageDto;
+import app.omniOne.chatting.model.dto.ChatMessageRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -23,7 +24,7 @@ public class ChatController {
         ChatMessageDto message = chatService.saveMessage(
                 UUID.fromString(principal.getName()), request.to(), request.content());
         messagingTemplate.convertAndSendToUser(
-                String.valueOf(request.to()), "/queue/reply", request.content());
+                String.valueOf(request.to()), "/queue/reply", message);
     }
 
 }

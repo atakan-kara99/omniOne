@@ -1,14 +1,14 @@
 package app.omniOne.chatting;
 
-import app.omniOne.chatting.model.dto.ChatDto;
-import app.omniOne.chatting.model.dto.ChatsDto;
+import app.omniOne.chatting.model.ChatMapper;
+import app.omniOne.chatting.model.dto.ChatConversationDto;
+import app.omniOne.chatting.model.dto.ChatMessageDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Slice;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,22 +19,28 @@ import static app.omniOne.authentication.AuthService.getMyId;
 @RequestMapping("/user/chats")
 public class ChatRestController {
 
+    private final ChatMapper chatMapper;
     private final ChatService chatService;
 
-    @GetMapping
-    public List<ChatsDto> getChats() {
-        return chatService.getChats(getMyId());
+    @GetMapping("/{conversationId}/messages")
+    @ResponseStatus(HttpStatus.OK)
+    public Slice<ChatMessageDto> getSliceOfMessages(
+            @PathVariable UUID conversationId,
+            @RequestParam(required = false) LocalDateTime beforeSentAt,
+            @RequestParam(defaultValue = "10") int size) {
+        return chatService.getSliceOfMessages(conversationId, beforeSentAt, size).map(chatMapper::map);
     }
 
-    @GetMapping("/{conversationId}")
-    @PreAuthorize("@authService.isMyChat(#conversationId)")
-    public ChatDto getChat(@PathVariable UUID conversationId) {
-        return chatService.getChat(conversationId);
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public List<ChatConversationDto> getChatConversations() {
+        return chatService.getChatConversations(getMyId());
     }
 
     @GetMapping("/start/{userId}")
-    public ChatDto startChat(@PathVariable UUID userId) {
-        return chatService.startChat(getMyId(), userId);
+    @ResponseStatus(HttpStatus.CREATED)
+    public ChatConversationDto startChatConversation(@PathVariable UUID userId) {
+        return chatService.startChatConversation(getMyId(), userId);
     }
 
 }
