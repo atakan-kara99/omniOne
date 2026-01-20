@@ -17,6 +17,7 @@ public interface ChatMapper {
     ChatMessageDto map(ChatMessage message);
 
     @Mapping(target = "conversationId", source = "conversation.id")
+    @Mapping(target = "lastReadAt", ignore = true)
     @Mapping(target = "otherUserId", source = "profile.id")
     @Mapping(target = "otherFirstName", source = "profile.firstName")
     @Mapping(target = "otherLastName", source = "profile.lastName")

@@ -63,9 +63,11 @@ public class ChatService {
         LocalDateTime now = LocalDateTime.now();
         ChatConversation conversation = conversationRepo.findConversationBetween(fromId, toId)
                 .orElseGet(() -> createConversationWithParticipants(fromId, toId));
-        User from = userRepo.findByIdOrThrow(fromId);
         conversation.setLastMessageAt(now);
         conversation.setLastMessagePreview(content);
+        ChatParticipant participant = participantRepo.findByIdOrThrow(new ChatParticipantId(conversation.getId(), fromId));
+        participant.setLastReadAt(now);
+        User from = userRepo.findByIdOrThrow(fromId);
         ChatMessage message = messageRepo.save(ChatMessage.builder()
                 .conversation(conversation).sender(from).sentAt(now).content(content).build());
         ChatMessageDto messageDto = chatMapper.map(message);
@@ -95,6 +97,14 @@ public class ChatService {
         ChatConversationDto conversationDto = chatMapper.map(conversation, otherProfile);
         log.info("Successfully started ChatConversation");
         return conversationDto;
+    }
+
+    public void readMessage(UUID userId, UUID conversationId) {
+        log.debug("Trying to update lastReadAt in ChatConversation {} for User {}", conversationId, userId);
+        ChatParticipant participant = participantRepo.findByIdOrThrow(new ChatParticipantId(conversationId, userId));
+        participant.setLastReadAt(LocalDateTime.now());
+        participantRepo.save(participant);
+        log.info("Successfully updated lastReadAt in ChatConversation");
     }
 
 }

@@ -26,7 +26,7 @@ public interface ChatConversationRepo extends JpaRepository<ChatConversation, UU
 
     @Query("""
     SELECT new app.omniOne.chatting.model.dto.ChatConversationDto(
-        c.id, c.startedAt, c.lastMessageAt, c.lastMessagePreview, u.id, up.firstName, up.lastName)
+        c.id, c.startedAt, c.lastMessageAt, c.lastMessagePreview, pMe.lastReadAt, u.id, up.firstName, up.lastName)
     FROM ChatConversation c
       JOIN c.participants pMe
       JOIN c.participants pOther
