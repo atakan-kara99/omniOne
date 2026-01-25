@@ -126,6 +126,32 @@
   background: #f1f5f9;
 }
 
+.clients-header {
+  align-items: flex-start;
+}
+
+.clients-header .invite-button {
+  margin-left: auto;
+  align-self: flex-start;
+}
+
+.invite-actions .invite-menu {
+  min-width: 320px;
+  left: auto;
+  right: 0;
+}
+
+.invite-menu .form {
+  margin-top: 8px;
+}
+
+.invite-menu .field,
+.invite-menu .form button,
+.invite-menu .success {
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
 .app-body {
   position: relative;
   z-index: 1;
@@ -463,6 +489,17 @@ button {
     justify-content: center;
   }
 
+  .invite-button.user-action {
+    width: auto;
+    height: auto;
+    padding: 8px 12px;
+    justify-content: flex-start;
+  }
+
+  .invite-button .button-label {
+    display: inline-flex;
+  }
+
   .user-action.profile-action {
     width: auto;
     height: auto;
@@ -788,6 +825,43 @@ button:disabled {
   margin: 0;
   display: grid;
   gap: 0;
+}
+
+.client-cards {
+  margin-top: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+.client-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.client-card-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.client-card-link:hover {
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5f5;
+}
+
+.message-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.message-button:hover {
+  background: #111827;
 }
 
 .chip-list {
@@ -1429,6 +1503,10 @@ button:disabled {
     align-items: flex-start;
   }
 
+  .clients-header {
+    flex-direction: row;
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 720px) {

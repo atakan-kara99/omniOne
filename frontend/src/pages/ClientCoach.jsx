@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { endClientCoaching, getClientCoach, startChat } from '../api.js'
+import { endClientCoaching, getClientCoach } from '../api.js'
+import { openChatDock } from '../chatDockEvents.js'
 
 function ClientCoach() {
-  const navigate = useNavigate()
   const [coach, setCoach] = useState(null)
   const [error, setError] = useState('')
   const [status, setStatus] = useState('')
   const [loading, setLoading] = useState(true)
   const [ending, setEnding] = useState(false)
-  const [starting, setStarting] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -60,21 +58,10 @@ function ClientCoach() {
     }
   }
 
-  async function handleStartChat() {
+  function handleStartChat() {
     if (!coach?.id) return
-    setStarting(true)
-    setError('')
-    setStatus('')
-    try {
-      const chat = await startChat(coach.id)
-      navigate(`/client/chats/${chat.conversationId}`, {
-        state: { otherUserId: coach.id },
-      })
-    } catch (err) {
-      setError(err.message || 'Failed to start chat.')
-    } finally {
-      setStarting(false)
-    }
+    const name = `${coach.firstName || ''} ${coach.lastName || ''}`.trim()
+    openChatDock({ targetId: coach.id, targetName: name })
   }
 
   return (
@@ -97,9 +84,7 @@ function ClientCoach() {
             </div>
             <div className="label">Coach ID</div>
             <div className="value">{coach.id}</div>
-            <button type="button" onClick={handleStartChat} disabled={starting}>
-              {starting ? 'Starting...' : 'Message coach'}
-            </button>
+            <button type="button" onClick={handleStartChat}>Message coach</button>
             <div className="danger-zone">
               <div>
                 <div className="card-title">End coaching</div>

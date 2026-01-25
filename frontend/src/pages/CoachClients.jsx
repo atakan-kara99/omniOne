@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { getCoachClients, inviteClient, startChat } from '../api.js'
+import { Link } from 'react-router-dom'
+import { PaperPlaneTilt, Plus } from 'phosphor-react'
+import { getCoachClients, inviteClient } from '../api.js'
+import { openChatDock } from '../chatDockEvents.js'
 
 function CoachClients() {
-  const navigate = useNavigate()
   const [clients, setClients] = useState([])
   const [inviteEmail, setInviteEmail] = useState('')
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [inviting, setInviting] = useState(false)
-  const [startingId, setStartingId] = useState(null)
+  const [showInvite, setShowInvite] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -56,87 +57,83 @@ function CoachClients() {
     }
   }
 
-  async function handleStartChat(clientId) {
-    setError('')
-    setStatus('')
-    setStartingId(clientId)
-    try {
-      const chat = await startChat(clientId)
-      navigate(`/coach/chats/${chat.conversationId}`, {
-        state: { otherUserId: clientId },
-      })
-    } catch (err) {
-      setError(err.message || 'Failed to start chat.')
-    } finally {
-      setStartingId(null)
-    }
+  function handleStartChat(client) {
+    const name = `${client.firstName || ''} ${client.lastName || ''}`.trim()
+    openChatDock({ targetId: client.id, targetName: name })
   }
 
   return (
     <section className="panel">
-      <div className="panel-header">
+      <div className="panel-header clients-header">
         <div>
           <h1>Your clients</h1>
           <p className="muted">Invite new clients and manage active coaching.</p>
         </div>
-      </div>
-      <div className="split-grid">
-        <div className="card">
-          <div className="card-title">Invite a client</div>
-          <form className="form" onSubmit={handleInvite}>
-            <label className="field">
-              <span>Client email</span>
-              <input
-                type="email"
-                value={inviteEmail}
-                onChange={(event) => setInviteEmail(event.target.value)}
-                placeholder="client@example.com"
-                required
-              />
-            </label>
-            <button type="submit" disabled={inviting}>
-              {inviting ? 'Sending...' : 'Send invite'}
-            </button>
-            {status ? <p className="success">{status}</p> : null}
-          </form>
-        </div>
-        <div className="card">
-          <div className="card-title">Active roster</div>
-          {loading ? <p className="muted">Loading clients...</p> : null}
-          {error ? <p className="error">{error}</p> : null}
-          {!loading && !error ? (
-            clients.length === 0 ? (
-              <p className="muted">No clients yet.</p>
-            ) : (
-              <ul className="card-list">
-                {clients.map((client) => (
-                  <li key={client.id} className="list-item">
-                    <div>
-                      <div className="card-title">
-                        {client.firstName || 'Client'} {client.lastName || ''}
-                      </div>
-                      <div className="muted">{client.id}</div>
-                    </div>
-                    <div className="inline-actions">
-                      <button
-                        type="button"
-                        className="ghost-button"
-                        onClick={() => handleStartChat(client.id)}
-                        disabled={startingId === client.id}
-                      >
-                        {startingId === client.id ? 'Starting...' : 'Message'}
-                      </button>
-                      <Link className="text-link" to={`/coach/clients/${client.id}`}>
-                        Open
-                      </Link>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )
+        <div className="chat-actions invite-actions">
+          <button
+            type="button"
+            className={`icon-button user-action invite-button${showInvite ? ' is-active' : ''}`}
+            onClick={() => setShowInvite((prev) => !prev)}
+            aria-expanded={showInvite}
+            aria-controls="invite-form"
+          >
+            <Plus size={22} weight="bold" />
+            <span className="button-label">Invite</span>
+          </button>
+          {showInvite ? (
+            <div className="chat-start-menu invite-menu" id="invite-form">
+              <div className="chat-start-title">Invite a client</div>
+              <form className="form invite-form" onSubmit={handleInvite}>
+                <label className="field">
+                  <span>Client email</span>
+                  <input
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(event) => setInviteEmail(event.target.value)}
+                    placeholder="client@example.com"
+                    required
+                  />
+                </label>
+                <button type="submit" disabled={inviting}>
+                  {inviting ? 'Sending...' : 'Send invite'}
+                </button>
+                {status ? <p className="success">{status}</p> : null}
+              </form>
+            </div>
           ) : null}
         </div>
       </div>
+      {loading ? <p className="muted">Loading clients...</p> : null}
+      {error ? <p className="error">{error}</p> : null}
+      {!loading && !error ? (
+        clients.length === 0 ? (
+          <p className="muted">No clients yet.</p>
+        ) : (
+          <div className="client-cards">
+            {clients.map((client) => (
+              <Link key={client.id} className="card client-card client-card-link" to={`/coach/clients/${client.id}`}>
+                <div className="card-title">
+                  {client.firstName || 'Client'} {client.lastName || ''}
+                </div>
+                <div className="inline-actions">
+                  <button
+                    type="button"
+                    className="ghost-button message-button"
+                    onClick={(event) => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      handleStartChat(client)
+                    }}
+                  >
+                    <PaperPlaneTilt size={22} weight="bold" />
+                    Message
+                  </button>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )
+      ) : null}
     </section>
   )
 }

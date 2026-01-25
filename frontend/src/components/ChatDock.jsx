@@ -11,7 +11,8 @@ import {
 import { getToken } from '../auth.js'
 import { useAuth } from '../authContext.js'
 import { Client } from '@stomp/stompjs'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import { CHAT_DOCK_OPEN_EVENT } from '../chatDockEvents.js'
 
 function buildWebSocketUrl() {
   const apiBase = import.meta.env.VITE_API_BASE || 'http://localhost:8080'
@@ -76,7 +77,6 @@ function formatMessageDay(value) {
 
 function ChatDock() {
   const { user } = useAuth()
-  const location = useLocation()
   const isCoach = user?.role === 'COACH'
   const [open, setOpen] = useState(() => {
     try {
@@ -187,7 +187,6 @@ function ChatDock() {
   const refreshChatsInFlightRef = useRef(false)
   const userScrollIntentRef = useRef(false)
   const userScrollIntentTimerRef = useRef(null)
-  const skipRouteChatRef = useRef(true)
   const lastNarrowChatRef = useRef(null)
   const DEBUG_WS = import.meta.env.DEV
   const logWs = (...args) => {
@@ -601,7 +600,6 @@ function ChatDock() {
       setNotifiedChatIds([])
       lastMessageMapRef.current = new Map()
       sessionStorage.removeItem('omniOne.chatDock')
-      skipRouteChatRef.current = true
       return
     }
     setOpen(false)
@@ -614,7 +612,6 @@ function ChatDock() {
     setNotifiedChatIds([])
     lastMessageMapRef.current = new Map()
     sessionStorage.removeItem('omniOne.chatDock')
-    skipRouteChatRef.current = true
   }, [user?.id])
 
   useEffect(() => {
@@ -1004,26 +1001,6 @@ function ChatDock() {
   }, [user?.id])
 
   useEffect(() => {
-    if (!open) return
-  }, [location.pathname])
-
-  useEffect(() => {
-    const match = location.pathname.match(/\/(?:coach|client)\/chats\/([0-9a-f-]{36})/i)
-    if (match?.[1]) {
-      if (skipRouteChatRef.current) return
-      setActiveChatId(match[1])
-    }
-  }, [location.pathname])
-
-  useEffect(() => {
-    if (!user?.id) return
-    const timer = setTimeout(() => {
-      skipRouteChatRef.current = false
-    }, 0)
-    return () => clearTimeout(timer)
-  }, [user?.id])
-
-  useEffect(() => {
     if (!open || !activeChatId) return
     let mounted = true
 
@@ -1273,6 +1250,71 @@ function ChatDock() {
     }
   }, [showStart, isCoach])
 
+  const selectChat = useCallback(
+    (chat, overrideName) => {
+      if (!chat) return
+      switchGuardRef.current = true
+      setActiveChatId(chat.conversationId)
+      setActiveTargetId(chat.otherUserId)
+      const fallbackName = `${chat.otherFirstName || ''} ${chat.otherLastName || ''}`.trim()
+      setActiveTargetName(overrideName || fallbackName)
+      scrollToBottomRef.current = true
+      needsBottomRef.current = true
+      if (isDockNarrow) {
+        setShowList(false)
+      }
+      pendingBottomRef.current = chat.conversationId
+      sendReadReceipt(chat.conversationId)
+    },
+    [isDockNarrow, isChatUnread, sendReadReceipt],
+  )
+
+  const openChatWithTarget = useCallback(
+    async (targetId, targetName) => {
+      if (!targetId) return
+      setOpen(true)
+      setChatError('')
+      const existing = chatsRef.current.find((chat) => chat.otherUserId === targetId)
+      if (existing) {
+        selectChat(existing, targetName)
+        return
+      }
+      try {
+        const chat = await startChat(targetId)
+        const list = await getChats()
+        setChats(list || [])
+        setActiveChatId(chat.conversationId)
+        setActiveTargetId(targetId)
+        if (targetName) {
+          setActiveTargetName(targetName)
+        } else if (isCoach) {
+          const client = await getCoachClient(targetId)
+          setActiveTargetName(`${client?.firstName || ''} ${client?.lastName || ''}`.trim())
+        } else {
+          const coach = await getClientCoach()
+          setActiveTargetName(`${coach?.firstName || ''} ${coach?.lastName || ''}`.trim())
+        }
+        scrollToBottomRef.current = true
+        needsBottomRef.current = true
+      } catch (err) {
+        setChatError(err.message || 'Failed to start chat.')
+      }
+    },
+    [isCoach, selectChat],
+  )
+
+  useEffect(() => {
+    function handleOpen(event) {
+      const detail = event?.detail || {}
+      if (!detail.targetId) return
+      openChatWithTarget(detail.targetId, detail.targetName)
+    }
+    window.addEventListener(CHAT_DOCK_OPEN_EVENT, handleOpen)
+    return () => {
+      window.removeEventListener(CHAT_DOCK_OPEN_EVENT, handleOpen)
+    }
+  }, [openChatWithTarget])
+
 
   async function handleStartChat() {
     if (starting) return
@@ -1338,20 +1380,7 @@ function ChatDock() {
   }
 
   function handleSelectChat(chat) {
-    switchGuardRef.current = true
-    setActiveChatId(chat.conversationId)
-    setActiveTargetId(chat.otherUserId)
-    const name = `${chat.otherFirstName || ''} ${chat.otherLastName || ''}`.trim()
-    setActiveTargetName(name)
-    scrollToBottomRef.current = true
-    needsBottomRef.current = true
-    if (isDockNarrow) {
-      setShowList(false)
-    }
-    pendingBottomRef.current = chat.conversationId
-    if (!isChatUnread(chat)) {
-      sendReadReceipt(chat.conversationId)
-    }
+    selectChat(chat)
   }
 
   function handleToggleDock() {
@@ -1423,7 +1452,7 @@ function ChatDock() {
         ref={toggleRef}
         aria-pressed={open}
       >
-        <ChatsCircle size={28} />
+        <ChatsCircle size={28} weight="bold" />
         <span className="chat-toggle-text">Chat</span>
       </button>
       {open ? (
@@ -1462,7 +1491,7 @@ function ChatDock() {
                   aria-label={showList ? 'Hide chat list' : 'Show chat list'}
                   aria-pressed={showList}
                 >
-                  <UserList size={24} />
+                  <UserList size={24} weight="bold" />
                   <span className="chat-dock-list-label">Chats</span>
                 </button>
                 <div className="chat-dock-actions" ref={menuRef}>
@@ -1476,7 +1505,7 @@ function ChatDock() {
                     aria-busy={starting}
                     aria-disabled={starting}
                   >
-                    <Plus size={24} />
+                    <Plus size={22} weight="bold" />
                     <span className="chat-dock-start-label">New</span>
                   </button>
                   {showStart && isCoach ? (
@@ -1515,7 +1544,7 @@ function ChatDock() {
                     to={isCoach ? `/coach/clients/${activeTargetId}` : '/client/coach'}
                     onClick={() => setOpen(false)}
                   >
-                    <User size={24} />
+                    <User size={22} weight="bold" />
                     {activeTargetName}
                   </Link>
                 ) : null}
@@ -1733,7 +1762,7 @@ function ChatDock() {
                         disabled={!activeTargetId}
                         aria-label="Send message"
                       >
-                        <PaperPlaneRight size={20} />
+                        <PaperPlaneRight size={20} weight="bold" />
                       </button>
                     </form>
                   </>

@@ -1,12 +1,4 @@
-import {
-  BrowserRouter,
-  Navigate,
-  Link,
-  NavLink,
-  Route,
-  Routes,
-  useNavigate,
-} from 'react-router-dom'
+import { BrowserRouter, Navigate, Link, NavLink, Route, Routes } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import {
@@ -33,7 +25,6 @@ import CoachClientDetail from './pages/CoachClientDetail.jsx'
 import CoachQuestionnaire from './pages/CoachQuestionnaire.jsx'
 import ClientNutritionPlans from './pages/ClientNutritionPlans.jsx'
 import ClientQuestionnaire from './pages/ClientQuestionnaire.jsx'
-import ChatDetail from './pages/ChatDetail.jsx'
 import ClientCoach from './pages/ClientCoach.jsx'
 import ChatDock from './components/ChatDock.jsx'
 
@@ -64,7 +55,6 @@ function ProtectedRoute({ children, allowedRoles }) {
 }
 
 function AppShell({ children, user, onLogout }) {
-  const navigate = useNavigate()
   const [isNavOpen, setIsNavOpen] = useState(false)
   const navItems = user?.role === 'COACH'
     ? [
@@ -91,7 +81,7 @@ function AppShell({ children, user, onLogout }) {
             aria-controls="side-nav"
             onClick={() => setIsNavOpen((open) => !open)}
           >
-            <List size={22} />
+            <List size={22} weight="bold" />
           </button>
         ) : null}
         <div className="user-slot">
@@ -99,6 +89,7 @@ function AppShell({ children, user, onLogout }) {
             <div className="user-chip">
               <NavLink
                 to={user?.role === 'COACH' ? '/coach' : '/client'}
+                end
                 className={({ isActive }) => `icon-button user-action${isActive ? ' is-active' : ''}`}
                 aria-label="Dashboard"
                 title="Dashboard"
@@ -296,14 +287,6 @@ function App() {
               }
             />
             <Route
-              path="/coach/chats/:conversationId"
-              element={
-                <ProtectedRoute allowedRoles={['COACH']}>
-                  <ChatDetail />
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/client"
               element={
                 <ProtectedRoute allowedRoles={['CLIENT']}>
@@ -332,14 +315,6 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['CLIENT']}>
                   <ClientCoach />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/client/chats/:conversationId"
-              element={
-                <ProtectedRoute allowedRoles={['CLIENT']}>
-                  <ChatDetail />
                 </ProtectedRoute>
               }
             />
