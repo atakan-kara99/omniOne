@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
@@ -38,6 +39,11 @@ public class AuthController {
                 .sameSite("None")
                 .path("/auth")
                 .maxAge(duration).build();
+    }
+
+    @GetMapping("/csrf")
+    public CsrfToken csrf(CsrfToken token) {
+        return token;
     }
 
     @PostMapping("/account/login")
