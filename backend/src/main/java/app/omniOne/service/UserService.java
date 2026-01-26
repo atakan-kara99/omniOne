@@ -88,10 +88,12 @@ public class UserService {
         user.setDeletedAt(now);
         user.setEmail(UUID.randomUUID() + "@deleted.user");
         user.setPassword(encoder.encode(UUID.randomUUID().toString()));
-        user.getProfile().setGender(Gender.OTHER);
-        user.getProfile().setBirthDate(LocalDate.of(1970, 1, 1));
-        user.getProfile().setFirstName("deleted");
-        user.getProfile().setLastName("user");
+        if (!(user.getProfile() == null)) {
+            user.getProfile().setGender(Gender.OTHER);
+            user.getProfile().setBirthDate(LocalDate.of(1970, 1, 1));
+            user.getProfile().setFirstName("deleted");
+            user.getProfile().setLastName("user");
+        }
         if (user.getRole() == UserRole.COACH) {
             UUID coachId = user.getId();
             List<Coaching> coachings = coachingRepo.findAllByCoachId(coachId);
