@@ -1,21 +1,16 @@
-# TODO's
+# TODO's for MVP
 
 ## Frontend
 
-* Decide on framework (React or Angular)
-* Lean the basics with some videos
-* Set up basic environment
-* ...
-* Improve email templates
 
 ## Backend
 
-* Messaging system (Chat)
+* POST /auth/token/refresh, POST /auth/logout? 
+  * Detect reuse (if an old refresh token is presented after rotation → revoke the whole session)
 * Profile picture for users
     * Check which is best approach for dev and prod
 * Check-Ins
     * Weight, NutriPlan, Comment, Date, Photos, Videos, Satiation/Hunger, Energielevel, Sleep, Steps
-* Define different env/profile (prod, dev)
 * Reminder system (for Check-In)
 * Supplements
 * Statistics (w graphs over time)
@@ -25,7 +20,6 @@
 
 ## DevOps
 
-* Write unit and integration tests --------------- CONTROLLERS/AUTHCONTORLLER
 * Setup CI/CD with GitHub Actions
 
 ## Cloud
@@ -37,4 +31,19 @@
 
 ## CV
 
-* Test (JUnit, Mockito)
+* Test (JUnit, Mockito), JaCoCo
+* STOMP over WebSockets
+
+
+# Beyond MVP
+
+## Frontend
+
+* Chat
+  * Chat thread scroll position saved
+
+## Backend
+
+* Add deviceId to RefreshTokens
+  * 1 refreshToken per device and user.
+* Check 
