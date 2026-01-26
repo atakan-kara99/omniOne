@@ -1,6 +1,7 @@
 package app.omniOne.authentication.model;
 
 import app.omniOne.model.enums.UserRole;
+import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,4 +22,11 @@ public record RegisterRequest(
    @NotNull
    UserRole role
 
-) {}
+) {
+
+   @Override
+   public @Nonnull String toString() {
+      return "LoginRequest[email=" + email + ", password=***, role=" + role + "]";
+   }
+
+}

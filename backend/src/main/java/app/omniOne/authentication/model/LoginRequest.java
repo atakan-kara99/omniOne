@@ -1,5 +1,6 @@
 package app.omniOne.authentication.model;
 
+import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.NotBlank;
 
 public record LoginRequest(
@@ -14,4 +15,11 @@ public record LoginRequest(
 //           message = "Password must contain upper, lower, digit, and special character.")
         String password
 
-) {}
+) {
+
+        @Override
+        public @Nonnull String toString() {
+                return "LoginRequest[username=" + username + ", password=***]";
+        }
+
+}
