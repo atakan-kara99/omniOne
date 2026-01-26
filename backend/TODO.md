@@ -46,4 +46,4 @@
 
 * Add deviceId to RefreshTokens
   * 1 refreshToken per device and user.
-* Check 
+* Fix multitab behavior (login/refresh/logout)
