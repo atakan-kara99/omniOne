@@ -1,8 +1,8 @@
 package app.omniOne.authentication;
 
-import app.omniOne.authentication.jwt.JwtService;
 import app.omniOne.authentication.model.LoginRequest;
 import app.omniOne.authentication.model.RegisterRequest;
+import app.omniOne.authentication.token.JwtService;
 import app.omniOne.email.EmailService;
 import app.omniOne.model.enums.UserRole;
 import app.omniOne.repository.UserRepo;
@@ -66,12 +66,12 @@ class AuthFlowIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsBytes(new LoginRequest(coachEmail, password))))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.token").exists())
+                        .andExpect(jsonPath("$.jwt").exists())
                         .andReturn()
                         .getResponse()
                         .getContentAsByteArray());
 
-        String bearerToken = "Bearer " + loginJson.get("token").asText();
+        String bearerToken = "Bearer " + loginJson.get("jwt").asText();
 
         mockMvc.perform(get("/user").header("Authorization", bearerToken))
                 .andExpect(status().isOk())

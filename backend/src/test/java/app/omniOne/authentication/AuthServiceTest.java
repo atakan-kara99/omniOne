@@ -1,10 +1,13 @@
 package app.omniOne.authentication;
 
-import app.omniOne.authentication.jwt.JwtService;
 import app.omniOne.authentication.model.LoginRequest;
+import app.omniOne.authentication.model.LoginResponse;
 import app.omniOne.authentication.model.PasswordRequest;
 import app.omniOne.authentication.model.RegisterRequest;
 import app.omniOne.authentication.model.UserDetails;
+import app.omniOne.authentication.token.JwtService;
+import app.omniOne.authentication.token.RefreshTokenService;
+import app.omniOne.chatting.repository.ChatParticipantRepo;
 import app.omniOne.email.EmailService;
 import app.omniOne.exception.DuplicateResourceException;
 import app.omniOne.exception.NotAllowedException;
@@ -50,6 +53,8 @@ import static org.mockito.Mockito.*;
     @Mock private CoachingRepo coachingRepo;
     @Mock private CoachingService coachingService;
     @Mock private AuthenticationManager authenticationManager;
+    @Mock private ChatParticipantRepo chatParticipantRepo;
+    @Mock private RefreshTokenService refreshTokenService;
     @InjectMocks private AuthService authService;
 
     @AfterEach void clearContext() {
@@ -78,15 +83,22 @@ import static org.mockito.Mockito.*;
         LoginRequest request = new LoginRequest(userEmail, "pass");
         Authentication authentication = mock(Authentication.class);
         UserDetails principal = mock(UserDetails.class);
+        User user = new User();
+        user.setId(UUID.randomUUID());
         when(authenticationManager.authenticate(any(Authentication.class))).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(principal);
         when(jwtService.createAuthJwt(principal)).thenReturn("jwt-token");
+        when(refreshTokenService.generateToken()).thenReturn("refresh-token");
+        when(principal.getUser()).thenReturn(user);
 
-        String token = authService.login(request);
+        LoginResponse response = authService.login(request);
 
-        assertEquals("jwt-token", token);
+        assertEquals("jwt-token", response.jwt());
+        assertEquals("refresh-token", response.refreshToken());
         verify(authenticationManager).authenticate(any(Authentication.class));
         verify(jwtService).createAuthJwt(principal);
+        verify(refreshTokenService).generateToken();
+        verify(refreshTokenService).saveRefreshToken("refresh-token", user);
     }
 
     @Test void register_savesCoachAndSendsActivationMail() {

@@ -1,7 +1,7 @@
 package app.omniOne.authentication;
 
-import app.omniOne.authentication.jwt.JwtFilter;
 import app.omniOne.authentication.model.*;
+import app.omniOne.authentication.token.JwtFilter;
 import app.omniOne.model.entity.User;
 import app.omniOne.model.enums.UserRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,6 +10,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -26,8 +27,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.containsString;
 
 @ActiveProfiles("test")
 @WebMvcTest(AuthController.class)
@@ -43,13 +46,14 @@ class AuthControllerTest {
 
     @Test void login_returnsJwtResponse() throws Exception {
         LoginRequest request = new LoginRequest(userEmail, "pass");
-        when(authService.login(request)).thenReturn("jwt-token");
+        when(authService.login(request)).thenReturn(new LoginResponse("jwt-token", "refresh-token"));
 
         mockMvc.perform(post("/auth/account/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("jwt-token"));
+                .andExpect(jsonPath("$.jwt").value("jwt-token"))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("refresh_token=")));
 
         verify(authService).login(request);
     }

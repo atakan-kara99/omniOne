@@ -1,14 +1,14 @@
 package app.omniOne.authentication;
 
-import app.omniOne.authentication.jwt.JwtService;
-import app.omniOne.authentication.model.LoginRequest;
-import app.omniOne.authentication.model.PasswordRequest;
-import app.omniOne.authentication.model.RegisterRequest;
-import app.omniOne.authentication.model.UserDetails;
+import app.omniOne.authentication.model.*;
+import app.omniOne.authentication.token.JwtService;
+import app.omniOne.authentication.token.RefreshToken;
+import app.omniOne.authentication.token.RefreshTokenService;
 import app.omniOne.chatting.repository.ChatParticipantRepo;
 import app.omniOne.email.EmailService;
 import app.omniOne.exception.DuplicateResourceException;
 import app.omniOne.exception.NotAllowedException;
+import app.omniOne.exception.RefreshTokenInvalidException;
 import app.omniOne.model.entity.Client;
 import app.omniOne.model.entity.Coach;
 import app.omniOne.model.entity.User;
@@ -49,6 +49,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final EmailService emailService;
     private final CoachingService coachingService;
+    private final RefreshTokenService refreshTokenService;
 
     public static UUID getMyId() {
         return UUID.fromString((String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
@@ -71,17 +72,38 @@ public class AuthService {
         return chatParticipantRepo.existsByConversationIdAndUserId(conversationId, userId);
     }
 
-    public String login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
         log.debug("Trying to log in User {}", request.username());
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.username(),
-                        request.password()
-                )
-        );
-        String jwt = jwtService.createAuthJwt((UserDetails) authentication.getPrincipal());
+                        request.password()));
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String jwt = jwtService.createAuthJwt(userDetails);
+        String token = refreshTokenService.generateToken();
+        refreshTokenService.saveRefreshToken(token, userDetails.getUser());
         log.info("Successfully logged in");
-        return jwt;
+        return new LoginResponse(jwt, token);
+    }
+
+    public LoginResponse refreshTokens(String token) {
+        log.debug("Trying to refresh jwt for User");
+        RefreshToken refreshToken = refreshTokenService.getRefreshToken(token);
+        if (!refreshToken.isExpired() && !refreshToken.isRevoked()) {
+            UserDetails userDetails = new UserDetails(refreshToken.getUser());
+            String jwt = jwtService.createAuthJwt(userDetails);
+            String newToken = refreshTokenService.rotateRefreshToken(token);
+            log.info("Successfully refreshed jwt and refresh token");
+            return new LoginResponse(jwt, newToken);
+        } else {
+            throw new RefreshTokenInvalidException("RefreshToken expired or revoked");
+        }
+    }
+
+    public void logout(String refreshToken) {
+        log.debug("Trying to log out User");
+        refreshTokenService.revokeRefreshToken(refreshToken);
+        log.info("Successfully logged out");
     }
 
     @Transactional
