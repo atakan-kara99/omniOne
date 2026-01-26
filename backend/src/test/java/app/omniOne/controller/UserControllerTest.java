@@ -1,7 +1,7 @@
 package app.omniOne.controller;
 
 import app.omniOne.AuthTestSupport;
-import app.omniOne.authentication.jwt.JwtFilter;
+import app.omniOne.authentication.token.JwtFilter;
 import app.omniOne.model.dto.ChangePasswordRequest;
 import app.omniOne.model.dto.UserDto;
 import app.omniOne.model.dto.UserProfileDto;

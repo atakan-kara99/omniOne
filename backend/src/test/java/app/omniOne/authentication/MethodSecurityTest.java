@@ -1,6 +1,6 @@
 package app.omniOne.authentication;
 
-import app.omniOne.authentication.jwt.JwtFilter;
+import app.omniOne.authentication.token.JwtFilter;
 import app.omniOne.configuration.SecurityConfig;
 import app.omniOne.controller.coach.CoachClientController;
 import app.omniOne.model.mapper.ClientMapper;

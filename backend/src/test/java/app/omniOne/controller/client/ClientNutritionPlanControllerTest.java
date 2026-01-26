@@ -1,7 +1,7 @@
 package app.omniOne.controller.client;
 
 import app.omniOne.AuthTestSupport;
-import app.omniOne.authentication.jwt.JwtFilter;
+import app.omniOne.authentication.token.JwtFilter;
 import app.omniOne.model.dto.NutritionPlanResponse;
 import app.omniOne.model.entity.NutritionPlan;
 import app.omniOne.model.mapper.NutritionPlanMapper;

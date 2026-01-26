@@ -2,7 +2,7 @@ package app.omniOne.controller.coach;
 
 import app.omniOne.AuthTestSupport;
 import app.omniOne.authentication.AuthService;
-import app.omniOne.authentication.jwt.JwtFilter;
+import app.omniOne.authentication.token.JwtFilter;
 import app.omniOne.model.dto.QuestionnaireAnswerResponse;
 import app.omniOne.model.dto.QuestionnaireQuestionPostRequest;
 import app.omniOne.model.dto.QuestionnaireQuestionResponse;
