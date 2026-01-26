@@ -1,15 +1,22 @@
 package app.omniOne.authentication;
 
-import app.omniOne.authentication.jwt.JwtResponse;
 import app.omniOne.authentication.model.*;
+import app.omniOne.authentication.token.JwtDto;
+import app.omniOne.exception.RefreshTokenInvalidException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.Duration;
 
 @Slf4j
 @RestController
@@ -18,13 +25,54 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
+    @Value("${refresh.token.ttl-days}")
+    private int refreshTtlDays;
+
     private final AuthMapper authMapper;
     private final AuthService authService;
 
+    private ResponseCookie buildRefreshCookie(String refreshToken, Duration duration) {
+        return ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/auth")
+                .maxAge(duration).build();
+    }
+
     @PostMapping("/account/login")
-    @ResponseStatus(HttpStatus.OK)
-    public JwtResponse login(@RequestBody @Valid LoginRequest request) {
-        return new JwtResponse(authService.login(request));
+    public ResponseEntity<JwtDto> login(@RequestBody @Valid LoginRequest request) {
+        LoginResponse loginResponse = authService.login(request);
+        ResponseCookie refreshCookie =
+                buildRefreshCookie(loginResponse.refreshToken(), Duration.ofDays(refreshTtlDays));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(new JwtDto(loginResponse.jwt()));
+    }
+
+    @PostMapping("/token/refresh")
+    public ResponseEntity<JwtDto> refresh(@CookieValue(name = "refresh_token", required = false) String refreshToken) {
+        LoginResponse loginResponse;
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            loginResponse = authService.refreshTokens(refreshToken);
+        } else {
+            throw new RefreshTokenInvalidException("Cookie 'refresh_token' for method parameter is not present");
+        }
+        ResponseCookie refreshCookie =
+                buildRefreshCookie(loginResponse.refreshToken(), Duration.ofDays(refreshTtlDays));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(new JwtDto(loginResponse.jwt()));
+    }
+
+    @PostMapping("/account/logout")
+    public ResponseEntity<Void> logout(@CookieValue(name = "refresh_token", required = false) String refreshToken) {
+        if (refreshToken != null && !refreshToken.isBlank())
+            authService.logout(refreshToken);
+        ResponseCookie deleteCookie =
+                buildRefreshCookie("", Duration.ZERO);
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString()).build();
     }
 
     @PostMapping("/account/register")

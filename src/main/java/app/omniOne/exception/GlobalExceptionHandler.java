@@ -52,10 +52,18 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(TokenExpiredException.class)
-    public ResponseEntity<ProblemDetail> handleJWTExpiry(TokenExpiredException ex) {
+    public ResponseEntity<ProblemDetail> handleTokenExpiry(TokenExpiredException ex) {
         HttpStatus status = HttpStatus.UNAUTHORIZED;
         ProblemDetail pd = pd("JWT Expired", status, ex.getMessage());
         log.info("Failed to validate provided JWT because: {}", ex.getMessage());
+        return new ResponseEntity<>(pd, status);
+    }
+
+    @ExceptionHandler(RefreshTokenInvalidException.class)
+    public ResponseEntity<ProblemDetail> handleRefreshToken(RefreshTokenInvalidException ex) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        ProblemDetail pd = pd("RefreshToken Invalid", status, ex.getMessage());
+        log.info("Failed to validate provided RefreshToken because: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 

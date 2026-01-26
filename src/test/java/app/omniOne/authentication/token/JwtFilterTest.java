@@ -1,4 +1,4 @@
-package app.omniOne.authentication.jwt;
+package app.omniOne.authentication.token;
 
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;

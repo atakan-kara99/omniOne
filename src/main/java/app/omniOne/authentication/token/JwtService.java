@@ -1,4 +1,4 @@
-package app.omniOne.authentication.jwt;
+package app.omniOne.authentication.token;
 
 import app.omniOne.authentication.model.UserDetails;
 import com.auth0.jwt.JWT;
@@ -46,7 +46,7 @@ public class JwtService {
 
     public String createAuthJwt(UserDetails user) {
         Map<String, String> claims = Map.of("id", user.getId().toString(), "role", user.getRole());
-        return createTemplateJwt("authorization", claims, 60, authAlgorithm);
+        return createTemplateJwt("authorization", claims, 15, authAlgorithm);
     }
 
     public String createResetPasswordJwt(String email) {

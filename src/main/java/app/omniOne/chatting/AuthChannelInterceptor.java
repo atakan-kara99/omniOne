@@ -1,6 +1,6 @@
 package app.omniOne.chatting;
 
-import app.omniOne.authentication.jwt.JwtService;
+import app.omniOne.authentication.token.JwtService;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
