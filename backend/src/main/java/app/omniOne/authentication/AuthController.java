@@ -2,7 +2,6 @@ package app.omniOne.authentication;
 
 import app.omniOne.authentication.model.*;
 import app.omniOne.authentication.token.JwtDto;
-import app.omniOne.exception.RefreshTokenInvalidException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -58,12 +57,7 @@ public class AuthController {
 
     @PostMapping("/token/refresh")
     public ResponseEntity<JwtDto> refresh(@CookieValue(name = "refresh_token", required = false) String refreshToken) {
-        LoginResponse loginResponse;
-        if (refreshToken != null && !refreshToken.isBlank()) {
-            loginResponse = authService.refreshTokens(refreshToken);
-        } else {
-            throw new RefreshTokenInvalidException("Cookie 'refresh_token' for method parameter is not present");
-        }
+        LoginResponse loginResponse = authService.refreshTokens(refreshToken);
         ResponseCookie refreshCookie =
                 buildRefreshCookie(loginResponse.refreshToken(), Duration.ofDays(refreshTtlDays));
         return ResponseEntity.ok()

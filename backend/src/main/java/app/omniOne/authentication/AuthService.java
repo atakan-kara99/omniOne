@@ -8,7 +8,6 @@ import app.omniOne.chatting.repository.ChatParticipantRepo;
 import app.omniOne.email.EmailService;
 import app.omniOne.exception.DuplicateResourceException;
 import app.omniOne.exception.NotAllowedException;
-import app.omniOne.exception.RefreshTokenInvalidException;
 import app.omniOne.model.entity.Client;
 import app.omniOne.model.entity.Coach;
 import app.omniOne.model.entity.User;
@@ -86,18 +85,14 @@ public class AuthService {
         return new LoginResponse(jwt, token);
     }
 
-    public LoginResponse refreshTokens(String token) {
+    public LoginResponse refreshTokens(String rawToken) {
         log.debug("Trying to refresh jwt for User");
-        RefreshToken refreshToken = refreshTokenService.getRefreshToken(token);
-        if (!refreshToken.isExpired() && !refreshToken.isRevoked()) {
-            UserDetails userDetails = new UserDetails(refreshToken.getUser());
-            String jwt = jwtService.createAuthJwt(userDetails);
-            String newToken = refreshTokenService.rotateRefreshToken(token);
-            log.info("Successfully refreshed jwt and refresh token");
-            return new LoginResponse(jwt, newToken);
-        } else {
-            throw new RefreshTokenInvalidException("RefreshToken expired or revoked");
-        }
+        RefreshToken refreshToken = refreshTokenService.getRefreshToken(rawToken);
+        UserDetails userDetails = new UserDetails(refreshToken.getUser());
+        String jwt = jwtService.createAuthJwt(userDetails);
+        String newToken = refreshTokenService.rotateRefreshToken(rawToken);
+        log.info("Successfully refreshed jwt and refresh token");
+        return new LoginResponse(jwt, newToken);
     }
 
     public void logout(String refreshToken) {

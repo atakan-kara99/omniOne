@@ -89,17 +89,35 @@ public class RefreshTokenService {
     }
 
     public RefreshToken getRefreshToken(String rawToken) {
-        String hashToken = hash(rawToken);
+        if (rawToken == null || rawToken.isBlank()) {
+            log.warn("Invalid refresh token presented (null or blank)");
+            throw new RefreshTokenInvalidException("Cookie 'refresh_token' is not present");
+        }
+        String tokenHash = hash(rawToken);
+        RefreshToken refreshToken;
         try {
-            RefreshToken refreshToken = refreshTokenRepo.findByTokenHashOrThrow(hashToken);
+            refreshToken = refreshTokenRepo.findByTokenHashOrThrow(tokenHash);
             log.debug("Loaded refresh token (userId={}, tokenHashPrefix={}, revoked={}, expiresAt={})",
                     refreshToken.getUser().getId(), hashPrefix(refreshToken.getTokenHash()),
                     refreshToken.isRevoked(), refreshToken.getExpiresAt());
-            return refreshToken;
         } catch (NoSuchResourceException ex) {
-            log.warn("Invalid refresh token presented (tokenHashPrefix={})", hashPrefix(hashToken));
-            throw new RefreshTokenInvalidException(ex.getMessage());
+            log.warn("Invalid refresh token presented (tokenHashPrefix={})", hashPrefix(tokenHash));
+            throw new RefreshTokenInvalidException("Invalid refresh token");
         }
+        if (refreshToken.isExpired()) {
+            log.warn("Refresh token expired (userId={}, tokenHashPrefix={}, expiresAt={})",
+                    refreshToken.getUser().getId(),
+                    hashPrefix(refreshToken.getTokenHash()),
+                    refreshToken.getExpiresAt());
+            throw new RefreshTokenInvalidException("Refresh token expired");
+        }
+        if (refreshToken.isRevoked()) {
+            log.warn("Refresh token revoked (userId={}, tokenHashPrefix={})",
+                    refreshToken.getUser().getId(),
+                    hashPrefix(refreshToken.getTokenHash()));
+            throw new RefreshTokenInvalidException("Refresh token revoked");
+        }
+        return refreshToken;
     }
 
     @Transactional
