@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,7 +20,6 @@ import static app.omniOne.authentication.AuthService.getMyId;
 @Tag(name = "Coach - Questionnaire")
 @RequiredArgsConstructor
 @RequestMapping("/coach/questionnaire")
-@PreAuthorize("@authService.isCoachedByMe(#clientId)")
 public class CoachQuestionnaireController {
 
     private final QuestionnaireMapper questionnaireMapper;

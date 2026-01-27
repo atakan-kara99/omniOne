@@ -4,6 +4,10 @@ import java.util.UUID;
 
 public record ClientResponse(
 
-        UUID id
+        UUID id,
+
+        String firstName,
+
+        String lastName
 
 ) {}

@@ -1,10 +1,15 @@
 package app.omniOne.service;
 
 import app.omniOne.model.dto.ClientPatchRequest;
+import app.omniOne.model.dto.ClientResponse;
+import app.omniOne.model.dto.CoachResponse;
 import app.omniOne.model.entity.Client;
+import app.omniOne.model.entity.Coach;
+import app.omniOne.model.entity.UserProfile;
 import app.omniOne.model.mapper.ClientMapper;
+import app.omniOne.model.mapper.CoachMapper;
 import app.omniOne.repository.ClientRepo;
-import app.omniOne.repository.CoachRepo;
+import app.omniOne.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,22 +22,25 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ClientService {
 
-    private final CoachRepo coachRepo;
+    private final UserRepo userRepo;
     private final ClientRepo clientRepo;
+    private final CoachMapper coachMapper;
     private final ClientMapper clientMapper;
 
-    public List<Client> getClients(UUID coachId) {
+    public List<ClientResponse> getClients(UUID coachId) {
         log.debug("Trying to retrieve Clients from Coach {}", coachId);
-        List<Client> clients = clientRepo.findAllByCoachId(coachId);
+        List<ClientResponse> clientResponses = clientRepo.findClientsByCoachId(coachId);
         log.info("Successfully retrieved Clients");
-        return clients;
+        return clientResponses;
     }
 
-    public Client getClient(UUID clientId) {
+    public ClientResponse getClient(UUID clientId) {
         log.debug("Trying to retrieve Client {}", clientId);
         Client client = clientRepo.findByIdOrThrow(clientId);
+        UserProfile profile = userRepo.findByIdOrThrow(clientId).getProfile();
+        ClientResponse clientResponse = clientMapper.map(client, profile);
         log.info("Successfully retrieved Client");
-        return client;
+        return clientResponse;
     }
 
     public Client patchClient(UUID clientId, ClientPatchRequest request) {
@@ -42,6 +50,12 @@ public class ClientService {
         Client savedClient = clientRepo.save(client);
         log.info("Successfully updated Client");
         return savedClient;
+    }
+
+    public CoachResponse getCoach(UUID clientId) {
+        Coach coach = clientRepo.findByIdOrThrow(clientId).getCoach();
+        UserProfile profile = userRepo.findByIdOrThrow(coach.getId()).getProfile();
+        return coachMapper.map(coach, profile);
     }
 
 }

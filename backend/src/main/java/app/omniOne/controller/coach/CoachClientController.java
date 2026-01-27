@@ -2,7 +2,6 @@ package app.omniOne.controller.coach;
 
 import app.omniOne.authentication.AuthService;
 import app.omniOne.model.dto.ClientResponse;
-import app.omniOne.model.mapper.ClientMapper;
 import app.omniOne.service.ClientService;
 import app.omniOne.service.CoachingService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,21 +24,20 @@ import static app.omniOne.authentication.AuthService.getMyId;
 public class CoachClientController {
 
     private final AuthService authService;
-    private final ClientMapper clientMapper;
     private final ClientService clientService;
     private final CoachingService coachingService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<ClientResponse> getClients() {
-        return clientService.getClients(getMyId()).stream().map(clientMapper::map).toList();
+        return clientService.getClients(getMyId());
     }
 
     @GetMapping("/{clientId}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("@authService.isCoachedByMe(#clientId)")
     public ClientResponse getClient(@PathVariable UUID clientId) {
-        return clientMapper.map(clientService.getClient(clientId));
+        return clientService.getClient(clientId);
     }
 
     @GetMapping("/invite")

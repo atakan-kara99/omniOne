@@ -3,6 +3,7 @@ package app.omniOne.model.mapper;
 import app.omniOne.model.dto.ClientPatchRequest;
 import app.omniOne.model.dto.ClientResponse;
 import app.omniOne.model.entity.Client;
+import app.omniOne.model.entity.UserProfile;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -11,6 +12,9 @@ import org.mapstruct.MappingTarget;
 public interface ClientMapper {
 
     ClientResponse map(Client client);
+
+    @Mapping(target = "id", source = "client.id")
+    ClientResponse map(Client client, UserProfile userProfile);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", ignore = true)

@@ -1,5 +1,6 @@
 package app.omniOne.service;
 
+import app.omniOne.chatting.ChatService;
 import app.omniOne.model.entity.Client;
 import app.omniOne.model.entity.Coach;
 import app.omniOne.model.entity.Coaching;
@@ -21,6 +22,7 @@ public class CoachingService {
 
     private final CoachRepo coachRepo;
     private final ClientRepo clientRepo;
+    private final ChatService chatService;
     private final CoachingRepo coachingRepo;
 
     @Transactional
