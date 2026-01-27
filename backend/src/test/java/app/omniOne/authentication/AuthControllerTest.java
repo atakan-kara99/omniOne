@@ -46,16 +46,19 @@ class AuthControllerTest {
 
     @Test void login_returnsJwtResponse() throws Exception {
         LoginRequest request = new LoginRequest(userEmail, "pass");
-        when(authService.login(request)).thenReturn(new LoginResponse("jwt-token", "refresh-token"));
+        UUID deviceId = UUID.randomUUID();
+        when(authService.login(request, deviceId)).thenReturn(new LoginResponse("jwt-token", "refresh-token"));
 
         mockMvc.perform(post("/auth/account/login")
+                        .header("X-Device-Id", deviceId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.jwt").value("jwt-token"))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("refresh_token=")));
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("refresh_token=")))
+                .andExpect(header().string("X-Device-Id", deviceId.toString()));
 
-        verify(authService).login(request);
+        verify(authService).login(request, deviceId);
     }
 
     @Test void register_returnsMappedAuthResponse() throws Exception {

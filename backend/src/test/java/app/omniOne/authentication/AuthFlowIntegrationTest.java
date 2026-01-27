@@ -22,10 +22,10 @@ import java.util.UUID;
 import static app.omniOne.TestFixtures.coachEmail;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -44,6 +44,7 @@ class AuthFlowIntegrationTest {
 
         JsonNode registerJson = objectMapper.readTree(
                 mockMvc.perform(post("/auth/account/register")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsBytes(
                                         new RegisterRequest(coachEmail, password, UserRole.COACH))))
@@ -61,12 +62,16 @@ class AuthFlowIntegrationTest {
                 .andExpect(jsonPath("$.enabled").value(true));
         assertTrue(userRepo.findByIdOrThrow(userId).isEnabled(), "User should be enabled after activation");
 
+        UUID deviceId = UUID.randomUUID();
         JsonNode loginJson = objectMapper.readTree(
                 mockMvc.perform(post("/auth/account/login")
+                                .header("X-Device-Id", deviceId.toString())
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsBytes(new LoginRequest(coachEmail, password))))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.jwt").exists())
+                        .andExpect(header().string("X-Device-Id", deviceId.toString()))
                         .andReturn()
                         .getResponse()
                         .getContentAsByteArray());

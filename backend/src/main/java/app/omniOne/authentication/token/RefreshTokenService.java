@@ -49,17 +49,35 @@ public class RefreshTokenService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
-    public void saveRefreshToken(String rawToken, User user) {
+    public void saveRefreshToken(String rawToken, User user, UUID deviceId) {
+        if (deviceId == null) {
+            log.warn("Missing deviceId when saving refresh token (userId={})", user.getId());
+            throw new RefreshTokenInvalidException("X-Device-Id header is required");
+        }
         String tokenHash = hash(rawToken);
         LocalDateTime expiresAt = LocalDateTime.now().plusDays(ttlDays);
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .tokenHash(tokenHash)
-                .expiresAt(expiresAt)
-                .lastUsedAt(null).build();
+        RefreshToken refreshToken = refreshTokenRepo.findByUserIdAndDeviceIdAndRevokedAtIsNull(user.getId(), deviceId)
+                .orElse(null);
+        if (refreshToken == null) {
+            refreshToken = RefreshToken.builder()
+                    .user(user)
+                    .deviceId(deviceId)
+                    .tokenHash(tokenHash)
+                    .expiresAt(expiresAt)
+                    .lastUsedAt(null)
+                    .revokedAt(null)
+                    .build();
+            refreshTokenRepo.save(refreshToken);
+            log.info("Inserted refresh token (userId={}, deviceId={}, tokenHashPrefix={}, expiresAt={})",
+                    user.getId(), deviceId, hashPrefix(tokenHash), expiresAt);
+            return;
+        }
+        refreshToken.setTokenHash(tokenHash);
+        refreshToken.setExpiresAt(expiresAt);
+        refreshToken.setLastUsedAt(null);
         refreshTokenRepo.save(refreshToken);
-        log.info("Saved refresh token (userId={}, tokenHashPrefix={}, expiresAt={})",
-                user.getId(), hashPrefix(tokenHash), expiresAt);
+        log.info("Updated refresh token (userId={}, deviceId={}, tokenHashPrefix={}, expiresAt={})",
+                user.getId(), deviceId, hashPrefix(tokenHash), expiresAt);
     }
 
     public void revokeRefreshToken(String rawToken) {
@@ -67,7 +85,7 @@ public class RefreshTokenService {
         UUID userId = refreshToken.getUser().getId();
         String tokenHash = refreshToken.getTokenHash();
         if (refreshToken.isRevoked()) {
-            log.warn("Attempt to revoke already revoked refresh token (userId={}, tokenHashPrefix={})",
+            log.info("Attempt to revoke already revoked refresh token (userId={}, tokenHashPrefix={})",
                     userId, hashPrefix(tokenHash));
             throw new RefreshTokenInvalidException("RefreshToken already revoked");
         }
@@ -77,47 +95,87 @@ public class RefreshTokenService {
                 userId, hashPrefix(tokenHash));
     }
 
-    public String rotateRefreshToken(String rawToken) {
+    public String rotateRefreshToken(String rawToken, UUID deviceId) {
         String newToken = generateToken();
-        RefreshToken refreshToken = getRefreshToken(rawToken);
+        RefreshToken refreshToken = getRefreshToken(rawToken, deviceId);
+        String oldHash = refreshToken.getTokenHash();
         refreshToken.setTokenHash(hash(newToken));
         refreshToken.setLastUsedAt(LocalDateTime.now());
         refreshTokenRepo.save(refreshToken);
         log.info("Rotated refresh token (userId={}, oldTokenHashPrefix={}, newTokenHashPrefix={})",
-                refreshToken.getUser().getId(), hashPrefix(refreshToken.getTokenHash()), hashPrefix(hash(newToken)));
+                refreshToken.getUser().getId(), hashPrefix(oldHash), hashPrefix(hash(newToken)));
         return newToken;
     }
 
     public RefreshToken getRefreshToken(String rawToken) {
+        return getRefreshToken(rawToken, null, false);
+    }
+
+    public RefreshToken getRefreshToken(String rawToken, UUID deviceId) {
+        return getRefreshToken(rawToken, deviceId, true);
+    }
+
+    private RefreshToken getRefreshToken(String rawToken, UUID deviceId, boolean requireDeviceId) {
+        String tokenHash = requireValidToken(rawToken, requireDeviceId, deviceId);
+        RefreshToken refreshToken = loadRefreshToken(tokenHash, deviceId);
+        log.debug("Loaded refresh token (userId={}, deviceId={}, tokenHashPrefix={}, revoked={}, expiresAt={})",
+                refreshToken.getUser().getId(),
+                refreshToken.getDeviceId(),
+                hashPrefix(refreshToken.getTokenHash()),
+                refreshToken.isRevoked(),
+                refreshToken.getExpiresAt());
+        validateRefreshToken(refreshToken, requireDeviceId);
+        return refreshToken;
+    }
+
+    private String requireValidToken(String rawToken, boolean requireDeviceId, UUID deviceId) {
         if (rawToken == null || rawToken.isBlank()) {
-            log.warn("Invalid refresh token presented (null or blank)");
+            log.info("Invalid refresh token presented (null or blank, deviceRequired={})", requireDeviceId);
             throw new RefreshTokenInvalidException("Cookie 'refresh_token' is not present");
         }
-        String tokenHash = hash(rawToken);
-        RefreshToken refreshToken;
+        if (requireDeviceId && deviceId == null) {
+            log.info("Missing deviceId for refresh token validation");
+            throw new RefreshTokenInvalidException("X-Device-Id header is required");
+        }
+        return hash(rawToken);
+    }
+
+    private RefreshToken loadRefreshToken(String tokenHash, UUID deviceId) {
         try {
-            refreshToken = refreshTokenRepo.findByTokenHashOrThrow(tokenHash);
-            log.debug("Loaded refresh token (userId={}, tokenHashPrefix={}, revoked={}, expiresAt={})",
-                    refreshToken.getUser().getId(), hashPrefix(refreshToken.getTokenHash()),
-                    refreshToken.isRevoked(), refreshToken.getExpiresAt());
+            if (deviceId == null) {
+                return refreshTokenRepo.findByTokenHashOrThrow(tokenHash);
+            }
+            return refreshTokenRepo.findByTokenHashAndDeviceIdOrThrow(tokenHash, deviceId);
         } catch (NoSuchResourceException ex) {
-            log.warn("Invalid refresh token presented (tokenHashPrefix={})", hashPrefix(tokenHash));
-            throw new RefreshTokenInvalidException("Invalid refresh token");
+            if (deviceId == null) {
+                log.info("Invalid refresh token presented (tokenHashPrefix={})", hashPrefix(tokenHash));
+                throw new RefreshTokenInvalidException("Invalid refresh token");
+            }
+            log.info("Invalid refresh token presented (tokenHashPrefix={}, deviceId={})",
+                    hashPrefix(tokenHash), deviceId);
+            throw new RefreshTokenInvalidException("Invalid refresh token or deviceId");
+        }
+    }
+
+    private void validateRefreshToken(RefreshToken refreshToken, boolean requireDeviceId) {
+        if (requireDeviceId && refreshToken.getDeviceId() == null) {
+            log.warn("Refresh token missing deviceId (userId={}, tokenHashPrefix={})",
+                    refreshToken.getUser().getId(), hashPrefix(refreshToken.getTokenHash()));
+            throw new RefreshTokenInvalidException("Refresh token missing deviceId");
         }
         if (refreshToken.isExpired()) {
-            log.warn("Refresh token expired (userId={}, tokenHashPrefix={}, expiresAt={})",
+            log.info("Refresh token expired (userId={}, tokenHashPrefix={}, expiresAt={})",
                     refreshToken.getUser().getId(),
                     hashPrefix(refreshToken.getTokenHash()),
                     refreshToken.getExpiresAt());
             throw new RefreshTokenInvalidException("Refresh token expired");
         }
         if (refreshToken.isRevoked()) {
-            log.warn("Refresh token revoked (userId={}, tokenHashPrefix={})",
+            log.info("Refresh token revoked (userId={}, tokenHashPrefix={})",
                     refreshToken.getUser().getId(),
                     hashPrefix(refreshToken.getTokenHash()));
             throw new RefreshTokenInvalidException("Refresh token revoked");
         }
-        return refreshToken;
     }
 
     @Transactional

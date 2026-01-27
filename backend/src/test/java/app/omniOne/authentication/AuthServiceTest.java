@@ -81,6 +81,7 @@ import static org.mockito.Mockito.*;
 
     @Test void login_returnsJwtAfterAuthentication() {
         LoginRequest request = new LoginRequest(userEmail, "pass");
+        UUID deviceId = UUID.randomUUID();
         Authentication authentication = mock(Authentication.class);
         UserDetails principal = mock(UserDetails.class);
         User user = new User();
@@ -91,14 +92,14 @@ import static org.mockito.Mockito.*;
         when(refreshTokenService.generateToken()).thenReturn("refresh-token");
         when(principal.getUser()).thenReturn(user);
 
-        LoginResponse response = authService.login(request);
+        LoginResponse response = authService.login(request, deviceId);
 
         assertEquals("jwt-token", response.jwt());
         assertEquals("refresh-token", response.refreshToken());
         verify(authenticationManager).authenticate(any(Authentication.class));
         verify(jwtService).createAuthJwt(principal);
         verify(refreshTokenService).generateToken();
-        verify(refreshTokenService).saveRefreshToken("refresh-token", user);
+        verify(refreshTokenService).saveRefreshToken("refresh-token", user, deviceId);
     }
 
     @Test void register_savesCoachAndSendsActivationMail() {

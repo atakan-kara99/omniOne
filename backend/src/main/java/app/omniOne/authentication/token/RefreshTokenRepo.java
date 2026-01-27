@@ -15,6 +15,15 @@ public interface RefreshTokenRepo extends JpaRepository<RefreshToken, UUID> {
 
     Optional<RefreshToken> findByTokenHash(String tokenHash);
 
+    Optional<RefreshToken> findByTokenHashAndDeviceId(String tokenHash, UUID deviceId);
+
+    default RefreshToken findByTokenHashAndDeviceIdOrThrow(String tokenHash, UUID deviceId) {
+        return findByTokenHashAndDeviceId(tokenHash, deviceId)
+                .orElseThrow(() -> new NoSuchResourceException("RefreshToken not found"));
+    }
+
+    Optional<RefreshToken> findByUserIdAndDeviceIdAndRevokedAtIsNull(UUID userId, UUID deviceId);
+
     default RefreshToken findByTokenHashOrThrow(String tokenHash) {
         return findByTokenHash(tokenHash)
                 .orElseThrow(() -> new NoSuchResourceException("RefreshToken not found"));

@@ -71,7 +71,7 @@ public class AuthService {
         return chatParticipantRepo.existsByConversationIdAndUserId(conversationId, userId);
     }
 
-    public LoginResponse login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request, UUID deviceId) {
         log.debug("Trying to log in User {}", request.username());
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -80,17 +80,17 @@ public class AuthService {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String jwt = jwtService.createAuthJwt(userDetails);
         String token = refreshTokenService.generateToken();
-        refreshTokenService.saveRefreshToken(token, userDetails.getUser());
+        refreshTokenService.saveRefreshToken(token, userDetails.getUser(), deviceId);
         log.info("Successfully logged in");
         return new LoginResponse(jwt, token);
     }
 
-    public LoginResponse refreshTokens(String rawToken) {
+    public LoginResponse refreshTokens(String rawToken, UUID deviceId) {
         log.debug("Trying to refresh jwt for User");
-        RefreshToken refreshToken = refreshTokenService.getRefreshToken(rawToken);
+        RefreshToken refreshToken = refreshTokenService.getRefreshToken(rawToken, deviceId);
         UserDetails userDetails = new UserDetails(refreshToken.getUser());
         String jwt = jwtService.createAuthJwt(userDetails);
-        String newToken = refreshTokenService.rotateRefreshToken(rawToken);
+        String newToken = refreshTokenService.rotateRefreshToken(rawToken, deviceId);
         log.info("Successfully refreshed jwt and refresh token");
         return new LoginResponse(jwt, newToken);
     }

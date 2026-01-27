@@ -28,6 +28,9 @@ public class RefreshToken {
     @Column(nullable = false)
     String tokenHash;
 
+    @Column(nullable = false)
+    UUID deviceId;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     LocalDateTime createdAt;

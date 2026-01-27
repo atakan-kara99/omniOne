@@ -17,6 +17,7 @@ import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -24,6 +25,8 @@ import java.time.Duration;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
+    private static final String DEVICE_ID_HEADER = "X-Device-Id";
 
     @Value("${refresh.token.ttl-days}")
     private int refreshTtlDays;
@@ -46,21 +49,26 @@ public class AuthController {
     }
 
     @PostMapping("/account/login")
-    public ResponseEntity<JwtDto> login(@RequestBody @Valid LoginRequest request) {
-        LoginResponse loginResponse = authService.login(request);
+    public ResponseEntity<JwtDto> login(@RequestBody @Valid LoginRequest request,
+                                        @RequestHeader(name = DEVICE_ID_HEADER, required = false) UUID deviceId) {
+        UUID resolvedDeviceId = deviceId != null ? deviceId : UUID.randomUUID();
+        LoginResponse loginResponse = authService.login(request, resolvedDeviceId);
         ResponseCookie refreshCookie =
                 buildRefreshCookie(loginResponse.refreshToken(), Duration.ofDays(refreshTtlDays));
         return ResponseEntity.ok()
+                .header(DEVICE_ID_HEADER, resolvedDeviceId.toString())
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(new JwtDto(loginResponse.jwt()));
     }
 
     @PostMapping("/token/refresh")
-    public ResponseEntity<JwtDto> refresh(@CookieValue(name = "refresh_token", required = false) String refreshToken) {
-        LoginResponse loginResponse = authService.refreshTokens(refreshToken);
+    public ResponseEntity<JwtDto> refresh(@CookieValue(name = "refresh_token", required = false) String refreshToken,
+                                          @RequestHeader(name = DEVICE_ID_HEADER, required = false) UUID deviceId) {
+        LoginResponse loginResponse = authService.refreshTokens(refreshToken, deviceId);
         ResponseCookie refreshCookie =
                 buildRefreshCookie(loginResponse.refreshToken(), Duration.ofDays(refreshTtlDays));
         return ResponseEntity.ok()
+                .header(DEVICE_ID_HEADER, deviceId.toString())
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(new JwtDto(loginResponse.jwt()));
     }
