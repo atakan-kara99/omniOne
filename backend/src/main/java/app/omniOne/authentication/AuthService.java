@@ -129,6 +129,8 @@ public class AuthService {
         log.debug("Trying to activate User");
         DecodedJWT jwt = jwtService.verifyActivation(token);
         User user = userRepo.findByEmailOrThrow(jwt.getClaim("email").asString());
+        if (user.isEnabled())
+            throw new NotAllowedException("User is already activated");
         user.setEnabled(true);
         User savedUser = userRepo.save(user);
         log.info("Successfully activated User {}", savedUser.getId());
