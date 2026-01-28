@@ -9,6 +9,8 @@ public record InvitationProps(
 
         String filePath,
 
-        String subject
+        String subject,
+
+        int ttlMins
 
 ) {}
