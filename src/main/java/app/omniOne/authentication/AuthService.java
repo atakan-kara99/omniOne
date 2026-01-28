@@ -194,7 +194,7 @@ public class AuthService {
             if (client.getCoach() != null)
                 throw new NotAllowedException("Client already has Coach");
         } else {
-            if (request == null)
+            if (request == null || request.password() == null || request.password().isBlank())
                 throw new NotAllowedException("Password is required for new client");
             user = userRepo.save(User.builder()
                     .email(clientMail)

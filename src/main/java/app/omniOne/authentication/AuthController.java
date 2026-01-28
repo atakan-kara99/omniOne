@@ -64,7 +64,7 @@ public class AuthController {
 
     @PostMapping("/token/refresh")
     public ResponseEntity<JwtDto> refresh(@CookieValue(name = REFRESH_TOKEN_HEADER, required = false) String refreshToken,
-                                          @RequestHeader(name = DEVICE_ID_HEADER, required = false) UUID deviceId) {
+                                          @RequestHeader(name = DEVICE_ID_HEADER) UUID deviceId) {
         LoginResponse loginResponse = authService.refreshTokens(refreshToken, deviceId);
         ResponseCookie refreshCookie =
                 buildRefreshCookie(loginResponse.refreshToken(), Duration.ofDays(refreshTtlDays));
