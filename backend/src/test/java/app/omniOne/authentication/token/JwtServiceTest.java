@@ -30,6 +30,10 @@ import static org.mockito.Mockito.when;
         ReflectionTestUtils.setField(jwtService, "applicationName", "omniOne");
         ReflectionTestUtils.setField(jwtService, "authSecret", "auth-secret");
         ReflectionTestUtils.setField(jwtService, "initSecret", "init-secret");
+        ReflectionTestUtils.setField(jwtService, "authorizationTtlMins", 15);
+        ReflectionTestUtils.setField(jwtService, "resetPasswordTtlMins", 15);
+        ReflectionTestUtils.setField(jwtService, "activationTtlMins", 60 * 24);
+        ReflectionTestUtils.setField(jwtService, "invitationTtlMins", 60 * 24);
         jwtService.init();
     }
 
@@ -45,7 +49,7 @@ import static org.mockito.Mockito.when;
         assertEquals("omniOne", decoded.getIssuer());
         assertEquals(userId.toString(), decoded.getClaim("id").asString());
         assertEquals("COACH", decoded.getClaim("role").asString());
-        assertTrue(isExpiresWithin(decoded, Duration.ofMinutes(60)));
+        assertTrue(isExpiresWithin(decoded, Duration.ofMinutes(15)));
     }
 
     @Test void createResetPasswordJwt_isVerifiableWithEmailClaim() {
@@ -55,7 +59,7 @@ import static org.mockito.Mockito.when;
 
         assertEquals("reset-password", decoded.getSubject());
         assertEquals(userEmail, decoded.getClaim("email").asString());
-        assertTrue(isExpiresWithin(decoded, Duration.ofMinutes(60)));
+        assertTrue(isExpiresWithin(decoded, Duration.ofMinutes(15)));
     }
 
     @Test void createActivationJwt_usesInitSecretAndContainsEmail() {

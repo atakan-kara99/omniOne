@@ -37,11 +37,11 @@ import static org.mockito.Mockito.*;
 
     @BeforeEach void setUp() {
         ActivationProps activationProps = new ActivationProps(
-                "https://activate", "activation-template", "Activate");
+                "https://activate", "activation-template", "Activate", 60);
         InvitationProps invitationProps = new InvitationProps(
-                "https://invite", "invitation-template", "Invite");
+                "https://invite", "invitation-template", "Invite", 120);
         ResetPasswordProps resetPasswordProps = new ResetPasswordProps(
-                "https://reset", "reset-template", "Reset");
+                "https://reset", "reset-template", "Reset", 15);
         emailService = new EmailService(
                 mailSender, templateEngine, activationProps, invitationProps, resetPasswordProps);
         ReflectionTestUtils.setField(emailService, "applicationName", "omniOne");
@@ -79,6 +79,7 @@ import static org.mockito.Mockito.*;
         assertEquals("https://app.omni.one", context.getVariable("baseUrl"));
         assertEquals("https://activate?token=jwt-token", context.getVariable("urlPath"));
         assertEquals("omniOne", context.getVariable("appName"));
+        assertEquals("60 minutes", context.getVariable("ttlText"));
     }
 
     @Test void sendInvitationMail_usesInvitationProps() throws Exception {
@@ -94,6 +95,7 @@ import static org.mockito.Mockito.*;
         assertEquals("https://app.omni.one", context.getVariable("baseUrl"));
         assertEquals("https://invite?token=invite-token", context.getVariable("urlPath"));
         assertEquals("omniOne", context.getVariable("appName"));
+        assertEquals("2 hours", context.getVariable("ttlText"));
     }
 
     @Test

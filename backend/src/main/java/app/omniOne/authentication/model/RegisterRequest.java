@@ -1,10 +1,8 @@
 package app.omniOne.authentication.model;
 
-import app.omniOne.model.enums.UserRole;
 import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 public record RegisterRequest(
 
@@ -17,16 +15,13 @@ public record RegisterRequest(
 //   @Pattern(regexp = "^\\S+$", message = "Password cannot contain spaces")
 //   @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d])[A-Za-z\\d\\W_]{8,64}$",
 //           message = "Password must contain upper, lower, digit, and special character.")
-   String password,
-
-   @NotNull
-   UserRole role
+   String password
 
 ) {
 
    @Override
    public @Nonnull String toString() {
-      return "LoginRequest[email=" + email + ", password=***, role=" + role + "]";
+      return "LoginRequest[email=" + email + ", password=***]";
    }
 
 }

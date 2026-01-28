@@ -103,15 +103,16 @@ import static org.mockito.Mockito.*;
     }
 
     @Test void register_savesCoachAndSendsActivationMail() {
-        RegisterRequest dto = new RegisterRequest(" Coach@Omni.One ", "pwd", UserRole.COACH);
+        RegisterRequest dto = new RegisterRequest(" Coach@Omni.One ", "pwd");
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        User savedUser = User.builder().id(UUID.randomUUID()).build();
+        User savedUser = User.builder().id(UUID.randomUUID()).enabled(false).email(coachEmail).build();
         when(encoder.encode(anyString())).thenReturn("encoded");
         when(userRepo.findByEmail(coachEmail)).thenReturn(java.util.Optional.empty());
         when(userRepo.save(any(User.class))).thenReturn(savedUser);
+        when(userRepo.findByEmailOrThrow(coachEmail)).thenReturn(savedUser);
         when(jwtService.createActivationJwt(coachEmail)).thenReturn("activation-jwt");
 
-        User result = authService.register(dto);
+        User result = authService.registerCoach(dto);
 
         assertSame(savedUser, result);
         verify(userRepo).findByEmail(coachEmail);
@@ -125,18 +126,22 @@ import static org.mockito.Mockito.*;
     }
 
     @Test void register_throwsForAdminRole() {
-        RegisterRequest dto = new RegisterRequest(adminEmail, "pwd", UserRole.ADMIN);
+        RegisterRequest dto = new RegisterRequest(adminEmail, "pwd");
 
-        assertThrows(NotAllowedException.class, () -> authService.register(dto));
+        User existing = new User();
+        existing.setEnabled(false);
+        existing.setRole(UserRole.ADMIN);
+        when(userRepo.findByEmail(adminEmail)).thenReturn(java.util.Optional.of(existing));
+        assertThrows(NotAllowedException.class, () -> authService.registerCoach(dto));
     }
 
     @Test void register_throwsForDuplicateEmail() {
-        RegisterRequest dto = new RegisterRequest(userEmail, "pwd", UserRole.CLIENT);
+        RegisterRequest dto = new RegisterRequest(userEmail, "pwd");
         User existing = new User();
         existing.setEnabled(true);
         when(userRepo.findByEmail(userEmail)).thenReturn(java.util.Optional.of(existing));
 
-        assertThrows(DuplicateResourceException.class, () -> authService.register(dto));
+        assertThrows(DuplicateResourceException.class, () -> authService.registerCoach(dto));
     }
 
     @Test void activate_enablesUserFromVerifiedToken() {
@@ -178,7 +183,7 @@ import static org.mockito.Mockito.*;
 
     @Test void sendInvitationMail_createsAndSendsToken() {
         UUID coachId = UUID.randomUUID();
-        when(userRepo.findByIdOrThrow(coachId)).thenReturn(new User());
+        when(coachRepo.findByIdOrThrow(coachId)).thenReturn(new Coach());
         when(jwtService.createInvitationJwt(clientEmail, coachId)).thenReturn("jwt");
 
         authService.sendInvitationMail(clientEmail, coachId);
@@ -198,17 +203,18 @@ import static org.mockito.Mockito.*;
         when(coachClaim.asString()).thenReturn(coachId.toString());
         when(jwtService.verifyInvitation("token")).thenReturn(jwt);
         when(coachRepo.findByIdOrThrow(coachId)).thenReturn(new Coach());
-        User registered = new User();
-        registered.setId(clientId);
-        AuthService spyService = spy(authService);
-        doReturn(registered).when(spyService).register(any(RegisterRequest.class));
-        Client client = new Client();
-        client.setId(clientId);
-        when(clientRepo.findByIdOrThrow(clientId)).thenReturn(client);
+        when(userRepo.findByEmail(clientEmail)).thenReturn(java.util.Optional.empty());
+        when(encoder.encode("pwd")).thenReturn("encoded");
+        User savedUser = new User();
+        savedUser.setId(clientId);
+        when(userRepo.save(any(User.class))).thenReturn(savedUser);
+        Client savedClient = new Client();
+        savedClient.setId(clientId);
+        when(clientRepo.save(any(Client.class))).thenReturn(savedClient);
 
-        User result = spyService.acceptInvitation("token", new PasswordRequest("pwd"));
+        User result = authService.acceptInvitation("token", new PasswordRequest("pwd"));
 
-        assertSame(registered, result);
+        assertSame(savedUser, result);
         verify(coachingService).startCoaching(coachId, clientId);
     }
 

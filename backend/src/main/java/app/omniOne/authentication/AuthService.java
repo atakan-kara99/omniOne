@@ -102,35 +102,35 @@ public class AuthService {
     }
 
     @Transactional
-    public User register(RegisterRequest dto) {
-        String email = dto.email().trim().toLowerCase();
-        log.debug("Trying to register User with Email {}", email);
-        if (dto.role().equals(UserRole.ADMIN))
-            throw new NotAllowedException("ADMIN registration is not allowed");
+    public User registerCoach(RegisterRequest dto) {
+        String email = normalize(dto.email());
+        log.debug("Trying to register Coach with Email {}", email);
         User user = userRepo.findByEmail(email).orElse(null);
         if (user != null) {
             if (user.isEnabled())
                 throw new DuplicateResourceException("User already exists");
+            if (user.getRole() != UserRole.COACH)
+                throw new NotAllowedException("Email already reserved");
         } else {
-            user = userRepo.save(
-                    User.builder().email(email).password(encoder.encode(dto.password())).role(dto.role()).build());
-            if (dto.role() == UserRole.COACH)
-                coachRepo.save(Coach.builder().user(user).build());
-            if (dto.role()  == UserRole.CLIENT)
-                clientRepo.save(Client.builder().user(user).build());
-            log.info("Successfully registered User");
+            user = userRepo.save(User.builder()
+                    .email(email)
+                    .password(encoder.encode(dto.password()))
+                    .role(UserRole.COACH)
+                    .enabled(false).build());
+            coachRepo.save(Coach.builder().user(user).build());
+            log.info("Successfully registered Coach");
         }
-        String jwt = jwtService.createActivationJwt(email);
-        emailService.sendActivationMail(email, jwt);
+        sendActivationMail(email);
         return user;
     }
 
     public User activate(String token) {
         log.debug("Trying to activate User");
         DecodedJWT jwt = jwtService.verifyActivation(token);
-        User user = userRepo.findByEmailOrThrow(jwt.getClaim("email").asString());
+        String email = normalize(jwt.getClaim("email").asString());
+        User user = userRepo.findByEmailOrThrow(email);
         if (user.isEnabled())
-            throw new NotAllowedException("User is already activated");
+            throw new NotAllowedException("User already activated");
         user.setEnabled(true);
         User savedUser = userRepo.save(user);
         log.info("Successfully activated User {}", savedUser.getId());
@@ -138,6 +138,7 @@ public class AuthService {
     }
 
     public void sendActivationMail(String email) {
+        email = normalize(email);
         User user = userRepo.findByEmailOrThrow(email);
         if (user.isEnabled())
             throw new NotAllowedException("User already activated");
@@ -146,9 +147,35 @@ public class AuthService {
     }
 
     public void sendInvitationMail(String clientMail, UUID coachId) {
-        userRepo.findByIdOrThrow(coachId);
+        clientMail = normalize(clientMail);
+        coachRepo.findByIdOrThrow(coachId);
+        User user = userRepo.findByEmail(clientMail).orElse(null);
+        if (user != null) {
+            if (user.getRole() != UserRole.CLIENT)
+                throw new NotAllowedException("Existing user is not a client");
+            Client client = clientRepo.findByIdOrThrow(user.getId());
+            if (client.getCoach() != null)
+                throw new NotAllowedException("Client already has Coach");
+        }
         String jwt = jwtService.createInvitationJwt(clientMail, coachId);
         emailService.sendInvitationMail(clientMail, jwt);
+    }
+
+    public InvitationResponse validateInvitation(String token) {
+        log.debug("Trying to validate invitation");
+        DecodedJWT jwt = jwtService.verifyInvitation(token);
+        UUID coachId = UUID.fromString(jwt.getClaim("coachId").asString());
+        coachRepo.findByIdOrThrow(coachId);
+        String clientMail = normalize(jwt.getClaim("clientEmail").asString());
+        User user = userRepo.findByEmail(clientMail).orElse(null);
+        if (user == null)
+            return new InvitationResponse(clientMail, true);
+        if (user.getRole() != UserRole.CLIENT)
+            throw new NotAllowedException("Existing user is not a client");
+        Client client = clientRepo.findByIdOrThrow(user.getId());
+        if (client.getCoach() != null)
+            throw new NotAllowedException("Client already has Coach");
+        return new InvitationResponse(clientMail, false);
     }
 
     @Transactional
@@ -157,15 +184,32 @@ public class AuthService {
         DecodedJWT jwt = jwtService.verifyInvitation(token);
         UUID coachId = UUID.fromString(jwt.getClaim("coachId").asString());
         coachRepo.findByIdOrThrow(coachId);
-        User user = register(new RegisterRequest(
-                jwt.getClaim("clientEmail").asString(), request.password(), UserRole.CLIENT));
-        Client client = clientRepo.findByIdOrThrow(user.getId());
+        String clientMail = normalize(jwt.getClaim("clientEmail").asString());
+        User user = userRepo.findByEmail(clientMail).orElse(null);
+        Client client;
+        if (user != null) {
+            if (user.getRole() != UserRole.CLIENT)
+                throw new NotAllowedException("Existing user is not a client");
+            client = clientRepo.findByIdOrThrow(user.getId());
+            if (client.getCoach() != null)
+                throw new NotAllowedException("Client already has Coach");
+        } else {
+            if (request == null)
+                throw new NotAllowedException("Password is required for new client");
+            user = userRepo.save(User.builder()
+                    .email(clientMail)
+                    .password(encoder.encode(request.password()))
+                    .role(UserRole.CLIENT)
+                    .enabled(true).build());
+            client = clientRepo.save(Client.builder().user(user).build());
+        }
         coachingService.startCoaching(coachId, client.getId());
         log.info("Successfully accepted invitation Coach {} to Client {}", coachId, client.getId());
         return user;
     }
 
     public void sendForgotMail(String email) {
+        email = normalize(email);
         User user = userRepo.findByEmailOrThrow(email);
         if (!user.isEnabled())
             throw new DisabledException("User account is disabled");
@@ -176,11 +220,16 @@ public class AuthService {
     public User reset(String token, PasswordRequest request) {
         log.debug("Trying to reset password");
         DecodedJWT jwt = jwtService.verifyResetPassword(token);
-        User user = userRepo.findByEmailOrThrow(jwt.getClaim("email").asString());
+        String email = normalize(jwt.getClaim("email").asString());
+        User user = userRepo.findByEmailOrThrow(email);
         user.setPassword(encoder.encode(request.password()));
         User savedUser = userRepo.save(user);
         log.info("Successfully reset password from User {}", user.getId());
         return savedUser;
+    }
+
+    private String normalize(String string) {
+        return string.trim().toLowerCase();
     }
 
 }

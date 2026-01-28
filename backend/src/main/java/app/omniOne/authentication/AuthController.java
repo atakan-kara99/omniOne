@@ -86,8 +86,8 @@ public class AuthController {
 
     @PostMapping("/account/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthResponse register(@RequestBody @Valid RegisterRequest dto) {
-        return authMapper.map(authService.register(dto));
+    public AuthResponse register(@RequestBody @Valid RegisterRequest request) {
+        return authMapper.map(authService.registerCoach(request));
     }
 
     @GetMapping("/account/activate")
@@ -116,8 +116,15 @@ public class AuthController {
 
     @PostMapping("/invitation/accept")
     @ResponseStatus(HttpStatus.OK)
-    public AuthResponse accept(@RequestParam @NotBlank String token, @RequestBody @Valid PasswordRequest request) {
+    public AuthResponse accept(@RequestParam @NotBlank String token,
+                               @RequestBody(required = false) @Valid PasswordRequest request) {
         return authMapper.map(authService.acceptInvitation(token, request));
+    }
+
+    @GetMapping("/invitation/validate")
+    @ResponseStatus(HttpStatus.OK)
+    public InvitationResponse validateInvitation(@RequestParam @NotBlank String token) {
+        return authService.validateInvitation(token);
     }
 
 }

@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static app.omniOne.TestFixtures.*;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -27,10 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ActiveProfiles("test")
 @WebMvcTest(AuthController.class)
@@ -62,13 +60,13 @@ class AuthControllerTest {
     }
 
     @Test void register_returnsMappedAuthResponse() throws Exception {
-        RegisterRequest request = new RegisterRequest(coachEmail, "pwd", UserRole.COACH);
+        RegisterRequest request = new RegisterRequest(coachEmail, "pwd");
         User savedUser = new User();
         savedUser.setId(UUID.randomUUID());
         AuthResponse response = new AuthResponse(savedUser.getId(), coachEmail, UserRole.COACH,
                 LocalDateTime.of(2025, 1, 1, 12, 0), false);
 
-        when(authService.register(any(RegisterRequest.class))).thenReturn(savedUser);
+        when(authService.registerCoach(any(RegisterRequest.class))).thenReturn(savedUser);
         when(authMapper.map(savedUser)).thenReturn(response);
 
         mockMvc.perform(post("/auth/account/register")
@@ -80,7 +78,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.role").value("COACH"));
 
         ArgumentCaptor<RegisterRequest> captor = ArgumentCaptor.forClass(RegisterRequest.class);
-        verify(authService).register(captor.capture());
+        verify(authService).registerCoach(captor.capture());
         assertEquals(coachEmail, captor.getValue().email());
         verify(authMapper).map(savedUser);
     }
@@ -160,6 +158,20 @@ class AuthControllerTest {
 
         verify(authService).acceptInvitation(eq(token), any(PasswordRequest.class));
         verify(authMapper).map(user);
+    }
+
+    @Test void validateInvitation_returnsValidationResponse() throws Exception {
+        String token = "invite-token";
+        InvitationResponse response = new InvitationResponse(userEmail, true);
+
+        when(authService.validateInvitation(token)).thenReturn(response);
+
+        mockMvc.perform(get("/auth/invitation/validate").param("token", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value(userEmail))
+                .andExpect(jsonPath("$.requiresPassword").value(true));
+
+        verify(authService).validateInvitation(token);
     }
 
     @Test void reset_returnsBadRequestWhenTokenBlank() throws Exception {

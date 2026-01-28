@@ -4,7 +4,6 @@ import app.omniOne.authentication.model.LoginRequest;
 import app.omniOne.authentication.model.RegisterRequest;
 import app.omniOne.authentication.token.JwtService;
 import app.omniOne.email.EmailService;
-import app.omniOne.model.enums.UserRole;
 import app.omniOne.repository.UserRepo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,7 +46,7 @@ class AuthFlowIntegrationTest {
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsBytes(
-                                        new RegisterRequest(coachEmail, password, UserRole.COACH))))
+                                        new RegisterRequest(coachEmail, password))))
                         .andExpect(status().isCreated())
                         .andReturn()
                         .getResponse()
