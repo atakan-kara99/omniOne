@@ -76,7 +76,7 @@ public class JwtService {
     }
 
     private String createTemplateJwt(String subject, Map<String, String> claims, long minutes, Algorithm algorithm) {
-        log.info("Creating JWT for {}", subject);
+        log.debug("Creating JWT for {}", subject);
         Builder jwtBuilder = JWT.create()
                 .withIssuer(applicationName)
                 .withSubject(subject)

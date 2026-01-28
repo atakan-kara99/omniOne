@@ -27,6 +27,7 @@ import java.util.Map;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -46,7 +47,6 @@ public class JwtFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             } catch (Exception ex) {
-                ObjectMapper mapper = new ObjectMapper();
                 int status = HttpStatus.UNAUTHORIZED.value();
                 response.setStatus(status);
                 response.setContentType("application/json");
@@ -56,7 +56,7 @@ public class JwtFilter extends OncePerRequestFilter {
                         "error", "Invalid JWToken",
                         "path", request.getRequestURI()
                 );
-                mapper.writeValue(response.getWriter(), body);
+                objectMapper.writeValue(response.getWriter(), body);
                 log.warn("Invalid JWToken or Unauthorized access {}", ex.getMessage());
                 return;
             }
