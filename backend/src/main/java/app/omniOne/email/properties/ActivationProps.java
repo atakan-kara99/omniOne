@@ -9,6 +9,8 @@ public record ActivationProps(
 
         String filePath,
 
-        String subject
+        String subject,
+
+        int ttlMins
 
 ) {}

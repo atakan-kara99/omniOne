@@ -36,6 +36,15 @@ public class JwtService {
     private Algorithm initAlgorithm;
     private JWTVerifier initVerifier;
 
+    @Value("${activation.ttlMins}")
+    private int activationTtlMins;
+    @Value("${invitation.ttlMins}")
+    private int invitationTtlMins;
+    @Value("${reset-password.ttlMins}")
+    private int resetPasswordTtlMins;
+    @Value("${authorization.ttlMins}")
+    private int authorizationTtlMins;
+
     @PostConstruct
     public void init() {
         this.authAlgorithm = Algorithm.HMAC256(authSecret);
@@ -46,24 +55,24 @@ public class JwtService {
 
     public String createAuthJwt(UserDetails user) {
         Map<String, String> claims = Map.of("id", user.getId().toString(), "role", user.getRole());
-        return createTemplateJwt("authorization", claims, 15, authAlgorithm);
+        return createTemplateJwt("authorization", claims, authorizationTtlMins, authAlgorithm);
     }
 
     public String createResetPasswordJwt(String email) {
         Map<String, String> claims = Map.of("email", email);
-        return createTemplateJwt("reset-password", claims, 60, authAlgorithm);
+        return createTemplateJwt("reset-password", claims, resetPasswordTtlMins, authAlgorithm);
     }
 
     public String createActivationJwt(String email) {
         Map<String, String> claims = Map.of("email", email);
-        return createTemplateJwt("activation", claims, 60*24, initAlgorithm);
+        return createTemplateJwt("activation", claims, activationTtlMins, initAlgorithm);
     }
 
     public String createInvitationJwt(String clientEmail, UUID coachId) {
         Map<String, String> claims = Map.of(
                 "clientEmail", clientEmail,
                 "coachId", coachId.toString());
-        return createTemplateJwt("invitation", claims, 60*24, initAlgorithm);
+        return createTemplateJwt("invitation", claims, invitationTtlMins, initAlgorithm);
     }
 
     private String createTemplateJwt(String subject, Map<String, String> claims, long minutes, Algorithm algorithm) {
