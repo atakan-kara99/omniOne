@@ -11,7 +11,9 @@ import app.omniOne.model.entity.UserProfile;
 import app.omniOne.model.enums.Gender;
 import app.omniOne.model.enums.UserRole;
 import app.omniOne.model.mapper.UserMapper;
+import app.omniOne.model.mapper.UserProfileMapper;
 import app.omniOne.service.UserService;
+import app.omniOne.service.UserProfileService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +50,8 @@ class UserControllerTest extends AuthTestSupport {
     @MockitoBean private JwtFilter jwtFilter;
     @MockitoBean private UserMapper userMapper;
     @MockitoBean private UserService userService;
+    @MockitoBean private UserProfileMapper userProfileMapper;
+    @MockitoBean private UserProfileService userProfileService;
 
     private UUID userId;
 
@@ -103,8 +107,8 @@ class UserControllerTest extends AuthTestSupport {
         UserProfile profile = new UserProfile();
         UserProfileDto dto = new UserProfileDto("John", "Doe",
                 LocalDate.of(1990, 1, 1), Gender.MALE);
-        when(userService.getProfile(userId)).thenReturn(profile);
-        when(userMapper.map(profile)).thenReturn(dto);
+        when(userProfileService.getProfile(userId)).thenReturn(profile);
+        when(userProfileMapper.map(profile)).thenReturn(dto);
 
         mockMvc.perform(get("/user/profile"))
                 .andExpect(status().isOk())
@@ -113,8 +117,8 @@ class UserControllerTest extends AuthTestSupport {
                 .andExpect(jsonPath("$.birthDate").value("1990-01-01"))
                 .andExpect(jsonPath("$.gender").value("MALE"));
 
-        verify(userService).getProfile(userId);
-        verify(userMapper).map(profile);
+        verify(userProfileService).getProfile(userId);
+        verify(userProfileMapper).map(profile);
     }
 
     @Test void putProfile_updatesProfileAndReturnsDto() throws Exception {
@@ -124,8 +128,8 @@ class UserControllerTest extends AuthTestSupport {
         UserProfileDto dto = new UserProfileDto("Jane", "Roe",
                 LocalDate.of(1995, 5, 5), Gender.FEMALE);
 
-        when(userService.putProfile(eq(userId), any(UserProfileRequest.class))).thenReturn(profile);
-        when(userMapper.map(profile)).thenReturn(dto);
+        when(userProfileService.putProfile(eq(userId), any(UserProfileRequest.class))).thenReturn(profile);
+        when(userProfileMapper.map(profile)).thenReturn(dto);
 
         mockMvc.perform(put("/user/profile")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -135,11 +139,11 @@ class UserControllerTest extends AuthTestSupport {
                 .andExpect(jsonPath("$.gender").value("FEMALE"));
 
         ArgumentCaptor<UserProfileRequest> captor = ArgumentCaptor.forClass(UserProfileRequest.class);
-        verify(userService).putProfile(eq(userId), captor.capture());
+        verify(userProfileService).putProfile(eq(userId), captor.capture());
         UserProfileRequest captured = captor.getValue();
         assertEquals("Jane", captured.firstName());
         assertEquals(LocalDate.of(1995, 5, 5), captured.birthDate());
-        verify(userMapper).map(profile);
+        verify(userProfileMapper).map(profile);
     }
 
     @Test void deleteUser_softDeletesAndReturnsNoContent() throws Exception {

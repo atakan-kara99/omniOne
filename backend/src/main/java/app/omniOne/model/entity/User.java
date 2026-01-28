@@ -1,5 +1,6 @@
 package app.omniOne.model.entity;
 
+import app.omniOne.exception.NoSuchResourceException;
 import app.omniOne.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,7 +21,7 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToOne(fetch = FetchType.EAGER, mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private UserProfile profile;
 
     @Column(nullable = false, unique = true)
@@ -41,5 +42,11 @@ public class User extends BaseEntity {
 
     @Column(columnDefinition = "TIMESTAMP(0)")
     private LocalDateTime deletedAt;
+
+    public UserProfile getProfileOrThrow() {
+        if (profile == null)
+            throw new NoSuchResourceException("UserProfile not found");
+        return profile;
+    }
 
 }

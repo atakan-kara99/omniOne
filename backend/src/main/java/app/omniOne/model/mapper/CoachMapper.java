@@ -11,6 +11,8 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 public interface CoachMapper {
 
+    @Mapping(target = "firstName", ignore = true)
+    @Mapping(target = "lastName", ignore = true)
     CoachResponse map(Coach coach);
 
     @Mapping(target = "id", source = "coach.id")

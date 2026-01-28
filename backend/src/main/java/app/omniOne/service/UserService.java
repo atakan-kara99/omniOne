@@ -2,11 +2,9 @@ package app.omniOne.service;
 
 import app.omniOne.exception.NotAllowedException;
 import app.omniOne.model.dto.ChangePasswordRequest;
-import app.omniOne.model.dto.UserProfileRequest;
 import app.omniOne.model.entity.*;
 import app.omniOne.model.enums.Gender;
 import app.omniOne.model.enums.UserRole;
-import app.omniOne.model.mapper.UserMapper;
 import app.omniOne.repository.ClientRepo;
 import app.omniOne.repository.CoachRepo;
 import app.omniOne.repository.CoachingRepo;
@@ -30,7 +28,6 @@ public class UserService {
     private final UserRepo userRepo;
     private final CoachRepo coachRepo;
     private final ClientRepo clientRepo;
-    private final UserMapper userMapper;
     private final PasswordEncoder encoder;
     private final CoachingRepo coachingRepo;
 
@@ -52,31 +49,6 @@ public class UserService {
         return savedUser;
     }
 
-    public UserProfile putProfile(UUID id, UserProfileRequest request) {
-        log.debug("Trying to update UserProfile for User {}", id);
-        User user = userRepo.findByIdOrThrow(id);
-        UserProfile profile;
-        if (user.getProfile() == null) {
-            profile = new UserProfile();
-            profile.setUser(user);
-            user.setProfile(profile);
-        } else {
-            profile = user.getProfile();
-        }
-        userMapper.map(request, profile);
-        UserProfile savedUserProfile = userRepo.save(user).getProfile();
-        log.info("Successfully updated UserProfile");
-        return savedUserProfile;
-    }
-
-    public UserProfile getProfile(UUID id) {
-        log.debug("Trying to retrieve UserProfile for User {}", id);
-        User user = userRepo.findByIdOrThrow(id);
-        UserProfile profile = user.getProfile();
-        log.info("Successfully retrieved UserProfile");
-        return profile;
-    }
-
     @Transactional
     public void softDeleteUser(UUID id) {
         log.debug("Trying to soft delete User {}", id);
@@ -88,11 +60,12 @@ public class UserService {
         user.setDeletedAt(now);
         user.setEmail(UUID.randomUUID() + "@deleted.user");
         user.setPassword(encoder.encode(UUID.randomUUID().toString()));
-        if (!(user.getProfile() == null)) {
-            user.getProfile().setGender(Gender.OTHER);
-            user.getProfile().setBirthDate(LocalDate.of(1970, 1, 1));
-            user.getProfile().setFirstName("deleted");
-            user.getProfile().setLastName("user");
+        UserProfile profile = user.getProfile();
+        if (profile != null) {
+            profile.setGender(Gender.OTHER);
+            profile.setBirthDate(LocalDate.of(1970, 1, 1));
+            profile.setFirstName("deleted");
+            profile.setLastName("user");
         }
         if (user.getRole() == UserRole.COACH) {
             UUID coachId = user.getId();
@@ -104,7 +77,8 @@ public class UserService {
         if (user.getRole() == UserRole.CLIENT) {
             UUID clientId = user.getId();
             Client client = clientRepo.findByIdOrThrow(clientId);
-            Coaching coaching = coachingRepo.findByCoachIdAndClientIdOrThrow(client.getCoach().getId(), clientId);
+            Coach coach = client.getCoachOrThrow();
+            Coaching coaching = coachingRepo.findByCoachIdAndClientIdOrThrow(coach.getId(), clientId);
             coaching.setEndDate(now);
             client.setCoach(null);
         }

@@ -11,6 +11,8 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 public interface ClientMapper {
 
+    @Mapping(target = "firstName", ignore = true)
+    @Mapping(target = "lastName", ignore = true)
     ClientResponse map(Client client);
 
     @Mapping(target = "id", source = "client.id")

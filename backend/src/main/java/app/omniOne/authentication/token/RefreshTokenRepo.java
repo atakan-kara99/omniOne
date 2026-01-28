@@ -17,20 +17,20 @@ public interface RefreshTokenRepo extends JpaRepository<RefreshToken, UUID> {
 
     Optional<RefreshToken> findByTokenHashAndDeviceId(String tokenHash, UUID deviceId);
 
+    Optional<RefreshToken> findByUserIdAndDeviceIdAndRevokedAtIsNull(UUID userId, UUID deviceId);
+
+    @Modifying
+    @Query("DELETE FROM RefreshToken rt WHERE rt.expiresAt < :now")
+    int deleteAllExpired(LocalDateTime now);
+
     default RefreshToken findByTokenHashAndDeviceIdOrThrow(String tokenHash, UUID deviceId) {
         return findByTokenHashAndDeviceId(tokenHash, deviceId)
                 .orElseThrow(() -> new NoSuchResourceException("RefreshToken not found"));
     }
 
-    Optional<RefreshToken> findByUserIdAndDeviceIdAndRevokedAtIsNull(UUID userId, UUID deviceId);
-
     default RefreshToken findByTokenHashOrThrow(String tokenHash) {
         return findByTokenHash(tokenHash)
                 .orElseThrow(() -> new NoSuchResourceException("RefreshToken not found"));
     }
-
-    @Modifying
-    @Query("DELETE FROM RefreshToken rt WHERE rt.expiresAt < :now")
-    int deleteAllExpired(LocalDateTime now);
 
 }

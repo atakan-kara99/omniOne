@@ -19,8 +19,8 @@ public class Coach extends BaseEntity {
     private UUID id;
 
     @MapsId
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @OneToMany(mappedBy = "coach")

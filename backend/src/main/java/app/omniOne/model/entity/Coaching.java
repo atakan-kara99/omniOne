@@ -20,11 +20,11 @@ public class Coaching {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "coach_id")
+    @JoinColumn(name = "coach_id", nullable = false)
     private Coach coach;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "client_id")
+    @JoinColumn(name = "client_id", nullable = false)
     private Client client;
 
     @CreationTimestamp

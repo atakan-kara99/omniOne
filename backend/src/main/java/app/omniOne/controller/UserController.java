@@ -5,6 +5,8 @@ import app.omniOne.model.dto.UserDto;
 import app.omniOne.model.dto.UserProfileDto;
 import app.omniOne.model.dto.UserProfileRequest;
 import app.omniOne.model.mapper.UserMapper;
+import app.omniOne.model.mapper.UserProfileMapper;
+import app.omniOne.service.UserProfileService;
 import app.omniOne.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -22,6 +24,8 @@ public class UserController {
 
     private final UserMapper userMapper;
     private final UserService userService;
+    private final UserProfileMapper userProfileMapper;
+    private final UserProfileService userProfileService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -38,13 +42,13 @@ public class UserController {
     @GetMapping("/profile")
     @ResponseStatus(HttpStatus.OK)
     public UserProfileDto getProfile() {
-        return userMapper.map(userService.getProfile(getMyId()));
+        return userProfileMapper.map(userProfileService.getProfile(getMyId()));
     }
 
     @PutMapping("/profile")
     @ResponseStatus(HttpStatus.OK)
     public UserProfileDto putProfile(@RequestBody @Valid UserProfileRequest request) {
-        return userMapper.map(userService.putProfile(getMyId(), request));
+        return userProfileMapper.map(userProfileService.putProfile(getMyId(), request));
     }
 
     @DeleteMapping

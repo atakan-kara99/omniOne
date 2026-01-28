@@ -65,8 +65,7 @@ public class RefreshTokenService {
                     .tokenHash(tokenHash)
                     .expiresAt(expiresAt)
                     .lastUsedAt(null)
-                    .revokedAt(null)
-                    .build();
+                    .revokedAt(null).build();
             refreshTokenRepo.save(refreshToken);
             log.info("Inserted refresh token (userId={}, deviceId={}, tokenHashPrefix={}, expiresAt={})",
                     user.getId(), deviceId, hashPrefix(tokenHash), expiresAt);

@@ -58,7 +58,7 @@ public class QuestionnaireService {
     public List<QuestionnaireQuestion> getQuestionsForClient(UUID clientId) {
         log.debug("Trying to retrieve questions for client {}", clientId);
         Client client = clientRepo.findByIdOrThrow(clientId);
-        Coach coach = client.getCoach();
+        Coach coach = client.getCoachOrThrow();
         List<QuestionnaireQuestion> questions = questionRepo.findAllByCoachIdOrCoachIdIsNull(coach.getId());
         log.info("Successfully retrieved questions for client");
         return questions;
@@ -71,7 +71,7 @@ public class QuestionnaireService {
         for (QuestionnaireAnswerRequest req : requests) {
             QuestionnaireQuestion question = questionRepo.findByIdAOrThrow(req.questionId());
             if (question.getCoach() != null &&
-                    !question.getCoach().getId().equals(client.getCoach().getId())) {
+                    !question.getCoach().getId().equals(client.getCoachOrThrow().getId())) {
                 throw new NoSuchResourceException("Question does not belong to this coach.");
             }
             // Try to find existing answer

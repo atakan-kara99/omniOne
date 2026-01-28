@@ -27,6 +27,7 @@ import java.util.UUID;
 public class AuthController {
 
     private static final String DEVICE_ID_HEADER = "X-Device-Id";
+    private static final String REFRESH_TOKEN_HEADER = "refresh_token";
 
     @Value("${refresh.token.ttl-days}")
     private int refreshTtlDays;
@@ -35,7 +36,7 @@ public class AuthController {
     private final AuthService authService;
 
     private ResponseCookie buildRefreshCookie(String refreshToken, Duration duration) {
-        return ResponseCookie.from("refresh_token", refreshToken)
+        return ResponseCookie.from(REFRESH_TOKEN_HEADER, refreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
@@ -62,7 +63,7 @@ public class AuthController {
     }
 
     @PostMapping("/token/refresh")
-    public ResponseEntity<JwtDto> refresh(@CookieValue(name = "refresh_token", required = false) String refreshToken,
+    public ResponseEntity<JwtDto> refresh(@CookieValue(name = REFRESH_TOKEN_HEADER, required = false) String refreshToken,
                                           @RequestHeader(name = DEVICE_ID_HEADER, required = false) UUID deviceId) {
         LoginResponse loginResponse = authService.refreshTokens(refreshToken, deviceId);
         ResponseCookie refreshCookie =
@@ -74,7 +75,7 @@ public class AuthController {
     }
 
     @PostMapping("/account/logout")
-    public ResponseEntity<Void> logout(@CookieValue(name = "refresh_token", required = false) String refreshToken) {
+    public ResponseEntity<Void> logout(@CookieValue(name = REFRESH_TOKEN_HEADER, required = false) String refreshToken) {
         if (refreshToken != null && !refreshToken.isBlank())
             authService.logout(refreshToken);
         ResponseCookie deleteCookie =

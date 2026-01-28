@@ -1,6 +1,5 @@
 package app.omniOne.service;
 
-import app.omniOne.chatting.ChatService;
 import app.omniOne.model.entity.Client;
 import app.omniOne.model.entity.Coach;
 import app.omniOne.model.entity.Coaching;
@@ -22,7 +21,6 @@ public class CoachingService {
 
     private final CoachRepo coachRepo;
     private final ClientRepo clientRepo;
-    private final ChatService chatService;
     private final CoachingRepo coachingRepo;
 
     @Transactional
@@ -41,9 +39,9 @@ public class CoachingService {
     public void endCoaching(UUID clientId) {
         log.debug("Trying to end coaching for Client {}", clientId);
         Client client = clientRepo.findByIdOrThrow(clientId);
-        UUID coachId = client.getCoach().getId();
+        Coach coach = client.getCoachOrThrow();
         client.setCoach(null);
-        Coaching coaching = coachingRepo.findByCoachIdAndClientIdOrThrow(coachId, clientId);
+        Coaching coaching = coachingRepo.findByCoachIdAndClientIdOrThrow(coach.getId(), clientId);
         coaching.setEndDate(LocalDateTime.now());
         log.info("Successfully ended coaching");
     }

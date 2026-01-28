@@ -12,6 +12,7 @@ import app.omniOne.chatting.repository.ChatMessageRepo;
 import app.omniOne.chatting.repository.ChatParticipantRepo;
 import app.omniOne.model.entity.User;
 import app.omniOne.model.entity.UserProfile;
+import app.omniOne.repository.UserProfileRepo;
 import app.omniOne.repository.UserRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class ChatService {
     private final UserRepo userRepo;
     private final ChatMapper chatMapper;
     private final ChatMessageRepo messageRepo;
+    private final UserProfileRepo userProfileRepo;
     private final ChatParticipantRepo participantRepo;
     private final ChatConversationRepo conversationRepo;
 
@@ -93,7 +95,7 @@ public class ChatService {
         log.debug("Trying to start a ChatConversation between User {} and User {}", myId, otherId);
         ChatConversation conversation = conversationRepo.findConversationBetween(myId, otherId)
                 .orElseGet(() -> createConversationWithParticipants(myId, otherId));
-        UserProfile otherProfile = userRepo.findByIdOrThrow(otherId).getProfile();
+        UserProfile otherProfile = userProfileRepo.findByIdOrThrow(otherId);
         ChatConversationDto conversationDto = chatMapper.map(conversation, otherProfile);
         log.info("Successfully started ChatConversation");
         return conversationDto;

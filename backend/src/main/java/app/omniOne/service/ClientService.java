@@ -9,7 +9,7 @@ import app.omniOne.model.entity.UserProfile;
 import app.omniOne.model.mapper.ClientMapper;
 import app.omniOne.model.mapper.CoachMapper;
 import app.omniOne.repository.ClientRepo;
-import app.omniOne.repository.UserRepo;
+import app.omniOne.repository.UserProfileRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,8 +21,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class ClientService {
+    private final UserProfileRepo userProfileRepo;
 
-    private final UserRepo userRepo;
     private final ClientRepo clientRepo;
     private final CoachMapper coachMapper;
     private final ClientMapper clientMapper;
@@ -37,7 +37,7 @@ public class ClientService {
     public ClientResponse getClient(UUID clientId) {
         log.debug("Trying to retrieve Client {}", clientId);
         Client client = clientRepo.findByIdOrThrow(clientId);
-        UserProfile profile = userRepo.findByIdOrThrow(clientId).getProfile();
+        UserProfile profile = userProfileRepo.findByIdOrThrow(clientId);
         ClientResponse clientResponse = clientMapper.map(client, profile);
         log.info("Successfully retrieved Client");
         return clientResponse;
@@ -53,8 +53,9 @@ public class ClientService {
     }
 
     public CoachResponse getCoach(UUID clientId) {
-        Coach coach = clientRepo.findByIdOrThrow(clientId).getCoach();
-        UserProfile profile = userRepo.findByIdOrThrow(coach.getId()).getProfile();
+        Client client = clientRepo.findByIdOrThrow(clientId);
+        Coach coach = client.getCoachOrThrow();
+        UserProfile profile = userProfileRepo.findByIdOrThrow(coach.getId());
         return coachMapper.map(coach, profile);
     }
 
