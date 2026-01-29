@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,6 +46,7 @@ public class CoachQuestionnaireController {
 
     @GetMapping("/{clientId}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("@authService.isCoachedByMe(#clientId)")
     public List<QuestionnaireAnswerResponse> getAnswers(@PathVariable UUID clientId) {
         return questionnaireService.getAnswers(clientId);
     }

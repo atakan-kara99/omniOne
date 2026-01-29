@@ -48,6 +48,7 @@ public class CoachClientController {
 
     @DeleteMapping("/{clientId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@authService.isCoachedByMe(#clientId)")
     public void endCoaching(@PathVariable UUID clientId) {
         coachingService.endCoaching(clientId);
     }
