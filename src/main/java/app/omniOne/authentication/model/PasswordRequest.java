@@ -2,14 +2,16 @@ package app.omniOne.authentication.model;
 
 import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public record PasswordRequest(
 
         @NotBlank
-//   @Size(min = 8, max = 64)
-//   @Pattern(regexp = "^\\S+$", message = "Password cannot contain spaces")
-//   @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d])[A-Za-z\\d\\W_]{8,64}$",
-//           message = "Password must contain upper, lower, digit, and special character.")
+        @Size(min = 8, max = 32)
+        @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)\\S{8,32}$",
+                message = "Password must be 8–32 characters and include at least one uppercase letter, " +
+                        "one lowercase letter, and one number. Special characters are allowed. No spaces.")
         String password
 
 ) {
