@@ -29,8 +29,7 @@ public class AuthController {
     private static final String DEVICE_ID_HEADER = "X-Device-Id";
     private static final String REFRESH_TOKEN_HEADER = "refresh_token";
 
-    @Value("${refresh.token.ttl-days}")
-    private int refreshTtlDays;
+    private final RefreshTokenProps refreshTokenProps;
 
     private final AuthMapper authMapper;
     private final AuthService authService;
@@ -38,8 +37,8 @@ public class AuthController {
     private ResponseCookie buildRefreshCookie(String refreshToken, Duration duration) {
         return ResponseCookie.from(REFRESH_TOKEN_HEADER, refreshToken)
                 .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
+                .secure(refreshTokenProps.secure())
+                .sameSite(refreshTokenProps.sameSite())
                 .path("/auth")
                 .maxAge(duration).build();
     }
@@ -55,7 +54,7 @@ public class AuthController {
         UUID resolvedDeviceId = deviceId != null ? deviceId : UUID.randomUUID();
         LoginResponse loginResponse = authService.login(request, resolvedDeviceId);
         ResponseCookie refreshCookie =
-                buildRefreshCookie(loginResponse.refreshToken(), Duration.ofDays(refreshTtlDays));
+                buildRefreshCookie(loginResponse.refreshToken(), Duration.ofDays(refreshTokenProps.ttlDays()));
         return ResponseEntity.ok()
                 .header(DEVICE_ID_HEADER, resolvedDeviceId.toString())
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
@@ -67,7 +66,7 @@ public class AuthController {
                                           @RequestHeader(name = DEVICE_ID_HEADER) UUID deviceId) {
         LoginResponse loginResponse = authService.refreshTokens(refreshToken, deviceId);
         ResponseCookie refreshCookie =
-                buildRefreshCookie(loginResponse.refreshToken(), Duration.ofDays(refreshTtlDays));
+                buildRefreshCookie(loginResponse.refreshToken(), Duration.ofDays(refreshTokenProps.ttlDays()));
         return ResponseEntity.ok()
                 .header(DEVICE_ID_HEADER, deviceId.toString())
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
