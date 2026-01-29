@@ -72,10 +72,10 @@ public class AuthService {
     }
 
     public LoginResponse login(LoginRequest request, UUID deviceId) {
-        log.debug("Trying to log in User {}", request.username());
+        log.debug("Trying to log in User {}", request.email());
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.username(),
+                        request.email(),
                         request.password()));
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String jwt = jwtService.createAuthJwt(userDetails);
