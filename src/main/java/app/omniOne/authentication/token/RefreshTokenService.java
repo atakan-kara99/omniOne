@@ -32,8 +32,8 @@ public class RefreshTokenService {
     private final RefreshTokenRepo refreshTokenRepo;
     private final SecureRandom RNG = new SecureRandom();
 
-    public RefreshTokenService(@Value("${refresh.token.secret}") String secret,
-                               @Value("${refresh.token.ttl-days}") int ttlDays,
+    public RefreshTokenService(@Value("${refresh-token.secret}") String secret,
+                               @Value("${refresh-token.ttl-days}") int ttlDays,
                                RefreshTokenRepo refreshTokenRepo) {
         this.ttlDays = ttlDays;
         this.refreshTokenRepo = refreshTokenRepo;
