@@ -6,16 +6,10 @@ import {
   updateProfile,
 } from '../api.js'
 import { useAuth } from '../authContext.js'
-
-const EMPTY_PROFILE = {
-  firstName: '',
-  lastName: '',
-  birthDate: '',
-  gender: 'OTHER',
-}
+import { EMPTY_PROFILE, isProfileComplete } from '../profileUtils.js'
 
 function Profile() {
-  const { user, logout } = useAuth()
+  const { user, logout, setUser, setProfileComplete } = useAuth()
   const [profile, setProfile] = useState(EMPTY_PROFILE)
   const [passwords, setPasswords] = useState({ oldPassword: '', newPassword: '' })
   const [status, setStatus] = useState('')
@@ -61,6 +55,10 @@ function Profile() {
     setSaving(true)
     try {
       await updateProfile(profile)
+      setProfileComplete(isProfileComplete(profile))
+      if (user) {
+        setUser({ ...user, ...profile })
+      }
       setStatus('Profile updated.')
     } catch (err) {
       setError(err.message || 'Failed to update profile.')

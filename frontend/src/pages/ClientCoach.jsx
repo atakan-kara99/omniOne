@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { PaperPlaneTilt } from 'phosphor-react'
 import { endClientCoaching, getClientCoach } from '../api.js'
 import { openChatDock } from '../chatDockEvents.js'
 
@@ -78,13 +79,16 @@ function ClientCoach() {
       {!loading && !error ? (
         coach ? (
           <div className="card">
-            <div className="card-title">Coach</div>
+            <div className="card-header-row">
+              <div className="card-title">Coach</div>
+              <button type="button" className="ghost-button message-button" onClick={handleStartChat}>
+                <PaperPlaneTilt size={22} weight="bold" />
+                <span className="button-label">Message</span>
+              </button>
+            </div>
             <div className="value">
               {coach.firstName || 'Coach'} {coach.lastName || ''}
             </div>
-            <div className="label">Coach ID</div>
-            <div className="value">{coach.id}</div>
-            <button type="button" onClick={handleStartChat}>Message coach</button>
             <div className="danger-zone">
               <div>
                 <div className="card-title">End coaching</div>

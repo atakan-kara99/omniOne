@@ -1,13 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PaperPlaneTilt, Plus } from 'phosphor-react'
 import { getCoachClients, inviteClient } from '../api.js'
 import { openChatDock } from '../chatDockEvents.js'
 
 function CoachClients() {
+  const inviteRef = useRef(null)
+  const statusTimerRef = useRef(null)
   const [clients, setClients] = useState([])
   const [inviteEmail, setInviteEmail] = useState('')
   const [status, setStatus] = useState('')
+  const [inviteError, setInviteError] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [inviting, setInviting] = useState(false)
@@ -41,17 +44,44 @@ function CoachClients() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!showInvite) return
+    function handleClickOutside(event) {
+      if (inviteRef.current && !inviteRef.current.contains(event.target)) {
+        setShowInvite(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showInvite])
+
+  useEffect(() => {
+    return () => {
+      if (statusTimerRef.current) {
+        clearTimeout(statusTimerRef.current)
+      }
+    }
+  }, [])
+
   async function handleInvite(event) {
     event.preventDefault()
     setStatus('')
-    setError('')
+    setInviteError('')
     setInviting(true)
     try {
       await inviteClient(inviteEmail)
       setStatus('Invitation sent.')
+      if (statusTimerRef.current) {
+        clearTimeout(statusTimerRef.current)
+      }
+      statusTimerRef.current = setTimeout(() => {
+        setStatus('')
+      }, 1000)
       setInviteEmail('')
     } catch (err) {
-      setError(err.message || 'Failed to send invite.')
+      setInviteError(err.message || 'Failed to send invite.')
     } finally {
       setInviting(false)
     }
@@ -81,7 +111,7 @@ function CoachClients() {
             <span className="button-label">Invite</span>
           </button>
           {showInvite ? (
-            <div className="chat-start-menu invite-menu" id="invite-form">
+            <div className="chat-start-menu invite-menu" id="invite-form" ref={inviteRef}>
               <div className="chat-start-title">Invite a client</div>
               <form className="form invite-form" onSubmit={handleInvite}>
                 <label className="field">
@@ -98,6 +128,7 @@ function CoachClients() {
                   {inviting ? 'Sending...' : 'Send invite'}
                 </button>
                 {status ? <p className="success">{status}</p> : null}
+                {inviteError ? <p className="error">{inviteError}</p> : null}
               </form>
             </div>
           ) : null}
@@ -126,7 +157,7 @@ function CoachClients() {
                     }}
                   >
                     <PaperPlaneTilt size={22} weight="bold" />
-                    Message
+                    <span className="button-label">Message</span>
                   </button>
                 </div>
               </Link>

@@ -1,17 +1,19 @@
-const TOKEN_KEY = 'omniOne.token'
 const USER_KEY = 'omniOne.user'
+let memoryToken = ''
 
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY)
+  return memoryToken || ''
 }
 
 export function setToken(token) {
-  localStorage.setItem(TOKEN_KEY, token)
+  memoryToken = token || ''
 }
 
 export function clearToken() {
-  localStorage.removeItem(TOKEN_KEY)
+  memoryToken = ''
 }
+
+
 
 export function getStoredUser() {
   const raw = localStorage.getItem(USER_KEY)

@@ -47,7 +47,7 @@ function CoachDashboard() {
     <section className="panel">
       <div className="panel-header">
         <div>
-          <h1>Coach command center</h1>
+          <h1>Coach dashboard</h1>
           <p className="muted">Keep tabs on client progress and upcoming touchpoints.</p>
         </div>
         <Link className="primary-link" to="/coach/clients">

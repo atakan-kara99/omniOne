@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { CaretRight } from 'phosphor-react'
 import {
   addCoachClientPlan,
   endCoaching,
@@ -132,12 +133,15 @@ function CoachClientDetail() {
 
   return (
     <section className="panel">
-      <div className="panel-header">
+      <div className="panel-header client-detail-header">
         <div>
           <h1>Client detail</h1>
           <p className="muted">Manage plans and review questionnaire answers.</p>
         </div>
-        <Link className="text-link" to="/coach/clients">Back to clients</Link>
+        <Link className="back-button" to="/coach/clients">
+          <span className="button-label">Back</span>
+          <CaretRight size={22} weight="bold" />
+        </Link>
       </div>
       {loading ? <p className="muted">Loading client...</p> : null}
       {error ? <p className="error">{error}</p> : null}

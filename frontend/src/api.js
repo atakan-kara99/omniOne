@@ -1,25 +1,73 @@
-import { clearStoredUser, clearToken, getToken } from './auth.js'
+import { clearStoredUser, clearToken, getToken, setToken } from './auth.js'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080'
 const DEBUG_API = import.meta.env.DEV
+let isLoggingOut = false
+const DEVICE_ID_KEY = 'omniOne.deviceId'
 
 function logApi(event, details) {
   if (!DEBUG_API) return
   try {
-    console.info(`[api] ${event}`, details || '')
+    const payload = details ? { ...details } : {}
+    if (!payload.stack) {
+      payload.stack = new Error().stack
+    }
+    console.info(`[api] ${event}`, payload)
   } catch {
     // ignore logging failures
   }
 }
 
-function buildHeaders(customHeaders) {
+export function setLoggingOut(value) {
+  isLoggingOut = value
+}
+
+function getCsrfCookie() {
+  if (typeof document === 'undefined') return ''
+  const value = document.cookie
+    .split('; ')
+    .find((row) => row.startsWith('XSRF-TOKEN='))
+  if (!value) return ''
+  return decodeURIComponent(value.split('=')[1] || '')
+}
+
+function getDeviceId() {
+  if (typeof window === 'undefined') return ''
+  try {
+    const existing = localStorage.getItem(DEVICE_ID_KEY)
+    if (existing) return existing
+    const id = crypto.randomUUID()
+    localStorage.setItem(DEVICE_ID_KEY, id)
+    return id
+  } catch {
+    return ''
+  }
+}
+
+export async function refreshCsrf() {
+  try {
+    await apiFetch('/auth/csrf', { method: 'GET', skipAuth: true, skipCsrf: true })
+  } catch {
+    // ignore csrf refresh errors
+  }
+}
+
+function buildHeaders(customHeaders, skipAuth) {
   const headers = new Headers(customHeaders || {})
   if (!headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
-  const token = getToken()
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`)
+  if (!headers.has('X-Device-Id')) {
+    const deviceId = getDeviceId()
+    if (deviceId) {
+      headers.set('X-Device-Id', deviceId)
+    }
+  }
+  if (!skipAuth) {
+    const token = getToken()
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`)
+    }
   }
   return headers
 }
@@ -34,11 +82,26 @@ async function parseResponse(response) {
 
 export async function apiFetch(path, options = {}) {
   let response
+  const skipAuth = Boolean(options.skipAuth)
+  const skipRefresh = Boolean(options.skipRefresh)
+  const skipCsrf = Boolean(options.skipCsrf)
+  const method = (options.method || 'GET').toUpperCase()
   logApi('request', { path, method: options.method || 'GET', body: options.body })
+  if (!skipCsrf && !['GET', 'HEAD', 'OPTIONS'].includes(method) && !getCsrfCookie()) {
+    await refreshCsrf()
+  }
   try {
+    const headers = buildHeaders(options.headers, skipAuth)
+    if (!skipCsrf && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+      const csrf = getCsrfCookie()
+      if (csrf) {
+        headers.set('X-XSRF-TOKEN', csrf)
+      }
+    }
     response = await fetch(`${API_BASE}${path}`, {
       ...options,
-      headers: buildHeaders(options.headers),
+      credentials: options.credentials || 'include',
+      headers,
     })
   } catch (err) {
     logApi('error', { path, message: err?.message || 'Network error' })
@@ -55,9 +118,20 @@ export async function apiFetch(path, options = {}) {
     error.status = response.status
     error.payload = payload
     if (response.status === 401) {
+      if (!skipRefresh && !isLoggingOut) {
+        try {
+          const refreshed = await refreshAuth()
+          if (refreshed?.jwt) {
+            setToken(refreshed.jwt)
+            return apiFetch(path, { ...options, skipRefresh: true })
+          }
+        } catch {
+          // fall through to clear session
+        }
+      }
       clearToken()
       clearStoredUser()
-      if (window.location.pathname !== '/login') {
+      if (getToken() && window.location.pathname !== '/login') {
         window.location.href = '/login'
       }
     }
@@ -74,10 +148,28 @@ export async function apiFetch(path, options = {}) {
   return payload
 }
 
-export function login(payload) {
+export async function login(payload) {
   return apiFetch('/auth/account/login', {
     method: 'POST',
     body: JSON.stringify(payload),
+    skipAuth: true,
+    skipRefresh: true,
+  })
+}
+
+export async function refreshAuth() {
+  return apiFetch('/auth/token/refresh', {
+    method: 'POST',
+    skipAuth: true,
+    skipRefresh: true,
+  })
+}
+
+export async function logout() {
+  return apiFetch('/auth/account/logout', {
+    method: 'POST',
+    skipAuth: true,
+    skipRefresh: true,
   })
 }
 
@@ -110,7 +202,17 @@ export function resetPassword(token, payload) {
 export function acceptInvitation(token, payload) {
   return apiFetch(`/auth/invitation/accept?token=${encodeURIComponent(token)}`, {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: payload ? JSON.stringify(payload) : undefined,
+    skipAuth: true,
+    skipRefresh: true,
+  })
+}
+
+export function validateInvitation(token) {
+  return apiFetch(`/auth/invitation/validate?token=${encodeURIComponent(token)}`, {
+    method: 'GET',
+    skipAuth: true,
+    skipRefresh: true,
   })
 }
 

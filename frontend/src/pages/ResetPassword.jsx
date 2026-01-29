@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { resetPassword } from '../api.js'
 
 function ResetPassword() {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const token = searchParams.get('token')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState('')
@@ -22,6 +23,7 @@ function ResetPassword() {
     try {
       await resetPassword(token, { password })
       setStatus('Password updated. You can now sign in.')
+      setTimeout(() => navigate('/login'), 1000)
     } catch (err) {
       setError(err.message || 'Failed to reset password.')
     } finally {

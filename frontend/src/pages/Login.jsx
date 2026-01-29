@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { getUser, login } from '../api.js'
-import { setToken } from '../auth.js'
+import { getProfile, getUser, login, refreshAuth, refreshCsrf, setLoggingOut } from '../api.js'
+import { getToken, setToken } from '../auth.js'
 import { useAuth } from '../authContext.js'
 
 function Login() {
@@ -12,6 +12,7 @@ function Login() {
   const [error, setError] = useState('')
   const [status, setStatus] = useState('')
   const [loading, setLoading] = useState(false)
+  const refreshAttemptedRef = useRef(false)
 
   useEffect(() => {
     const deleted = sessionStorage.getItem('omniOne.accountDeleted')
@@ -21,6 +22,44 @@ function Login() {
     }
   }, [])
 
+  useEffect(() => {
+    if (refreshAttemptedRef.current) return
+    refreshAttemptedRef.current = true
+    if (getToken()) return
+    if (sessionStorage.getItem('omniOne.loggedOut')) {
+      sessionStorage.removeItem('omniOne.loggedOut')
+      return
+    }
+    ;(async () => {
+      try {
+        const refreshed = await refreshAuth()
+        if (refreshed?.jwt) {
+          setToken(refreshed.jwt)
+          setLoggingOut(false)
+          await refreshCsrf()
+          const user = await getUser()
+          let profile = null
+          try {
+            profile = await getProfile()
+          } catch {
+            profile = null
+          }
+          const mergedUser = profile ? { ...user, ...profile } : user
+          setUser(mergedUser)
+          if (mergedUser.role === 'COACH') {
+            navigate('/coach', { replace: true })
+          } else if (mergedUser.role === 'CLIENT') {
+            navigate('/client', { replace: true })
+          } else {
+            setError('This UI only supports Coach and Client roles.')
+          }
+        }
+      } catch {
+        // no refresh cookie or refresh failed
+      }
+    })()
+  }, [navigate, setUser])
+
   async function runLogin(nextUsername, nextPassword) {
     setError('')
     setStatus('')
@@ -28,13 +67,24 @@ function Login() {
 
     try {
       const response = await login({ username: nextUsername, password: nextPassword })
-      setToken(response.token)
+      setLoggingOut(false)
+      if (response?.jwt) {
+        setToken(response.jwt)
+      }
+      await refreshCsrf()
       const user = await getUser()
-      setUser(user)
+      let profile = null
+      try {
+        profile = await getProfile()
+      } catch {
+        profile = null
+      }
+      const mergedUser = profile ? { ...user, ...profile } : user
+      setUser(mergedUser)
 
-      if (user.role === 'COACH') {
+      if (mergedUser.role === 'COACH') {
         navigate('/coach')
-      } else if (user.role === 'CLIENT') {
+      } else if (mergedUser.role === 'CLIENT') {
         navigate('/client')
       } else {
         setError('This UI only supports Coach and Client roles.')

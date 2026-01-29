@@ -130,6 +130,10 @@
   align-items: flex-start;
 }
 
+.clients-header .invite-actions {
+  margin-top: 4px;
+}
+
 .clients-header .invite-button {
   margin-left: auto;
   align-self: flex-start;
@@ -254,6 +258,11 @@
 
 .panel-narrow {
   width: min(92vw, 440px);
+  margin: 0 auto;
+}
+
+.panel-wide {
+  width: min(92vw, 720px);
   margin: 0 auto;
 }
 
@@ -500,6 +509,10 @@ button {
     display: inline-flex;
   }
 
+  .back-button .button-label {
+    display: inline-flex;
+  }
+
   .user-action.profile-action {
     width: auto;
     height: auto;
@@ -513,6 +526,45 @@ button {
   .brand-block .brand,
   .brand-block .brand-sub {
     display: none;
+  }
+}
+
+@media (max-width: 390px) {
+  .invite-button .button-label,
+  .message-button .button-label,
+  .back-button .button-label {
+    display: none;
+  }
+
+  .invite-button.user-action {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .back-button {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    max-width: 40px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+    gap: 0;
+  }
+
+  .message-button {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+    gap: 0;
   }
 }
 
@@ -819,6 +871,14 @@ button:disabled {
   color: #334155;
 }
 
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
 .card-list {
   list-style: none;
   padding: 0;
@@ -838,6 +898,10 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.client-card .card-title {
+  font-size: 1.1rem;
 }
 
 .client-card-link {
@@ -861,6 +925,32 @@ button:disabled {
 }
 
 .message-button:hover {
+  background: #111827;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #0f172a;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.back-button .button-label {
+  margin-left: 6px;
+}
+
+.back-button svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.back-button:hover {
   background: #111827;
 }
 
@@ -1504,6 +1594,11 @@ button:disabled {
   }
 
   .clients-header {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .client-detail-header {
     flex-direction: row;
     align-items: flex-start;
   }

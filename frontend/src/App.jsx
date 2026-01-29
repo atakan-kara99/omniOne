@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Link, NavLink, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import {
@@ -8,9 +8,10 @@ import {
   getToken,
   setStoredUser,
 } from './auth.js'
-import { getUser } from './api.js'
+import { getProfile, getUser, logout, refreshAuth, setLoggingOut } from './api.js'
 import { AuthContext, useAuth } from './authContext.js'
 import { House, List, SignOut, User } from 'phosphor-react'
+import { isProfileComplete } from './profileUtils.js'
 import CoachDashboard from './pages/CoachDashboard.jsx'
 import ClientDashboard from './pages/ClientDashboard.jsx'
 import Login from './pages/Login.jsx'
@@ -20,6 +21,7 @@ import ForgotPassword from './pages/ForgotPassword.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
 import AcceptInvitation from './pages/AcceptInvitation.jsx'
 import Profile from './pages/Profile.jsx'
+import CompleteProfile from './pages/CompleteProfile.jsx'
 import CoachClients from './pages/CoachClients.jsx'
 import CoachClientDetail from './pages/CoachClientDetail.jsx'
 import CoachQuestionnaire from './pages/CoachQuestionnaire.jsx'
@@ -40,13 +42,16 @@ function LoadingScreen({ message }) {
   )
 }
 
-function ProtectedRoute({ children, allowedRoles }) {
-  const { user, loading } = useAuth()
+function ProtectedRoute({ children, allowedRoles, allowIncomplete = false }) {
+  const { user, loading, profileComplete } = useAuth()
   if (loading) {
     return <LoadingScreen />
   }
   if (!user) {
     return <Navigate to="/login" replace />
+  }
+  if (!allowIncomplete && !profileComplete) {
+    return <Navigate to="/profile/complete" replace />
   }
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to="/login" replace />
@@ -54,8 +59,36 @@ function ProtectedRoute({ children, allowedRoles }) {
   return children
 }
 
+function getHomePath(user) {
+  if (!user) return '/login'
+  return user.role === 'COACH' ? '/coach' : '/client'
+}
+
+function PublicOnlyRoute({ children }) {
+  const { user, loading, profileComplete } = useAuth()
+  if (loading) {
+    return <LoadingScreen />
+  }
+  if (user) {
+    if (!profileComplete) {
+      return <Navigate to="/profile/complete" replace />
+    }
+    return <Navigate to={getHomePath(user)} replace />
+  }
+  return children
+}
+
 function AppShell({ children, user, onLogout }) {
+  const location = useLocation()
+  const isProfileCompleteRoute = location.pathname === '/profile/complete'
+  const isSoloLayout = !user || isProfileCompleteRoute
   const [isNavOpen, setIsNavOpen] = useState(false)
+  const profileLabel = useMemo(() => {
+    const first = user?.firstName?.trim() || ''
+    const last = user?.lastName?.trim() || ''
+    const full = `${first} ${last}`.trim()
+    return full || user?.email || ''
+  }, [user?.firstName, user?.lastName, user?.email])
   const navItems = user?.role === 'COACH'
     ? [
         { label: 'Clients', to: '/coach/clients' },
@@ -72,7 +105,7 @@ function AppShell({ children, user, onLogout }) {
   return (
     <div className="app-shell">
       <header className="top-bar">
-        {user ? (
+        {user && !isProfileCompleteRoute ? (
           <button
             type="button"
             className="nav-toggle nav-toggle-header"
@@ -87,16 +120,18 @@ function AppShell({ children, user, onLogout }) {
         <div className="user-slot">
           {user ? (
             <div className="user-chip">
-              <NavLink
-                to={user?.role === 'COACH' ? '/coach' : '/client'}
-                end
-                className={({ isActive }) => `icon-button user-action${isActive ? ' is-active' : ''}`}
-                aria-label="Dashboard"
-                title="Dashboard"
-              >
-                <House size={22} weight="bold" />
-                <span className="button-label">Dashboard</span>
-              </NavLink>
+              {!isProfileCompleteRoute ? (
+                <NavLink
+                  to={user?.role === 'COACH' ? '/coach' : '/client'}
+                  end
+                  className={({ isActive }) => `icon-button user-action${isActive ? ' is-active' : ''}`}
+                  aria-label="Dashboard"
+                  title="Dashboard"
+                >
+                  <House size={22} weight="bold" />
+                  <span className="button-label">Dashboard</span>
+                </NavLink>
+              ) : null}
               <NavLink
                 to="/profile"
                 className={({ isActive }) => `icon-button user-action profile-action${isActive ? ' is-active' : ''}`}
@@ -104,7 +139,7 @@ function AppShell({ children, user, onLogout }) {
                 title="Profile"
               >
                 <User size={22} weight="bold" />
-                <span className="user-action-email">{user.email}</span>
+                <span className="user-action-email">{profileLabel}</span>
               </NavLink>
               <button type="button" className="icon-button user-action" onClick={onLogout} aria-label="Sign off" title="Sign off">
                 <span className="user-action-icon">
@@ -124,8 +159,8 @@ function AppShell({ children, user, onLogout }) {
         </Link>
         <div className="top-spacer" />
       </header>
-      <div className={`app-body${user ? '' : ' solo'}`}>
-        {user ? (
+      <div className={`app-body${isSoloLayout ? ' solo' : ''}`}>
+        {user && !isProfileCompleteRoute ? (
           <button
             type="button"
             className={`nav-overlay${isNavOpen ? ' show' : ''}`}
@@ -133,7 +168,7 @@ function AppShell({ children, user, onLogout }) {
             onClick={() => setIsNavOpen(false)}
           />
         ) : null}
-        {user ? (
+        {user && !isProfileCompleteRoute ? (
           <aside id="side-nav" className={`side-nav${isNavOpen ? ' open' : ''}`}>
             {navItems.map((item) => (
               <NavLink
@@ -159,29 +194,56 @@ function App() {
   const [user, setUser] = useState(getStoredUser())
   const [loadingUser, setLoadingUser] = useState(Boolean(getToken()))
   const [authError, setAuthError] = useState('')
+  const [profileComplete, setProfileComplete] = useState(false)
 
   useEffect(() => {
     let mounted = true
 
     async function loadUser() {
-      const token = getToken()
-      if (!token) {
-        setLoadingUser(false)
-        return
+      let token = getToken()
+      if (token) {
+        setLoadingUser(true)
       }
-      setLoadingUser(true)
       setAuthError('')
       try {
+        if (!token) {
+          try {
+            const refreshed = await refreshAuth()
+            if (refreshed?.jwt) {
+              setToken(refreshed.jwt)
+              token = refreshed.jwt
+            }
+          } catch {
+            // no refresh cookie or refresh failed
+          }
+        }
+        if (!token) {
+          clearToken()
+          clearStoredUser()
+          setUser(null)
+          setProfileComplete(false)
+          setLoadingUser(false)
+          return
+        }
         const userData = await getUser()
+        let profileData = null
+        try {
+          profileData = await getProfile()
+        } catch {
+          profileData = null
+        }
+        const mergedUser = profileData ? { ...userData, ...profileData } : userData
         if (mounted) {
-          setUser(userData)
-          setStoredUser(userData)
+          setUser(mergedUser)
+          setStoredUser(mergedUser)
+          setProfileComplete(isProfileComplete(mergedUser))
         }
       } catch (err) {
         if (mounted) {
           clearToken()
           clearStoredUser()
           setUser(null)
+          setProfileComplete(false)
           setAuthError('Session expired. Please sign in again.')
         }
       } finally {
@@ -205,19 +267,26 @@ function App() {
         setUser(nextUser)
         setStoredUser(nextUser)
         setAuthError('')
+        setProfileComplete(isProfileComplete(nextUser))
       },
+      profileComplete,
+      setProfileComplete,
       logout: () => {
+        setLoggingOut(true)
+        logout().catch(() => {})
         if (user?.id) {
           localStorage.setItem(`omniOne.chatLastSeen.${user.id}`, new Date().toISOString())
         }
         clearToken()
         clearStoredUser()
+        sessionStorage.setItem('omniOne.loggedOut', '1')
         sessionStorage.removeItem('omniOne.chatDockScroll')
         setUser(null)
+        setProfileComplete(false)
       },
       loading: loadingUser,
     }),
-    [user, loadingUser],
+    [user, loadingUser, profileComplete],
   )
 
   useEffect(() => {
@@ -247,13 +316,55 @@ function App() {
         <AppShell user={user} onLogout={authValue.logout}>
           {authError ? <p className="error-banner">{authError}</p> : null}
           <Routes>
-            <Route path="/" element={<Navigate to={user ? (user.role === 'COACH' ? '/coach' : '/client') : '/login'} replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/activate" element={<ActivateAccount />} />
-            <Route path="/forgot" element={<ForgotPassword />} />
-            <Route path="/reset" element={<ResetPassword />} />
-            <Route path="/invite" element={<AcceptInvitation />} />
+            <Route path="/" element={<Navigate to={getHomePath(user)} replace />} />
+            <Route
+              path="/login"
+              element={
+                <PublicOnlyRoute>
+                  <Login />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <PublicOnlyRoute>
+                  <Register />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/activate"
+              element={
+                <PublicOnlyRoute>
+                  <ActivateAccount />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/forgot"
+              element={
+                <PublicOnlyRoute>
+                  <ForgotPassword />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/reset"
+              element={
+                <PublicOnlyRoute>
+                  <ResetPassword />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/invite"
+              element={
+                <PublicOnlyRoute>
+                  <AcceptInvitation />
+                </PublicOnlyRoute>
+              }
+            />
             <Route
               path="/coach"
               element={
@@ -323,6 +434,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['COACH', 'CLIENT']}>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile/complete"
+              element={
+                <ProtectedRoute allowedRoles={['COACH', 'CLIENT']} allowIncomplete>
+                  <CompleteProfile />
                 </ProtectedRoute>
               }
             />
