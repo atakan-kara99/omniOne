@@ -2,13 +2,13 @@ package app.omniOne.authentication;
 
 import app.omniOne.authentication.model.*;
 import app.omniOne.authentication.token.JwtDto;
+import app.omniOne.authentication.token.RefreshTokenProps;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -89,19 +89,19 @@ public class AuthController {
         return authMapper.map(authService.registerCoach(request));
     }
 
-    @GetMapping("/account/activate")
+    @PostMapping("/account/activate")
     @ResponseStatus(HttpStatus.OK)
     public AuthResponse activate(@RequestParam @NotBlank String token) {
         return authMapper.map(authService.activate(token));
     }
 
-    @GetMapping("/account/resend")
+    @PostMapping("/account/resend")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void resend(@RequestParam @Email @NotBlank String email) {
         authService.sendActivationMail(email);
     }
 
-    @GetMapping("/password/forgot")
+    @PostMapping("/password/forgot")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void forgot(@RequestParam @Email @NotBlank String email) {
         authService.sendForgotMail(email);
@@ -120,7 +120,7 @@ public class AuthController {
         return authMapper.map(authService.acceptInvitation(token, request));
     }
 
-    @GetMapping("/invitation/validate")
+    @PostMapping("/invitation/validate")
     @ResponseStatus(HttpStatus.OK)
     public InvitationResponse validateInvitation(@RequestParam @NotBlank String token) {
         return authService.validateInvitation(token);
