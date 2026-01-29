@@ -3,6 +3,7 @@ package app.omniOne.chatting;
 import app.omniOne.chatting.model.ChatMapper;
 import app.omniOne.chatting.model.dto.ChatConversationDto;
 import app.omniOne.chatting.model.dto.ChatMessageDto;
+import jakarta.validation.constraints.Max;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,7 @@ public class ChatRestController {
     public Slice<ChatMessageDto> getSliceOfMessages(
             @PathVariable UUID conversationId,
             @RequestParam(required = false) LocalDateTime beforeSentAt,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") @Max(50) int size) {
         if (beforeSentAt == null)
             chatService.readMessage(getMyId(), conversationId);
         return chatService.getSliceOfMessages(conversationId, beforeSentAt, size).map(chatMapper::map);
