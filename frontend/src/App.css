@@ -339,6 +339,7 @@
   font-size: 0.95rem;
 }
 
+
 .field input,
 .select {
   padding: 10px 12px;
@@ -1112,6 +1113,10 @@ button:disabled {
   height: 100%;
   max-height: none;
   margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: stretch;
 }
 
 .chat-thread-virtual {
@@ -1119,11 +1124,19 @@ button:disabled {
   min-height: 100%;
 }
 
-.chat-thread-item {
-  position: absolute;
-  left: 0;
-  right: 0;
+.chat-thread-list {
   display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+}
+
+.chat-thread-item {
+  position: relative;
+  left: auto;
+  right: auto;
+  display: flex;
+  width: 100%;
 }
 
 .chat-row-self {
@@ -1139,15 +1152,16 @@ button:disabled {
 }
 
 .chat-bubble {
+  display: inline-flex;
+  flex-direction: column;
   padding: 6px 12px;
   border-radius: 16px;
-  max-width: 80%;
-  min-width: 50px;
+  max-width: min(80%, 520px);
+  min-width: 0;
   width: fit-content;
   word-break: break-word;
   overflow-wrap: anywhere;
   position: relative;
-  padding-bottom: 28px;
 }
 
 .chat-bubble p {
@@ -1159,26 +1173,35 @@ button:disabled {
 .chat-self {
   justify-self: end;
   background: #ff9a3a40;
+  align-items: flex-end;
 }
 
 .chat-peer {
   justify-self: start;
   background: #4fcbff40;
+  align-items: flex-start;
 }
 
 .chat-meta {
-  position: absolute;
-  bottom: 8px;
+  margin-top: 6px;
   font-size: 0.7rem;
   color: #64748b;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+.chat-meta-error {
+  color: #b91c1c;
+}
+
+.chat-meta-pending {
+}
+
+.chat-meta.chat-meta-pending {
 }
 
 .chat-self .chat-meta {
-  right: 12px;
-}
-
-.chat-peer .chat-meta {
-  left: 12px;
+  align-self: flex-end;
 }
 
 .chat-day-divider {
@@ -1219,26 +1242,6 @@ button:disabled {
   color: #0f172a;
   font-weight: 600;
   font-size: 0.85rem;
-}
-
-.chat-new-banner {
-  position: sticky;
-  bottom: 10px;
-  margin: 12px auto 0;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: #0f172a;
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.85rem;
-  border: none;
-  cursor: pointer;
-  box-shadow:
-    -6px 0 14px rgba(79, 203, 255, 0.65),
-    6px 0 14px rgba(255, 154, 58, 0.65),
-    0 10px 20px rgba(15, 23, 42, 0.2);
 }
 
 
