@@ -3,11 +3,12 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getProfile, getUser, login, refreshAuth, refreshCsrf, setLoggingOut } from '../api.js'
 import { getToken, setToken } from '../auth.js'
 import { useAuth } from '../authContext.js'
+import { isValidPassword, PASSWORD_PATTERN_STRING, PASSWORD_REQUIREMENTS } from '../passwordUtils.js'
 
 function Login() {
   const navigate = useNavigate()
   const { setUser } = useAuth()
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [status, setStatus] = useState('')
@@ -60,13 +61,18 @@ function Login() {
     })()
   }, [navigate, setUser])
 
-  async function runLogin(nextUsername, nextPassword) {
+  async function runLogin(nextEmail, nextPassword) {
     setError('')
     setStatus('')
     setLoading(true)
 
     try {
-      const response = await login({ username: nextUsername, password: nextPassword })
+      if (!isValidPassword(nextPassword)) {
+        setError(PASSWORD_REQUIREMENTS)
+        setLoading(false)
+        return
+      }
+      const response = await login({ email: nextEmail, password: nextPassword })
       setLoggingOut(false)
       if (response?.jwt) {
         setToken(response.jwt)
@@ -112,11 +118,11 @@ function Login() {
 
   async function handleSubmit(event) {
     event.preventDefault()
-    await runLogin(username, password)
+    await runLogin(email, password)
   }
 
   async function handleQuickLogin(nextUsername, nextPassword) {
-    setUsername(nextUsername)
+    setEmail(nextUsername)
     setPassword(nextPassword)
     await runLogin(nextUsername, nextPassword)
   }
@@ -131,8 +137,8 @@ function Login() {
             <label className="field">
               <input
                 type="email"
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
                 placeholder="Email"
                 autoComplete="email"
                 required
@@ -145,6 +151,12 @@ function Login() {
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="Password"
                 autoComplete="current-password"
+                minLength={8}
+                maxLength={32}
+                pattern={PASSWORD_PATTERN_STRING}
+                title={PASSWORD_REQUIREMENTS}
+                onInvalid={(event) => event.target.setCustomValidity(PASSWORD_REQUIREMENTS)}
+                onInput={(event) => event.target.setCustomValidity('')}
                 required
               />
             </label>
@@ -165,7 +177,7 @@ function Login() {
           <button
             type="button"
             className="dev-button"
-            onClick={() => handleQuickLogin('coach-10@omni.one', 'testpq12')}
+            onClick={() => handleQuickLogin('coach-10@omni.one', 'Testpq12')}
             disabled={loading}
           >
             coach-10@omni.one
@@ -173,7 +185,7 @@ function Login() {
           <button
             type="button"
             className="dev-button"
-            onClick={() => handleQuickLogin('client-100@omni.one', 'testpq12')}
+            onClick={() => handleQuickLogin('client-100@omni.one', 'Testpq12')}
             disabled={loading}
           >
             client-100@omni.one

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { acceptInvitation, validateInvitation } from '../api.js'
+import { isValidPassword, PASSWORD_PATTERN_STRING, PASSWORD_REQUIREMENTS } from '../passwordUtils.js'
 
 function AcceptInvitation() {
   const [searchParams] = useSearchParams()
@@ -55,9 +56,15 @@ function AcceptInvitation() {
       setError('Invitation token missing.')
       return
     }
-    if (requiresPassword && !password.trim()) {
-      setError('Password is required.')
-      return
+    if (requiresPassword) {
+      if (!password.trim()) {
+        setError('Password is required.')
+        return
+      }
+      if (!isValidPassword(password)) {
+        setError(PASSWORD_REQUIREMENTS)
+        return
+      }
     }
     setLoading(true)
     try {
@@ -93,6 +100,12 @@ function AcceptInvitation() {
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="Password"
                 autoComplete="new-password"
+                minLength={8}
+                maxLength={32}
+                pattern={PASSWORD_PATTERN_STRING}
+                title={PASSWORD_REQUIREMENTS}
+                onInvalid={(event) => event.target.setCustomValidity(PASSWORD_REQUIREMENTS)}
+                onInput={(event) => event.target.setCustomValidity('')}
                 required
               />
             </label>

@@ -7,6 +7,7 @@ import {
 } from '../api.js'
 import { useAuth } from '../authContext.js'
 import { EMPTY_PROFILE, isProfileComplete } from '../profileUtils.js'
+import { isValidPassword, PASSWORD_PATTERN_STRING, PASSWORD_REQUIREMENTS } from '../passwordUtils.js'
 
 function Profile() {
   const { user, logout, setUser, setProfileComplete } = useAuth()
@@ -73,6 +74,11 @@ function Profile() {
     setError('')
     setSavingPassword(true)
     try {
+      if (!isValidPassword(passwords.newPassword)) {
+        setError(PASSWORD_REQUIREMENTS)
+        setSavingPassword(false)
+        return
+      }
       await changePassword(passwords)
       setStatus('Password updated.')
       setPasswords({ oldPassword: '', newPassword: '' })
@@ -193,6 +199,12 @@ function Profile() {
                       oldPassword: event.target.value,
                     }))
                   }
+                  minLength={8}
+                  maxLength={32}
+                  pattern={PASSWORD_PATTERN_STRING}
+                  title={PASSWORD_REQUIREMENTS}
+                  onInvalid={(event) => event.target.setCustomValidity(PASSWORD_REQUIREMENTS)}
+                  onInput={(event) => event.target.setCustomValidity('')}
                   required
                 />
               </label>
@@ -207,6 +219,12 @@ function Profile() {
                       newPassword: event.target.value,
                     }))
                   }
+                  minLength={8}
+                  maxLength={32}
+                  pattern={PASSWORD_PATTERN_STRING}
+                  title={PASSWORD_REQUIREMENTS}
+                  onInvalid={(event) => event.target.setCustomValidity(PASSWORD_REQUIREMENTS)}
+                  onInput={(event) => event.target.setCustomValidity('')}
                   required
                 />
               </label>

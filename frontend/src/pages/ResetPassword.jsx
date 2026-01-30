@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { resetPassword } from '../api.js'
+import { isValidPassword, PASSWORD_PATTERN_STRING, PASSWORD_REQUIREMENTS } from '../passwordUtils.js'
 
 function ResetPassword() {
   const [searchParams] = useSearchParams()
@@ -21,6 +22,11 @@ function ResetPassword() {
     }
     setLoading(true)
     try {
+      if (!isValidPassword(password)) {
+        setError(PASSWORD_REQUIREMENTS)
+        setLoading(false)
+        return
+      }
       await resetPassword(token, { password })
       setStatus('Password updated. You can now sign in.')
       setTimeout(() => navigate('/login'), 1000)
@@ -43,6 +49,12 @@ function ResetPassword() {
             onChange={(event) => setPassword(event.target.value)}
             placeholder="New password"
             autoComplete="new-password"
+            minLength={8}
+            maxLength={32}
+            pattern={PASSWORD_PATTERN_STRING}
+            title={PASSWORD_REQUIREMENTS}
+            onInvalid={(event) => event.target.setCustomValidity(PASSWORD_REQUIREMENTS)}
+            onInput={(event) => event.target.setCustomValidity('')}
             required
           />
         </label>

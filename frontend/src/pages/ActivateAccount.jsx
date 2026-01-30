@@ -35,7 +35,7 @@ function ActivateAccount() {
     return () => {
       mounted = false
     }
-  }, [token])
+  }, [navigate, token])
 
   return (
     <section className="panel panel-narrow">
