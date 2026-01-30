@@ -46,7 +46,7 @@ function getDeviceId() {
 
 export async function refreshCsrf() {
   try {
-    await apiFetch('/auth/csrf', { method: 'GET', skipAuth: true, skipCsrf: true })
+    await apiFetch('/auth/csrf', { method: 'POST', skipAuth: true, skipCsrf: true })
   } catch {
     // ignore csrf refresh errors
   }
@@ -182,13 +182,17 @@ export function register(payload) {
 
 export function activateAccount(token) {
   return apiFetch(`/auth/account/activate?token=${encodeURIComponent(token)}`, {
-    method: 'GET',
+    method: 'POST',
+    skipAuth: true,
+    skipRefresh: true,
   })
 }
 
 export function forgotPassword(email) {
   return apiFetch(`/auth/password/forgot?email=${encodeURIComponent(email)}`, {
-    method: 'GET',
+    method: 'POST',
+    skipAuth: true,
+    skipRefresh: true,
   })
 }
 
@@ -210,7 +214,7 @@ export function acceptInvitation(token, payload) {
 
 export function validateInvitation(token) {
   return apiFetch(`/auth/invitation/validate?token=${encodeURIComponent(token)}`, {
-    method: 'GET',
+    method: 'POST',
     skipAuth: true,
     skipRefresh: true,
   })

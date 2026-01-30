@@ -6,6 +6,7 @@ import {
   clearToken,
   getStoredUser,
   getToken,
+  setToken,
   setStoredUser,
 } from './auth.js'
 import { getProfile, getUser, logout, refreshAuth, setLoggingOut } from './api.js'
@@ -238,7 +239,7 @@ function App() {
           setStoredUser(mergedUser)
           setProfileComplete(isProfileComplete(mergedUser))
         }
-      } catch (err) {
+      } catch {
         if (mounted) {
           clearToken()
           clearStoredUser()
