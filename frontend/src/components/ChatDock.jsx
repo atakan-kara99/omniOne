@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ChatsCircle, PaperPlaneRight, Plus, UserList, User } from 'phosphor-react'
 import {
   getChatMessages,
@@ -125,8 +125,6 @@ function ChatDock() {
   const [loadingOlder, setLoadingOlder] = useState(false)
   const [hasNewMessage, setHasNewMessage] = useState(false)
   const [notifiedChatIds, setNotifiedChatIds] = useState([])
-  const [isThreadAtTop, setIsThreadAtTop] = useState(true)
-  const [stickyDayLabel, setStickyDayLabel] = useState('')
   const [dockSize, setDockSize] = useState(() => {
     try {
       const stored = JSON.parse(localStorage.getItem('omniOne.chatDockSize') || 'null')
@@ -168,44 +166,50 @@ function ChatDock() {
   const lastScrollTopRef = useRef(0)
   const lastMessageMapRef = useRef(new Map())
   const resizeStartRef = useRef(null)
-  const scrollToBottomRef = useRef(false)
-  const forceScrollRef = useRef(false)
-  const needsBottomRef = useRef(false)
   const listToggleTimerRef = useRef(null)
-  const [showNewMessageBanner, setShowNewMessageBanner] = useState(false)
   const dragStartRef = useRef(null)
   const isAtBottomRef = useRef(true)
   const dividerDragRef = useRef(null)
   const pagingByConversationRef = useRef({})
   const loadingOlderRef = useRef(false)
   const pendingAnchorRef = useRef(null)
-  const pendingBottomRef = useRef(null)
   const pendingToggleScrollRef = useRef(null)
   const pendingToggleAtBottomRef = useRef(false)
   const lastReadSentRef = useRef(new Map())
   const chatsRef = useRef([])
+  const pendingMessagesRef = useRef(new Map())
+  const lastSentMessageIdRef = useRef(null)
   const refreshChatsInFlightRef = useRef(false)
   const userScrollIntentRef = useRef(false)
   const userScrollIntentTimerRef = useRef(null)
   const lastNarrowChatRef = useRef(null)
+  const lastLoadedChatIdRef = useRef(null)
+  const forceScrollOnNextLoadRef = useRef(false)
+  const pendingScrollToBottomRef = useRef(false)
   const DEBUG_WS = import.meta.env.DEV
-  const logWs = (...args) => {
+  const logWs = useCallback((...args) => {
     if (DEBUG_WS) {
       console.log('[chat-ws]', ...args)
     }
-  }
+  }, [DEBUG_WS])
   const nearBottomThreshold = 80
   const switchGuardRef = useRef(false)
-  const logDock = () => {}
   const isDockNarrow = panelWidth !== null && panelWidth < 570
   const isDockTiny = panelWidth !== null && panelWidth < 500
   const pageSize = 25
   const prevMetricsRef = useRef(null)
-  const itemHeightsRef = useRef(new Map())
-  const [measureVersion, setMeasureVersion] = useState(0)
-  const [threadScrollTop, setThreadScrollTop] = useState(0)
-  const [threadViewportHeight, setThreadViewportHeight] = useState(0)
-  const itemGap = 3
+  const logWsRef = useRef(logWs)
+  const refreshChatsListRef = useRef(null)
+  const markPendingMessagesRef = useRef(null)
+  const updateMessageByClientIdRef = useRef(null)
+  const isChatUnreadRef = useRef(null)
+  const scrollThreadToBottomRef = useRef(null)
+  const sendReadReceiptRef = useRef(null)
+  const activeTargetNameRef = useRef(activeTargetName)
+
+  useEffect(() => {
+    logWsRef.current = logWs
+  }, [logWs])
 
   const sortedChats = useMemo(() => {
     return [...(chats || [])].sort((a, b) => {
@@ -225,9 +229,17 @@ function ChatDock() {
 
   const isChatUnread = useCallback((chat) => {
     if (!chat?.lastMessageAt) return false
+    if (chat?.lastMessageSenderId && chat.lastMessageSenderId === user?.id) {
+      return false
+    }
     if (!chat?.lastReadAt) return true
     return new Date(chat.lastMessageAt).getTime() > new Date(chat.lastReadAt).getTime()
-  }, [])
+  }, [user?.id])
+
+  useEffect(() => {
+    isChatUnreadRef.current = isChatUnread
+  }, [isChatUnread])
+
 
   const refreshChatsList = useCallback(async () => {
     if (refreshChatsInFlightRef.current) return
@@ -243,8 +255,14 @@ function ChatDock() {
     }
   }, [])
 
+  useEffect(() => {
+    refreshChatsListRef.current = refreshChatsList
+  }, [refreshChatsList])
+
   const sendReadReceipt = useCallback((chatId) => {
     if (!chatId || !clientRef.current) return
+    const threadVisible = openRef.current && (!isDockNarrow || !showList)
+    if (!threadVisible) return
     const now = Date.now()
     const lastSent = lastReadSentRef.current.get(chatId) || 0
     if (now - lastSent < 1000) return
@@ -262,8 +280,11 @@ function ChatDock() {
       ),
     )
     setNotifiedChatIds((prev) => prev.filter((id) => id !== chatId))
-    setShowNewMessageBanner(false)
-  }, [])
+  }, [isDockNarrow, showList, logWs])
+
+  useEffect(() => {
+    sendReadReceiptRef.current = sendReadReceipt
+  }, [sendReadReceipt])
 
   const normalizeMessages = useCallback((list) => {
     const next = [...(list || [])]
@@ -271,32 +292,73 @@ function ChatDock() {
     return next
   }, [])
 
+  const getMessageKey = useCallback((message) => {
+    return message?.clientMessageId || message?.messageId || ''
+  }, [])
+
   const mergeMessages = useCallback((older, existing) => {
     const map = new Map()
     ;(existing || []).forEach((item) => {
-      if (item?.messageId) map.set(item.messageId, item)
+      const key = getMessageKey(item)
+      if (key) map.set(key, item)
     })
     ;(older || []).forEach((item) => {
-      if (item?.messageId && !map.has(item.messageId)) {
-        map.set(item.messageId, item)
+      const key = getMessageKey(item)
+      if (key && !map.has(key)) {
+        map.set(key, item)
       }
     })
     return normalizeMessages([...map.values()])
-  }, [normalizeMessages])
+  }, [getMessageKey, normalizeMessages])
 
+  const updateMessageByClientId = useCallback((conversationId, clientMessageId, updater) => {
+    if (!clientMessageId) return
+    setMessages((prev) => {
+      let changed = false
+      const next = prev.map((item) => {
+        if (item?.clientMessageId === clientMessageId) {
+          changed = true
+          return updater(item)
+        }
+        return item
+      })
+      return changed ? next : prev
+    })
+    setMessagesByConversation((prev) => {
+      const list = prev[conversationId]
+      if (!list) return prev
+      let changed = false
+      const nextList = list.map((item) => {
+        if (item?.clientMessageId === clientMessageId) {
+          changed = true
+          return updater(item)
+        }
+        return item
+      })
+      return changed ? { ...prev, [conversationId]: nextList } : prev
+    })
+  }, [])
 
-  const measureItem = useCallback(
-    (key) => (node) => {
-      if (!node) return
-      const height = node.getBoundingClientRect().height
-      const prev = itemHeightsRef.current.get(key)
-      if (prev !== height) {
-        itemHeightsRef.current.set(key, height)
-        setMeasureVersion((value) => value + 1)
-      }
-    },
-    [],
-  )
+  useEffect(() => {
+    updateMessageByClientIdRef.current = updateMessageByClientId
+  }, [updateMessageByClientId])
+
+  const markPendingMessages = useCallback(() => {
+    if (!pendingMessagesRef.current.size) return
+    pendingMessagesRef.current.forEach((entry, clientMessageId) => {
+      if (!entry?.conversationId) return
+      pendingMessagesRef.current.set(clientMessageId, { ...entry, status: 'pending' })
+      updateMessageByClientId(entry.conversationId, clientMessageId, (message) => ({
+        ...message,
+        status: 'pending',
+      }))
+    })
+  }, [updateMessageByClientId])
+
+  useEffect(() => {
+    markPendingMessagesRef.current = markPendingMessages
+  }, [markPendingMessages])
+
 
   const threadItems = useMemo(() => {
     const items = []
@@ -311,46 +373,19 @@ function ChatDock() {
         })
         lastDay = dayLabel
       }
-      items.push({ type: 'message', key: `msg-${message.messageId}`, message })
+      items.push({ type: 'message', key: `msg-${getMessageKey(message)}`, message })
     })
     return items
-  }, [messages])
-
-  const virtualData = useMemo(() => {
-    const count = threadItems.length
-    const sizes = new Array(count)
-    const offsets = new Array(count)
-    let total = 0
-    for (let index = 0; index < count; index += 1) {
-      const item = threadItems[index]
-      const key = item.key
-      const measured = itemHeightsRef.current.get(key)
-      const estimate = item.type === 'day' ? 40 : 76
-      const size = (measured ?? estimate) + (index === 0 ? 0 : itemGap)
-      sizes[index] = size
-      offsets[index] = total
-      total += size
-    }
-    return { sizes, offsets, total }
-  }, [threadItems, measureVersion, itemGap])
-
-  const dayMarkers = useMemo(() => {
-    return threadItems
-      .map((item, index) =>
-        item.type === 'day' ? { label: item.label, offset: virtualData.offsets[index] ?? 0 } : null,
-      )
-      .filter(Boolean)
-  }, [threadItems, virtualData.offsets])
+  }, [getMessageKey, messages])
 
   const scrollThreadToBottom = useCallback(() => {
-    if (!threadRef.current) return false
-    if (threadRef.current.scrollHeight === 0) {
-      return false
-    }
+    if (!threadRef.current) return
     threadRef.current.scrollTop = threadRef.current.scrollHeight
-    setThreadScrollTop(threadRef.current.scrollTop)
-    return true
   }, [])
+
+  useEffect(() => {
+    scrollThreadToBottomRef.current = scrollThreadToBottom
+  }, [scrollThreadToBottom])
 
   const handleToggleList = useCallback(() => {
     if (listToggleTimerRef.current) {
@@ -390,25 +425,19 @@ function ChatDock() {
           }
           setActiveTargetId(nextTargetId)
           setActiveTargetName(nextTargetName)
-          pendingBottomRef.current = saved.chatId
-          scrollToBottomRef.current = true
-          needsBottomRef.current = true
         }
       }
       return next
     })
     requestAnimationFrame(() => {
       if (!threadRef.current) return
-      if (pendingToggleAtBottomRef.current) {
-        scrollThreadToBottom()
-      } else if (pendingToggleScrollRef.current != null) {
+      if (pendingToggleScrollRef.current != null) {
         threadRef.current.scrollTop = pendingToggleScrollRef.current
-        setThreadScrollTop(threadRef.current.scrollTop)
       }
       pendingToggleScrollRef.current = null
       pendingToggleAtBottomRef.current = false
     })
-  }, [isDockNarrow, nearBottomThreshold, scrollThreadToBottom])
+  }, [activeTargetName, isDockNarrow, nearBottomThreshold])
 
   const loadOlderMessages = useCallback(async () => {
     const chatId = activeChatIdRef.current
@@ -449,53 +478,6 @@ function ChatDock() {
     }
   }, [mergeMessages, normalizeMessages, pageSize])
 
-  const virtualRange = useMemo(() => {
-    const count = threadItems.length
-    if (!count) {
-      return { start: 0, end: -1, total: 0 }
-    }
-    const { offsets, sizes, total } = virtualData
-    const scrollTop = threadScrollTop
-    const viewport = threadViewportHeight || 0
-    const overscan = 6
-    const findIndexForOffset = (target) => {
-      let low = 0
-      let high = offsets.length - 1
-      let answer = offsets.length - 1
-      while (low <= high) {
-        const mid = Math.floor((low + high) / 2)
-        const start = offsets[mid]
-        const end = start + sizes[mid]
-        if (end >= target) {
-          answer = mid
-          high = mid - 1
-        } else {
-          low = mid + 1
-        }
-      }
-      return answer
-    }
-    let start = findIndexForOffset(scrollTop)
-    let end = findIndexForOffset(scrollTop + viewport)
-    start = Math.max(0, start - overscan)
-    end = Math.min(count - 1, end + overscan)
-    return { start, end, total }
-  }, [threadItems.length, virtualData, threadScrollTop, threadViewportHeight])
-
-  const latestDayLabel = useMemo(() => {
-    if (!messages?.length) return ''
-    const lastMessage = messages[messages.length - 1]
-    return formatMessageDay(lastMessage?.sentAt)
-  }, [messages])
-
-  useEffect(() => {
-    if (isThreadAtTop) {
-      setStickyDayLabel('')
-      return
-    }
-    setStickyDayLabel(latestDayLabel)
-  }, [latestDayLabel, isThreadAtTop])
-
   useEffect(() => {
     if (!pendingAnchorRef.current || !threadRef.current) return
     const { chatId, prevScrollTop, prevScrollHeight } = pendingAnchorRef.current
@@ -505,87 +487,14 @@ function ChatDock() {
       const nextHeight = threadRef.current.scrollHeight
       const delta = nextHeight - prevScrollHeight
       threadRef.current.scrollTop = prevScrollTop + delta
-      setThreadScrollTop(threadRef.current.scrollTop)
       pendingAnchorRef.current = null
     })
-  }, [messages, measureVersion])
+  }, [messages])
 
-  useEffect(() => {
-    if (!open || !isDockNarrow || !threadRef.current) return
-    if (!isAtBottomRef.current) return
-    requestAnimationFrame(() => {
-      if (!threadRef.current) return
-      scrollThreadToBottom()
-    })
-  }, [showList, open, isDockNarrow, scrollThreadToBottom])
-
-  useEffect(() => {
-    if (!open || !threadRef.current) return
-    const pendingChatId = pendingBottomRef.current
-    if (!pendingChatId || pendingChatId !== activeChatIdRef.current) return
-    requestAnimationFrame(() => {
-      if (!threadRef.current) return
-      const didScroll = scrollThreadToBottom()
-      const { scrollTop, scrollHeight, clientHeight } = threadRef.current
-      const atBottom = scrollTop + clientHeight >= scrollHeight - nearBottomThreshold
-      if (!atBottom) {
-        requestAnimationFrame(() => {
-          if (!threadRef.current) return
-          scrollThreadToBottom()
-          pendingBottomRef.current = null
-        })
-        return
-      }
-      pendingBottomRef.current = null
-    })
-  }, [messages, measureVersion, open, scrollThreadToBottom, nearBottomThreshold])
-
-  useEffect(() => {
-    if (!open) return
-    if (messages.length === 0 || !dayMarkers.length) {
-      setStickyDayLabel('')
-      setIsThreadAtTop(true)
-      return
-    }
-    const scrollTop = threadRef.current?.scrollTop ?? 0
-    const firstMarker = dayMarkers[0]
-    const atTop = firstMarker ? firstMarker.offset - scrollTop >= 0 : true
-    setIsThreadAtTop(atTop)
-    if (atTop) {
-      setStickyDayLabel('')
-    }
-  }, [open, messages.length, dayMarkers])
 
   function handleThreadScroll(event) {
     const target = event.currentTarget
     lastScrollTopRef.current = target.scrollTop
-    setThreadScrollTop(target.scrollTop)
-    if (!dayMarkers.length) {
-      setIsThreadAtTop(true)
-      setStickyDayLabel('')
-      return
-    }
-    const firstMarker = dayMarkers[0]
-    if (firstMarker && firstMarker.offset - target.scrollTop >= 0) {
-      setIsThreadAtTop(true)
-      setStickyDayLabel('')
-      return
-    }
-    requestAnimationFrame(() => {
-      if (firstMarker && firstMarker.offset - target.scrollTop >= 0) {
-        setIsThreadAtTop(true)
-        setStickyDayLabel('')
-        return
-      }
-      setIsThreadAtTop(false)
-      let current = ''
-      for (const marker of dayMarkers) {
-        if (marker.offset - target.scrollTop <= 8) {
-          current = marker.label || ''
-        }
-      }
-      setStickyDayLabel(current || latestDayLabel)
-    })
   }
 
   useEffect(() => {
@@ -629,12 +538,10 @@ function ChatDock() {
   }, [activeChatId])
 
   useEffect(() => {
-    if (!activeChatId) {
-      setShowNewMessageBanner(false)
-      return
+    if (activeChatId) {
+      forceScrollOnNextLoadRef.current = true
     }
-    setShowNewMessageBanner(notifiedChatIds.includes(activeChatId))
-  }, [activeChatId, notifiedChatIds])
+  }, [activeChatId])
 
   useEffect(() => {
     loadingOlderRef.current = false
@@ -653,7 +560,6 @@ function ChatDock() {
   }, [activeChatId])
 
   useEffect(() => {
-    const prevId = prevActiveChatIdRef.current
     prevActiveChatIdRef.current = activeChatId
   }, [activeChatId])
 
@@ -662,40 +568,31 @@ function ChatDock() {
   }, [activeTargetId])
 
   useEffect(() => {
+    activeTargetNameRef.current = activeTargetName
+  }, [activeTargetName])
+
+  useEffect(() => {
     openRef.current = open
   }, [open])
 
   useEffect(() => {
-    if (!open || !activeChatId) return
-    scrollToBottomRef.current = true
-    forceScrollRef.current = true
-    needsBottomRef.current = true
-    pendingBottomRef.current = activeChatId
-  }, [open, activeChatId])
-
-  useEffect(() => {
-    if (open) return
-    if (!activeChatIdRef.current || !threadRef.current) return
+    if (open) {
+      lastLoadedChatIdRef.current = null
+      pendingScrollToBottomRef.current = false
+    }
   }, [open])
+
+  useLayoutEffect(() => {
+    if (!pendingScrollToBottomRef.current || !threadRef.current) return
+    pendingScrollToBottomRef.current = false
+    scrollThreadToBottom()
+  }, [messages, open, showList, isDockNarrow, activeChatId, scrollThreadToBottom])
 
 
   useEffect(() => {
     if (!dockSize) return
     localStorage.setItem('omniOne.chatDockSize', JSON.stringify(dockSize))
   }, [dockSize])
-
-  useEffect(() => {
-    if (!threadRef.current) return
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0]
-      if (entry) {
-        setThreadViewportHeight(entry.contentRect.height)
-      }
-    })
-    observer.observe(threadRef.current)
-    setThreadViewportHeight(threadRef.current.clientHeight)
-    return () => observer.disconnect()
-  }, [open, activeChatId])
 
   useEffect(() => {
     if (!dockPos) return
@@ -912,22 +809,6 @@ function ChatDock() {
     lastMessageMapRef.current = nextMap
   }
 
-  function getUpdatedChatIds(list) {
-    const prevMap = lastMessageMapRef.current
-    const updatedIds = []
-    const nextMap = new Map()
-    ;(list || []).forEach((chat) => {
-      const time = chat?.lastMessageAt ? new Date(chat.lastMessageAt).getTime() : 0
-      const prevTime = prevMap.get(chat.conversationId) || 0
-      if (time && time > prevTime) {
-        updatedIds.push(chat.conversationId)
-      }
-      nextMap.set(chat.conversationId, time)
-    })
-    lastMessageMapRef.current = nextMap
-    return updatedIds
-  }
-
   useEffect(() => {
     if (!open || !panelRef.current) return
     if (panelWidth === null) {
@@ -944,7 +825,7 @@ function ChatDock() {
     })
     observer.observe(panelRef.current)
     return () => observer.disconnect()
-  }, [open])
+  }, [open, panelWidth])
 
   useEffect(() => {
     if (!threadRef.current) return
@@ -954,7 +835,7 @@ function ChatDock() {
     if (!prev || prev.height !== height || prev.client !== client) {
       prevMetricsRef.current = { height, client }
     }
-  }, [measureVersion, open, activeChatId, showList, isDockNarrow])
+  }, [open, activeChatId, showList, isDockNarrow])
 
   useEffect(() => {
     if (isDockNarrow) {
@@ -1009,19 +890,23 @@ function ChatDock() {
       try {
           if (messagesByConversation[activeChatId]) {
             setMessages(messagesByConversation[activeChatId])
-            if (scrollToBottomRef.current) {
-              forceScrollRef.current = true
-              needsBottomRef.current = true
-              scrollToBottomRef.current = false
+            if (!pagingByConversationRef.current[activeChatId]) {
+              setPagingByConversation((prev) => ({
+                ...prev,
+                [activeChatId]: { cursor: null, hasMore: false },
+              }))
             }
-          if (!pagingByConversationRef.current[activeChatId]) {
-            setPagingByConversation((prev) => ({
-              ...prev,
-              [activeChatId]: { cursor: null, hasMore: false },
-            }))
+            const shouldAutoScroll =
+              forceScrollOnNextLoadRef.current ||
+              lastLoadedChatIdRef.current !== activeChatId ||
+              isAtBottomRef.current
+            if (shouldAutoScroll) {
+              pendingScrollToBottomRef.current = true
+            }
+            forceScrollOnNextLoadRef.current = false
+            lastLoadedChatIdRef.current = activeChatId
+            return
           }
-          return
-        }
         const data = await getChatMessages(activeChatId, { size: pageSize })
         if (!mounted) return
         const ordered = normalizeMessages(data?.content || [])
@@ -1033,11 +918,9 @@ function ChatDock() {
           ...prev,
           [activeChatId]: { cursor: nextCursor, hasMore },
         }))
-        if (scrollToBottomRef.current) {
-          forceScrollRef.current = true
-          needsBottomRef.current = true
-          scrollToBottomRef.current = false
-        }
+        pendingScrollToBottomRef.current = true
+        forceScrollOnNextLoadRef.current = false
+        lastLoadedChatIdRef.current = activeChatId
       } catch (err) {
         if (mounted) {
           setMessageError(err.message || 'Failed to load messages.')
@@ -1053,33 +936,7 @@ function ChatDock() {
 
   useEffect(() => {
     if (!open || !threadRef.current) return
-    if (forceScrollRef.current) {
-      forceScrollRef.current = false
-      const didScroll = scrollThreadToBottom()
-      requestAnimationFrame(() => {
-        if (!threadRef.current) return
-        const { scrollTop, scrollHeight, clientHeight } = threadRef.current
-        const atBottom = scrollTop + clientHeight >= scrollHeight - nearBottomThreshold
-        isAtBottomRef.current = atBottom
-        if (needsBottomRef.current && !atBottom) {
-          requestAnimationFrame(() => {
-            if (!threadRef.current) return
-            if (!scrollThreadToBottom()) {
-              needsBottomRef.current = true
-              return
-            }
-            needsBottomRef.current = false
-          })
-        } else {
-          needsBottomRef.current = false
-        }
-        if (atBottom && activeChatIdRef.current) {
-          setNotifiedChatIds((prev) => prev.filter((id) => id !== activeChatIdRef.current))
-          setShowNewMessageBanner(false)
-        }
-      })
-    }
-  }, [messages, measureVersion, showList, scrollThreadToBottom, open, activeChatId])
+  }, [messages, showList, open, activeChatId])
 
   useEffect(() => {
     const token = getToken()
@@ -1094,29 +951,35 @@ function ChatDock() {
     })
 
     client.onStompError = (frame) => {
-      logWs('stomp-error', {
+      logWsRef.current?.('stomp-error', {
         message: frame?.headers?.message || '',
         body: frame?.body || '',
       })
     }
 
     client.onWebSocketError = (event) => {
-      logWs('ws-error', { type: event?.type || 'error' })
+      logWsRef.current?.('ws-error', { type: event?.type || 'error' })
+      markPendingMessagesRef.current?.()
+    }
+
+    client.onWebSocketClose = () => {
+      logWsRef.current?.('ws-close', { userId: user?.id })
+      markPendingMessagesRef.current?.()
     }
 
     client.onUnhandledMessage = (message) => {
-      logWs('unhandled', {
+      logWsRef.current?.('unhandled', {
         destination: message?.headers?.destination || '',
         body: message?.body || '',
       })
     }
 
     client.onConnect = () => {
-      logWs('connect', { userId: user?.id })
-      logWs('subscribe', { destination: '/user/queue/reply' })
+      logWsRef.current?.('connect', { userId: user?.id })
+      logWsRef.current?.('subscribe', { destination: '/user/queue/reply' })
       client.subscribe('/user/queue/reply', (message) => {
         try {
-          logWs('recv', {
+          logWsRef.current?.('recv', {
             destination: '/user/queue/reply',
             size: message?.body?.length || 0,
             body: message?.body || null,
@@ -1126,11 +989,12 @@ function ChatDock() {
 
           const currentChatId = activeChatIdRef.current
           const isActiveChat = currentChatId && incoming.conversationId === currentChatId
+          const isSelfMessage = incoming.senderId && incoming.senderId === user?.id
           const knownChat = chatsRef.current.some(
             (chat) => chat.conversationId === incoming.conversationId,
           )
           if (!knownChat) {
-            refreshChatsList()
+            refreshChatsListRef.current?.()
           }
 
           if (isActiveChat) {
@@ -1139,11 +1003,6 @@ function ChatDock() {
               const { scrollTop, scrollHeight, clientHeight } = threadRef.current
               const atBottom = scrollTop + clientHeight >= scrollHeight - nearBottomThreshold
               isAtBottomRef.current = atBottom
-              if (!atBottom) {
-                setShowNewMessageBanner(true)
-                forceScrollRef.current = false
-                needsBottomRef.current = false
-              }
               shouldAutoScroll = atBottom
             }
             setMessages((prev) => {
@@ -1155,12 +1014,9 @@ function ChatDock() {
               return next
             })
             if (openRef.current && shouldAutoScroll) {
-              forceScrollRef.current = true
-              needsBottomRef.current = true
-              setShowNewMessageBanner(false)
-              sendReadReceipt(incoming.conversationId)
-            } else {
-              // keep current auto-scroll flag as-is
+              requestAnimationFrame(() => {
+                scrollThreadToBottomRef.current?.()
+              })
             }
           }
           setMessagesByConversation((prev) => {
@@ -1178,7 +1034,16 @@ function ChatDock() {
           setChats((prev) => {
             const next = prev.map((chat) =>
               chat.conversationId === incoming.conversationId
-                ? { ...chat, lastMessageAt: incoming.sentAt, lastMessagePreview: incoming.content }
+                ? {
+                    ...chat,
+                    lastMessageAt: incoming.sentAt,
+                    lastMessagePreview: incoming.content,
+                    lastMessageSenderId: incoming.senderId || chat.lastMessageSenderId,
+                    lastReadAt:
+                      isActiveChat && openRef.current && isAtBottomRef.current
+                        ? incoming.sentAt
+                        : chat.lastReadAt,
+                  }
                 : chat,
             )
             updateLastMessageMap(next)
@@ -1186,17 +1051,80 @@ function ChatDock() {
           })
 
           setNotifiedChatIds((prev) => {
+            if (isSelfMessage) {
+              return prev.filter((id) => id !== incoming.conversationId)
+            }
             if (isActiveChat && openRef.current && isAtBottomRef.current) {
               return prev.filter((id) => id !== incoming.conversationId)
             }
             return Array.from(new Set([...prev, incoming.conversationId]))
           })
+          if (isSelfMessage && activeChatIdRef.current === incoming.conversationId) {
+            setHasNewMessage(false)
+          }
           if (isActiveChat && openRef.current && isAtBottomRef.current) {
-            setShowNewMessageBanner(false)
-            sendReadReceipt(incoming.conversationId)
+            sendReadReceiptRef.current?.(incoming.conversationId)
           }
         } catch {
           // ignore refresh errors
+        }
+      })
+
+      logWsRef.current?.('subscribe', { destination: '/user/queue/acks' })
+      client.subscribe('/user/queue/acks', (message) => {
+        try {
+          const payload = message?.body ? JSON.parse(message.body) : null
+          const clientMessageId = payload?.clientMessageId
+          const conversationId = payload?.conversationId
+          if (!clientMessageId || !conversationId) return
+          pendingMessagesRef.current.delete(clientMessageId)
+          updateMessageByClientIdRef.current?.(conversationId, clientMessageId, (item) => ({
+            ...item,
+            messageId: payload?.messageId ?? item.messageId,
+            sentAt: payload?.sentAt || item.sentAt,
+            status: 'sent',
+            errorMessage: '',
+          }))
+          setChats((prev) => {
+            const next = prev.map((chat) =>
+              chat.conversationId === conversationId
+                ? {
+                    ...chat,
+                    lastMessageAt: payload?.sentAt || chat.lastMessageAt,
+                    lastReadAt: payload?.sentAt || chat.lastReadAt,
+                    lastMessageSenderId: user?.id || chat.lastMessageSenderId,
+                  }
+                : chat,
+            )
+            updateLastMessageMap(next)
+            return next
+          })
+        } catch {
+          // ignore ack parse errors
+        }
+      })
+
+      logWsRef.current?.('subscribe', { destination: '/user/queue/errors' })
+      client.subscribe('/user/queue/errors', (message) => {
+        try {
+          const payload = message?.body ? JSON.parse(message.body) : null
+          const clientMessageId = payload?.clientMessageId || lastSentMessageIdRef.current
+          const pendingEntry = clientMessageId ? pendingMessagesRef.current.get(clientMessageId) : null
+          const conversationId = pendingEntry?.conversationId || null
+          const errorMessage =
+            payload?.message ||
+            (payload?.fieldErrors ? Object.values(payload.fieldErrors)[0] : '') ||
+            'Message failed to send.'
+          if (clientMessageId && conversationId) {
+            pendingMessagesRef.current.delete(clientMessageId)
+            updateMessageByClientIdRef.current?.(conversationId, clientMessageId, (item) => ({
+              ...item,
+              status: 'failed',
+              errorMessage,
+            }))
+          }
+        } catch {
+          // ignore error parse failures
         }
       })
 
@@ -1207,13 +1135,13 @@ function ChatDock() {
           updateLastMessageMap(list || [])
           if (user?.id) {
             const unreadIds = (list || [])
-              .filter((chat) => isChatUnread(chat))
+              .filter((chat) => isChatUnreadRef.current?.(chat))
               .map((chat) => chat.conversationId)
             if (unreadIds.length) {
               setNotifiedChatIds((prev) => Array.from(new Set([...prev, ...unreadIds])))
             }
           }
-          if (activeChatIdRef.current && !activeTargetName) {
+          if (activeChatIdRef.current && !activeTargetNameRef.current) {
             const match = (list || []).find((item) => item.conversationId === activeChatIdRef.current)
             if (match) {
               const name = `${match.otherFirstName || ''} ${match.otherLastName || ''}`.trim()
@@ -1227,6 +1155,24 @@ function ChatDock() {
           setLoadingChats(false)
         }
       })()
+
+      if (pendingMessagesRef.current.size) {
+        pendingMessagesRef.current.forEach((entry, clientMessageId) => {
+          if (!entry?.payload || !entry?.conversationId) return
+          const { payload, conversationId } = entry
+          client.publish({
+            destination: '/app/chat.send',
+            body: JSON.stringify(payload),
+          })
+          pendingMessagesRef.current.set(clientMessageId, { ...entry, status: 'sending' })
+          updateMessageByClientIdRef.current?.(conversationId, clientMessageId, (item) => ({
+            ...item,
+            status: 'sending',
+            errorMessage: '',
+          }))
+          lastSentMessageIdRef.current = clientMessageId
+        })
+      }
     }
 
     client.activate()
@@ -1258,15 +1204,16 @@ function ChatDock() {
       setActiveTargetId(chat.otherUserId)
       const fallbackName = `${chat.otherFirstName || ''} ${chat.otherLastName || ''}`.trim()
       setActiveTargetName(overrideName || fallbackName)
-      scrollToBottomRef.current = true
-      needsBottomRef.current = true
       if (isDockNarrow) {
         setShowList(false)
       }
-      pendingBottomRef.current = chat.conversationId
+      setNotifiedChatIds((prev) => prev.filter((id) => id !== chat.conversationId))
       sendReadReceipt(chat.conversationId)
+      requestAnimationFrame(() => {
+        scrollThreadToBottom()
+      })
     },
-    [isDockNarrow, isChatUnread, sendReadReceipt],
+    [isDockNarrow, sendReadReceipt, scrollThreadToBottom],
   )
 
   const openChatWithTarget = useCallback(
@@ -1294,8 +1241,6 @@ function ChatDock() {
           const coach = await getClientCoach()
           setActiveTargetName(`${coach?.firstName || ''} ${coach?.lastName || ''}`.trim())
         }
-        scrollToBottomRef.current = true
-        needsBottomRef.current = true
       } catch (err) {
         setChatError(err.message || 'Failed to start chat.')
       }
@@ -1390,38 +1335,61 @@ function ChatDock() {
   function handleSend(event) {
     event.preventDefault()
     if (!input.trim() || !activeTargetId) return
-    if (!clientRef.current) {
-      setMessageError('Chat connection is offline. Try again in a moment.')
-      return
-    }
+    const isConnected = Boolean(clientRef.current && clientRef.current.connected)
 
     const content = input.trim()
+    const clientMessageId = crypto?.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random()}`
     const optimisticMessage = {
-      messageId: `${Date.now()}-${Math.random()}`,
+      clientMessageId,
+      messageId: clientMessageId,
       senderId: user?.id,
       sentAt: new Date().toISOString(),
       content,
+      status: isConnected ? 'sending' : 'pending',
+      errorMessage: '',
     }
-    clientRef.current.publish({
-      destination: '/app/chat.send',
-      body: JSON.stringify({ to: activeTargetId, content }),
-    })
-    logWs('send', {
-      destination: '/app/chat.send',
-      chatId: activeChatId,
-      to: activeTargetId,
-      content,
-    })
+
+    if (isConnected) {
+      clientRef.current.publish({
+        destination: '/app/chat.send',
+        body: JSON.stringify({ clientMessageId, to: activeTargetId, content }),
+      })
+      logWs('send', {
+        destination: '/app/chat.send',
+        chatId: activeChatId,
+        to: activeTargetId,
+        content,
+        clientMessageId,
+      })
+    }
+
+    if (activeChatId) {
+      pendingMessagesRef.current.set(clientMessageId, {
+        conversationId: activeChatId,
+        payload: { clientMessageId, to: activeTargetId, content },
+        status: isConnected ? 'sending' : 'pending',
+      })
+      lastSentMessageIdRef.current = clientMessageId
+    }
 
     setMessages((prev) => [...prev, optimisticMessage])
-    forceScrollRef.current = true
-    needsBottomRef.current = true
+    requestAnimationFrame(() => {
+      scrollThreadToBottom()
+    })
     if (activeChatId) {
       const now = optimisticMessage.sentAt
       setChats((prev) => {
         const next = prev.map((chat) =>
           chat.conversationId === activeChatId
-            ? { ...chat, lastMessagePreview: content, lastMessageAt: now }
+            ? {
+                ...chat,
+                lastMessagePreview: content,
+                lastMessageAt: now,
+                lastReadAt: now,
+                lastMessageSenderId: user?.id || chat.lastMessageSenderId,
+              }
             : chat,
         )
         updateLastMessageMap(next)
@@ -1439,6 +1407,10 @@ function ChatDock() {
     if (inputRef.current) {
       inputRef.current.style.height = 'auto'
     }
+      if (activeChatId) {
+        sendReadReceipt(activeChatId)
+        setNotifiedChatIds((prev) => prev.filter((id) => id !== activeChatId))
+      }
   }
 
   return (
@@ -1650,90 +1622,57 @@ function ChatDock() {
                         isAtBottomRef.current = atBottom
                         if (atBottom && isTrusted) {
                           setNotifiedChatIds((prev) => prev.filter((id) => id !== activeChatId))
-                          setShowNewMessageBanner(false)
-                          if (userScrollIntentRef.current) {
-                            sendReadReceipt(activeChatId)
-                          }
+                          sendReadReceipt(activeChatId)
                         }
                       }}
                     >
                       {loadingOlder ? <div className="muted">Loading older messages...</div> : null}
-                      {stickyDayLabel ? (
-                        <div className={`chat-day-sticky${isThreadAtTop ? ' is-hidden' : ''}`}>
-                          <span>{stickyDayLabel}</span>
-                        </div>
-                      ) : null}
                       {messages.length === 0 ? (
                         <p className="muted">No messages yet. Start the conversation below.</p>
                       ) : (
-                        <div className="chat-thread-virtual" style={{ height: virtualRange.total }}>
-                          {threadItems
-                            .slice(virtualRange.start, virtualRange.end + 1)
-                            .map((item, virtualIndex) => {
-                              const index = virtualRange.start + virtualIndex
-                              const top = virtualData.offsets[index] ?? 0
-                              const paddingTop = index === 0 ? 0 : itemGap
-                              if (item.type === 'day') {
-                                return (
-                                  <div
-                                    key={item.key}
-                                    ref={measureItem(item.key)}
-                                    className="chat-thread-item chat-day-row"
-                                    style={{ top, paddingTop }}
-                                    data-day={item.label}
-                                  >
-                                    <div className="chat-day-divider">
-                                      <span>{item.label}</span>
-                                    </div>
-                                  </div>
-                                )
-                              }
-                              const isSelf = item.message.senderId === user?.id
+                        <div className="chat-thread-list">
+                          {threadItems.map((item) => {
+                            if (item.type === 'day') {
                               return (
-                                <div
-                                  key={item.key}
-                                  ref={measureItem(item.key)}
-                                  className={`chat-thread-item ${isSelf ? 'chat-row-self' : 'chat-row-peer'}`}
-                                  style={{ top, paddingTop }}
-                                >
-                                  <div className={`chat-bubble ${isSelf ? 'chat-self' : 'chat-peer'}`}>
-                                    <div className="chat-meta">
-                                      {formatMessageTime(item.message.sentAt)}
-                                    </div>
-                                    <p>{item.message.content}</p>
+                                <div key={item.key} className="chat-thread-item chat-day-row" data-day={item.label}>
+                                  <div className="chat-day-divider">
+                                    <span>{item.label}</span>
                                   </div>
                                 </div>
                               )
-                            })}
+                            }
+                            const isSelf = item.message.senderId === user?.id
+                            const isSending = item.message.status === 'sending'
+                            const isFailed = item.message.status === 'failed'
+                            const isPending = item.message.status === 'pending'
+                            const isSendingMeta = isSending
+                            const metaLabel = isSendingMeta
+                              ? 'Sending...'
+                              : isPending
+                                ? 'Pending'
+                                : isFailed
+                                  ? 'Failed'
+                                  : formatMessageTime(item.message.sentAt)
+                            return (
+                              <div
+                                key={item.key}
+                                className={`chat-thread-item ${isSelf ? 'chat-row-self' : 'chat-row-peer'}`}
+                              >
+                                <div className={`chat-bubble ${isSelf ? 'chat-self' : 'chat-peer'}`}>
+                                  <p>{item.message.content}</p>
+                                  <div
+                                    className={`chat-meta${
+                                      isFailed ? ' chat-meta-error' : ''
+                                    }${isPending || isSendingMeta ? ' chat-meta-pending' : ''}`}
+                                  >
+                                    {metaLabel}
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          })}
                         </div>
                       )}
-                        {showNewMessageBanner ? (
-                          <button
-                            type="button"
-                            className="chat-new-banner"
-                            onClick={() => {
-                              needsBottomRef.current = true
-                              scrollThreadToBottom()
-                              requestAnimationFrame(() => {
-                                scrollThreadToBottom()
-                                if (needsBottomRef.current) {
-                                  requestAnimationFrame(() => {
-                                    scrollThreadToBottom()
-                                    needsBottomRef.current = false
-                                  })
-                                }
-                              })
-                              isAtBottomRef.current = true
-                              setShowNewMessageBanner(false)
-                              if (activeChatId) {
-                                setNotifiedChatIds((prev) => prev.filter((id) => id !== activeChatId))
-                                sendReadReceipt(activeChatId)
-                              }
-                            }}
-                          >
-                            New messages
-                          </button>
-                      ) : null}
                     </div>
                     {messageError ? <p className="error">{messageError}</p> : null}
                     <form className="chat-input" onSubmit={handleSend}>
