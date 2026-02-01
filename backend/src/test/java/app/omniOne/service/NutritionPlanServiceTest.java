@@ -78,13 +78,13 @@ import static org.mockito.Mockito.*;
     @Test void getNutriPlans_returnsPlansForClient() {
         List<NutritionPlan> plans = List.of(nutritionPlan(null), nutritionPlan(null));
 
-        when(nutritionPlanRepo.findByClientIdOrderByCreatedAtDescOrThrow(clientId)).thenReturn(plans);
+        when(nutritionPlanRepo.findByClientIdOrderByCreatedAtDesc(clientId)).thenReturn(plans);
 
         List<NutritionPlan> result = nutritionPlanService.getNutriPlans(clientId);
 
         assertEquals(plans, result);
         verify(clientRepo).findByIdOrThrow(clientId);
-        verify(nutritionPlanRepo).findByClientIdOrderByCreatedAtDescOrThrow(clientId);
+        verify(nutritionPlanRepo).findByClientIdOrderByCreatedAtDesc(clientId);
         verifyNoInteractions(nutritionPlanMapper);
     }
 

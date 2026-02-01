@@ -109,7 +109,8 @@ import static org.mockito.Mockito.*;
                 SendEmailException.class,
                 () -> emailService.sendResetPasswordMail(userEmail, "reset-token"));
 
-        assertEquals("boom", exception.getMessage());
+        assertEquals("Failed to send email", exception.getMessage());
+        assertEquals("boom", exception.getCause().getMessage());
         verify(mailSender).createMimeMessage();
         verify(mailSender).send(mimeMessage);
     }

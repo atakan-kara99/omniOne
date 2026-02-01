@@ -232,6 +232,8 @@ import static org.mockito.Mockito.*;
     @Test void reset_setsEncodedPasswordAndSavesUser() {
         User user = new User();
         user.setEmail(userEmail);
+        user.setEnabled(true);
+        user.setDeleted(false);
         User saved = new User();
         DecodedJWT jwt = mockJwt("email", userEmail);
         when(encoder.encode(anyString())).thenReturn("encoded");

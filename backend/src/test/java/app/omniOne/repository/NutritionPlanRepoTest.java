@@ -65,7 +65,7 @@ class NutritionPlanRepoTest extends RepositoryTestBase {
     }
 
     @Test void findByClientIdOrderByCreatedAtDescOrThrow_returnsPlansInOrder() {
-        List<NutritionPlan> plans = nutritionPlanRepo.findByClientIdOrderByCreatedAtDescOrThrow(client.getId());
+        List<NutritionPlan> plans = nutritionPlanRepo.findByClientIdOrderByCreatedAtDesc(client.getId());
 
         assertEquals(2, plans.size());
         assertEquals(recentPlan.getId(), plans.get(0).getId());
@@ -76,7 +76,7 @@ class NutritionPlanRepoTest extends RepositoryTestBase {
         Client otherClient = persistClient(persistUser("client2@omni.one", UserRole.CLIENT), null);
         flushAndClear();
 
-        List<NutritionPlan> plans = nutritionPlanRepo.findByClientIdOrderByCreatedAtDescOrThrow(otherClient.getId());
+        List<NutritionPlan> plans = nutritionPlanRepo.findByClientIdOrderByCreatedAtDesc(otherClient.getId());
 
         assertTrue(plans.isEmpty());
     }
