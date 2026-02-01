@@ -1,7 +1,7 @@
 package app.omniOne.service;
 
+import app.omniOne.authentication.model.dto.ChangePasswordRequest;
 import app.omniOne.exception.NotAllowedException;
-import app.omniOne.model.dto.ChangePasswordRequest;
 import app.omniOne.model.entity.User;
 import app.omniOne.repository.UserRepo;
 import org.junit.jupiter.api.BeforeEach;

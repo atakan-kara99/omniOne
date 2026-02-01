@@ -1,7 +1,7 @@
 package app.omniOne.authentication;
 
-import app.omniOne.authentication.model.LoginRequest;
-import app.omniOne.authentication.model.RegisterRequest;
+import app.omniOne.authentication.model.dto.LoginRequest;
+import app.omniOne.authentication.model.dto.RegisterRequest;
 import app.omniOne.authentication.token.JwtService;
 import app.omniOne.email.EmailService;
 import app.omniOne.repository.UserRepo;

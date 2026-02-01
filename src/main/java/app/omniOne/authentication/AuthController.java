@@ -1,6 +1,7 @@
 package app.omniOne.authentication;
 
-import app.omniOne.authentication.model.*;
+import app.omniOne.authentication.model.AuthMapper;
+import app.omniOne.authentication.model.dto.*;
 import app.omniOne.authentication.token.JwtDto;
 import app.omniOne.authentication.token.RefreshTokenProps;
 import io.swagger.v3.oas.annotations.tags.Tag;
