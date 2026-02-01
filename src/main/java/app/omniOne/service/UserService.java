@@ -77,10 +77,12 @@ public class UserService {
         if (user.getRole() == UserRole.CLIENT) {
             UUID clientId = user.getId();
             Client client = clientRepo.findByIdOrThrow(clientId);
-            Coach coach = client.getCoachOrThrow();
-            Coaching coaching = coachingRepo.findByCoachIdAndClientIdOrThrow(coach.getId(), clientId);
-            coaching.setEndDate(now);
-            client.setCoach(null);
+            Coach coach = client.getCoach();
+            if (coach != null) {
+                Coaching coaching = coachingRepo.findByCoachIdAndClientIdOrThrow(coach.getId(), clientId);
+                coaching.setEndDate(now);
+                client.setCoach(null);
+            }
         }
         log.info("Successfully soft deleted User and removed Coaching associations");
     }
