@@ -31,6 +31,7 @@ public class UserService {
     private final ClientRepo clientRepo;
     private final PasswordEncoder encoder;
     private final CoachingRepo coachingRepo;
+    private final RefreshTokenRepo refreshTokenRepo;
 
     public User getUser(UUID id) {
         log.debug("Trying to retrieve User {}", id);
@@ -85,6 +86,8 @@ public class UserService {
                 client.setCoach(null);
             }
         }
+        refreshTokenRepo.findByUserId(user.getId())
+                .ifPresent(rt -> rt.setRevokedAt(LocalDateTime.now()));
         log.info("Successfully soft deleted User and removed Coaching associations");
     }
 

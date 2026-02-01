@@ -13,6 +13,8 @@ import java.util.UUID;
 @Repository
 public interface RefreshTokenRepo extends JpaRepository<RefreshToken, UUID> {
 
+    Optional<RefreshToken> findByUserId(UUID userId);
+
     Optional<RefreshToken> findByTokenHash(String tokenHash);
 
     Optional<RefreshToken> findByTokenHashAndDeviceId(String tokenHash, UUID deviceId);
@@ -22,6 +24,11 @@ public interface RefreshTokenRepo extends JpaRepository<RefreshToken, UUID> {
     @Modifying
     @Query("DELETE FROM RefreshToken rt WHERE rt.expiresAt < :now")
     int deleteAllExpired(LocalDateTime now);
+
+    default RefreshToken findByUserId(String tokenHash) {
+        return findByTokenHash(tokenHash)
+                .orElseThrow(() -> new NoSuchResourceException("RefreshToken not found"));
+    }
 
     default RefreshToken findByTokenHashAndDeviceIdOrThrow(String tokenHash, UUID deviceId) {
         return findByTokenHashAndDeviceId(tokenHash, deviceId)
