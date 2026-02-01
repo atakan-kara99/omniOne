@@ -2,21 +2,22 @@
 
 ## Frontend
 
-
 ## Backend
 
-* POST /auth/token/refresh, POST /auth/logout? 
-  * Detect reuse (if an old refresh token is presented after rotation → revoke the whole session)
 * Profile picture for users
-    * Check which is best approach for dev and prod
+  * Check which is best approach for dev and prod
 * Check-Ins
-    * Weight, NutriPlan, Comment, Date, Photos, Videos, Satiation/Hunger, Energielevel, Sleep, Steps
-* Reminder system (for Check-In)
-* Supplements
-* Statistics (w graphs over time)
+  * Weight, NutriPlan, Comment, Date, Photos, Videos, Satiation/Hunger, Energielevel, Sleep, Steps
+* Reminder System / Notifications
+  * for Check-In
+  * for Chat Messages
+* SupplementPlan
+* Statistics / Analytics 
+  * graphs over time
 * Peakweek planning
-* Training
+* Training plan creation & management
 * Q&A after client activation (my version is not complete, need templating)
+* ws tries to reconnect and jwt is expired -> error overload
 
 ## DevOps
 
@@ -29,7 +30,7 @@
 * Prometheus and Grafana with Actuator
 * Check out how this should work
 
-## CV
+## CV & GIT
 
 * Test (JUnit, Mockito), JaCoCo
 * STOMP over WebSockets
@@ -41,9 +42,9 @@
 
 * Chat
   * Chat thread scroll position saved
+  * If a lot of msg are loaded, the typing is slow
 
 ## Backend
 
-* Add deviceId to RefreshTokens
-  * 1 refreshToken per device and user.
-* Fix multitab behavior (login/refresh/logout)
+* CSRF
+  * Check if it is configured well in prod
