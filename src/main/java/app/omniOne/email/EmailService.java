@@ -80,7 +80,7 @@ public class EmailService {
             helper.setText(text, true);
             mailSender.send(message);
         } catch (Exception ex) {
-            throw new SendEmailException(ex.getMessage());
+            throw new SendEmailException("Failed to send email", ex);
         }
     }
 
