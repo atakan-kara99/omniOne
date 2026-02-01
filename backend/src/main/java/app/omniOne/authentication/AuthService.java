@@ -89,6 +89,8 @@ public class AuthService {
         log.debug("Trying to refresh jwt for User");
         RefreshToken refreshToken = refreshTokenService.getRefreshToken(rawToken, deviceId);
         UserDetails userDetails = new UserDetails(refreshToken.getUser());
+        if (!userDetails.isEnabled())
+            throw new NotAllowedException("User is disabled or deleted");
         String jwt = jwtService.createAuthJwt(userDetails);
         String newToken = refreshTokenService.rotateRefreshToken(rawToken, deviceId);
         log.info("Successfully refreshed jwt and refresh token");
