@@ -1,6 +1,7 @@
 package app.omniOne.configuration;
 
 import app.omniOne.chatting.AuthChannelInterceptor;
+import app.omniOne.logging.MessageLoggingInterceptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private String allowedOrigin;
 
     private final AuthChannelInterceptor authChannelInterceptor;
+    private final MessageLoggingInterceptor messageLoggingInterceptor;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -37,7 +39,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(authChannelInterceptor);
+        registration.interceptors(messageLoggingInterceptor, authChannelInterceptor);
     }
 
 }

@@ -9,7 +9,7 @@
 
 
     <springProfile name="test">
-        <property name="PATTERN" value="%d{HH:mm:ss} - %-40.40logger{39} %5p - %8X{correlationId} : %m%n"/>
+        <property name="PATTERN" value="%d{HH:mm:ss} - %-40.40logger{39} %5p - %10X{traceId} : %m%n"/>
         <root level="WARN">
             <appender-ref ref="CONSOLE"/>
         </root>
@@ -17,7 +17,7 @@
 
     <springProfile name="dev">
         <logger name="app.omniOne" level="DEBUG"/>
-        <property name="PATTERN" value="%d{HH:mm:ss} - %-40.40logger{39} %5p - %8X{correlationId} : %m%n"/>
+        <property name="PATTERN" value="%d{HH:mm:ss} - %-40.40logger{39} %5p - %10X{traceId} : %m%n"/>
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
         </root>
@@ -27,7 +27,7 @@
         <logger name="app.omniOne" level="DEBUG"/>
         <springProperty scope="context" name="LOG_FILE" source="logging.file.name"/>
         <springProperty scope="context" name="LOG_PATH" source="logging.file.path"/>
-        <property name="PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p --- [%t] %-40.40logger{39} [cid=%X{correlationId}] : %m%n"/>
+        <property name="PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p --- [%t] %-40.40logger{39} [%X{traceId}] : %m%n"/>
         <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
             <file>${LOG_PATH}/${LOG_FILE}.log</file>
             <encoder>
