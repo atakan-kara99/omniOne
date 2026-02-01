@@ -37,6 +37,8 @@ public class AuthChannelInterceptor implements ChannelInterceptor {
             return message;
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             String authHeader = accessor.getFirstNativeHeader("authorization");
+            if (authHeader == null)
+                authHeader = accessor.getFirstNativeHeader("Authorization");
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 log.warn("Failed to read authorization header on STOMP CONNECT");
                 sendError(accessor, "Authentication Error", "Missing or invalid Authorization header");
