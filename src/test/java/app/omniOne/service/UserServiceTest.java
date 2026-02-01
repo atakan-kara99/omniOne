@@ -3,6 +3,10 @@ package app.omniOne.service;
 import app.omniOne.authentication.model.dto.ChangePasswordRequest;
 import app.omniOne.exception.NotAllowedException;
 import app.omniOne.model.entity.User;
+import app.omniOne.repository.ClientRepo;
+import app.omniOne.repository.CoachRepo;
+import app.omniOne.repository.CoachingRepo;
+import app.omniOne.authentication.token.RefreshTokenRepo;
 import app.omniOne.repository.UserRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +27,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class) class UserServiceTest {
 
     @Mock private UserRepo userRepo;
+    @Mock private CoachRepo coachRepo;
+    @Mock private ClientRepo clientRepo;
+    @Mock private CoachingRepo coachingRepo;
+    @Mock private RefreshTokenRepo refreshTokenRepo;
     @Mock private PasswordEncoder passwordEncoder;
     @InjectMocks private UserService userService;
 
@@ -88,6 +96,7 @@ import static org.mockito.Mockito.*;
 
         when(userRepo.findByIdOrThrow(userId)).thenReturn(user);
         when(passwordEncoder.encode(any())).thenReturn("encoded-random");
+        when(refreshTokenRepo.findByUserId(user.getId())).thenReturn(java.util.Optional.empty());
 
         userService.softDeleteUser(userId);
 

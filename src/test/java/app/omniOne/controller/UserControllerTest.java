@@ -80,7 +80,7 @@ class UserControllerTest extends AuthTestSupport {
     }
 
     @Test void changePassword_updatesUserAndReturnsDto() throws Exception {
-        ChangePasswordRequest request = new ChangePasswordRequest("oldPass", "newPass");
+        ChangePasswordRequest request = new ChangePasswordRequest("Testpq12", "Testpq34");
         User user = new User();
         UserDto dto = new UserDto(userId, userEmail, UserRole.COACH,
                 LocalDateTime.of(2025, 2, 2, 8, 30));
@@ -98,8 +98,8 @@ class UserControllerTest extends AuthTestSupport {
         ArgumentCaptor<ChangePasswordRequest> captor = ArgumentCaptor.forClass(ChangePasswordRequest.class);
         verify(userService).changePassword(eq(userId), captor.capture());
         ChangePasswordRequest captured = captor.getValue();
-        assertEquals("oldPass", captured.oldPassword());
-        assertEquals("newPass", captured.newPassword());
+        assertEquals("Testpq12", captured.oldPassword());
+        assertEquals("Testpq34", captured.newPassword());
         verify(userMapper).map(user);
     }
 
@@ -162,8 +162,8 @@ class UserControllerTest extends AuthTestSupport {
                         .content(objectMapper.writeValueAsString(invalid)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("Validation Failed"))
-                .andExpect(jsonPath("$.errors.oldPassword").value("must not be blank"))
-                .andExpect(jsonPath("$.errors.newPassword").value("must not be blank"));
+                .andExpect(jsonPath("$.errors.oldPassword").value("size must be between 8 and 32"))
+                .andExpect(jsonPath("$.errors.newPassword").value("size must be between 8 and 32"));
 
         verifyNoInteractions(userService);
         verifyNoInteractions(userMapper);
