@@ -21,23 +21,30 @@ import java.util.UUID;
 public class RequestLoggingFilter extends OncePerRequestFilter {
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        String correlationId = UUID.randomUUID().toString().substring(0, 8);
-        MDC.put("correlationId", correlationId);
+        String traceId = UUID.randomUUID().toString().substring(0, 8);
+        MDC.put("traceId", traceId + "HT");
 
         String method = request.getMethod();
         String path = request.getRequestURI();
-        log.info("→ {} {}", method, path);
+        if (!method.equals("OPTIONS"))
+            log.info("→ {} {}", method, path);
 
         long start = System.currentTimeMillis();
-        filterChain.doFilter(request, response);
-        long duration = System.currentTimeMillis() - start;
-
-        HttpStatus status = HttpStatus.valueOf(response.getStatus());
-        log.info("← {} {} with {} in {} ms", method, path, status, duration);
-
-        MDC.clear();
+        try {
+            filterChain.doFilter(request, response);
+        } catch (Exception ex) {
+            log.error("Request failed: {} {}", method, path);
+            throw ex;
+        } finally {
+            long duration = System.currentTimeMillis() - start;
+            HttpStatus status = HttpStatus.valueOf(response.getStatus());
+            if (!method.equals("OPTIONS"))
+                log.info("← {} {} with {} in {} ms", method, path, status, duration);
+            MDC.clear();
+        }
     }
 
 }
