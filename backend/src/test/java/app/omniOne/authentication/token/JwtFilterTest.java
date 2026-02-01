@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.*;
 
     @Mock private JwtService jwtService;
     @Mock private FilterChain filterChain;
+    @Spy private ObjectMapper objectMapper;
 
     @InjectMocks private JwtFilter jwtFilter;
 
@@ -84,7 +86,7 @@ import static org.mockito.Mockito.*;
         assertEquals(401, response.getStatus());
         assertEquals("application/json", response.getContentType());
 
-        Map<String, Object> body = new ObjectMapper()
+        Map<String, Object> body = objectMapper
                 .readValue(response.getContentAsByteArray(), new TypeReference<>() {});
         assertEquals("Invalid JWToken", body.get("error"));
         assertEquals("/coach/clients", body.get("path"));

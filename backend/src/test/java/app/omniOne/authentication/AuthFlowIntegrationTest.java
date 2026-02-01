@@ -56,7 +56,8 @@ class AuthFlowIntegrationTest {
         assertFalse(userRepo.findByIdOrThrow(userId).isEnabled(), "User should be disabled before activation");
 
         String activationToken = jwtService.createActivationJwt(coachEmail);
-        mockMvc.perform(get("/auth/account/activate").param("token", activationToken))
+        mockMvc.perform(post("/auth/account/activate")
+                .with(csrf()).param("token", activationToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.enabled").value(true));
         assertTrue(userRepo.findByIdOrThrow(userId).isEnabled(), "User should be enabled after activation");

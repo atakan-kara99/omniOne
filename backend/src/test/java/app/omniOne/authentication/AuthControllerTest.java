@@ -2,9 +2,11 @@ package app.omniOne.authentication;
 
 import app.omniOne.authentication.model.*;
 import app.omniOne.authentication.token.JwtFilter;
+import app.omniOne.authentication.token.RefreshTokenProps;
 import app.omniOne.model.entity.User;
 import app.omniOne.model.enums.UserRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -41,9 +43,14 @@ class AuthControllerTest {
     @MockitoBean private JwtFilter jwtFilter;
     @MockitoBean private AuthMapper authMapper;
     @MockitoBean private AuthService authService;
+    @MockitoBean private RefreshTokenProps refreshTokenProps;
+
+    @BeforeEach void setup() {
+        when(refreshTokenProps.ttlDays()).thenReturn(30);
+    }
 
     @Test void login_returnsJwtResponse() throws Exception {
-        LoginRequest request = new LoginRequest(userEmail, "pass");
+        LoginRequest request = new LoginRequest(userEmail, "Testpq12");
         UUID deviceId = UUID.randomUUID();
         when(authService.login(request, deviceId)).thenReturn(new LoginResponse("jwt-token", "refresh-token"));
 
@@ -60,7 +67,7 @@ class AuthControllerTest {
     }
 
     @Test void register_returnsMappedAuthResponse() throws Exception {
-        RegisterRequest request = new RegisterRequest(coachEmail, "pwd");
+        RegisterRequest request = new RegisterRequest(coachEmail, "Testpq12");
         User savedUser = new User();
         savedUser.setId(UUID.randomUUID());
         AuthResponse response = new AuthResponse(savedUser.getId(), coachEmail, UserRole.COACH,
@@ -93,7 +100,7 @@ class AuthControllerTest {
         when(authService.activate(token)).thenReturn(user);
         when(authMapper.map(user)).thenReturn(response);
 
-        mockMvc.perform(get("/auth/account/activate").param("token", token))
+        mockMvc.perform(post("/auth/account/activate").param("token", token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.enabled").value(true))
                 .andExpect(jsonPath("$.id").value(user.getId().toString()));
@@ -103,14 +110,14 @@ class AuthControllerTest {
     }
 
     @Test void resend_sendsActivationMail() throws Exception {
-        mockMvc.perform(get("/auth/account/resend").param("email", userEmail))
+        mockMvc.perform(post("/auth/account/resend").param("email", userEmail))
                 .andExpect(status().isNoContent());
 
         verify(authService).sendActivationMail(userEmail);
     }
 
     @Test void forgot_sendsForgotMail() throws Exception {
-        mockMvc.perform(get("/auth/password/forgot").param("email", userEmail))
+        mockMvc.perform(post("/auth/password/forgot").param("email", userEmail))
                 .andExpect(status().isNoContent());
 
         verify(authService).sendForgotMail(userEmail);
@@ -118,7 +125,7 @@ class AuthControllerTest {
 
     @Test void reset_updatesPasswordAndReturnsAuthResponse() throws Exception {
         String token = "reset-token";
-        PasswordRequest request = new PasswordRequest("newPass");
+        PasswordRequest request = new PasswordRequest("Testpq12");
         User user = new User();
         user.setId(UUID.randomUUID());
         AuthResponse response = new AuthResponse(user.getId(), userEmail, UserRole.CLIENT,
@@ -127,7 +134,9 @@ class AuthControllerTest {
         when(authService.reset(eq(token), any(PasswordRequest.class))).thenReturn(user);
         when(authMapper.map(user)).thenReturn(response);
 
-        mockMvc.perform(post("/auth/password/reset").param("token", token)
+        mockMvc.perform(post("/auth/password/reset")
+                        .with(csrf())
+                        .param("token", token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -140,7 +149,7 @@ class AuthControllerTest {
 
     @Test void acceptInvitation_registersAndReturnsAuthResponse() throws Exception {
         String token = "invite-token";
-        PasswordRequest request = new PasswordRequest("secret");
+        PasswordRequest request = new PasswordRequest("Testpq12");
         User user = new User();
         user.setId(UUID.randomUUID());
         AuthResponse response = new AuthResponse(user.getId(), clientEmail, UserRole.CLIENT,
@@ -166,7 +175,7 @@ class AuthControllerTest {
 
         when(authService.validateInvitation(token)).thenReturn(response);
 
-        mockMvc.perform(get("/auth/invitation/validate").param("token", token))
+        mockMvc.perform(post("/auth/invitation/validate").param("token", token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value(userEmail))
                 .andExpect(jsonPath("$.requiresPassword").value(true));
@@ -175,7 +184,7 @@ class AuthControllerTest {
     }
 
     @Test void reset_returnsBadRequestWhenTokenBlank() throws Exception {
-        PasswordRequest request = new PasswordRequest("newPass");
+        PasswordRequest request = new PasswordRequest("Testpq12");
 
         mockMvc.perform(post("/auth/password/reset").param("token", "")
                         .contentType(MediaType.APPLICATION_JSON)
