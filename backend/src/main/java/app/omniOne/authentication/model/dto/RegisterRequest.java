@@ -1,9 +1,9 @@
-package app.omniOne.authentication.model;
+package app.omniOne.authentication.model.dto;
 
+import app.omniOne.authentication.model.validation.Password;
 import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record RegisterRequest(
@@ -14,9 +14,7 @@ public record RegisterRequest(
 
         @NotBlank
         @Size(min = 8, max = 32)
-        @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)\\S{8,32}$",
-                message = "Password must be 8–32 characters and include at least one uppercase letter, " +
-                        "one lowercase letter, and one number. Special characters are allowed. No spaces.")
+        @Password
         String password
 
 ) {

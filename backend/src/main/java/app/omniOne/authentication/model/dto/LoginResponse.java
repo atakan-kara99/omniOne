@@ -1,4 +1,4 @@
-package app.omniOne.authentication.model;
+package app.omniOne.authentication.model.dto;
 
 import jakarta.annotation.Nonnull;
 

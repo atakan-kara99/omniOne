@@ -1,8 +1,8 @@
 package app.omniOne.controller;
 
 import app.omniOne.AuthTestSupport;
+import app.omniOne.authentication.model.dto.ChangePasswordRequest;
 import app.omniOne.authentication.token.JwtFilter;
-import app.omniOne.model.dto.ChangePasswordRequest;
 import app.omniOne.model.dto.UserDto;
 import app.omniOne.model.dto.UserProfileDto;
 import app.omniOne.model.dto.UserProfileRequest;
@@ -12,8 +12,8 @@ import app.omniOne.model.enums.Gender;
 import app.omniOne.model.enums.UserRole;
 import app.omniOne.model.mapper.UserMapper;
 import app.omniOne.model.mapper.UserProfileMapper;
-import app.omniOne.service.UserService;
 import app.omniOne.service.UserProfileService;
+import app.omniOne.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -1,10 +1,10 @@
 package app.omniOne.authentication;
 
-import app.omniOne.authentication.model.LoginRequest;
-import app.omniOne.authentication.model.LoginResponse;
-import app.omniOne.authentication.model.PasswordRequest;
-import app.omniOne.authentication.model.RegisterRequest;
 import app.omniOne.authentication.model.UserDetails;
+import app.omniOne.authentication.model.dto.LoginRequest;
+import app.omniOne.authentication.model.dto.LoginResponse;
+import app.omniOne.authentication.model.dto.PasswordRequest;
+import app.omniOne.authentication.model.dto.RegisterRequest;
 import app.omniOne.authentication.token.JwtService;
 import app.omniOne.authentication.token.RefreshTokenService;
 import app.omniOne.chatting.repository.ChatParticipantRepo;

@@ -1,6 +1,7 @@
 package app.omniOne.authentication;
 
-import app.omniOne.authentication.model.*;
+import app.omniOne.authentication.model.UserDetails;
+import app.omniOne.authentication.model.dto.*;
 import app.omniOne.authentication.token.JwtService;
 import app.omniOne.authentication.token.RefreshToken;
 import app.omniOne.authentication.token.RefreshTokenService;
