@@ -1,12 +1,12 @@
 package app.omniOne.service;
 
 import app.omniOne.authentication.model.dto.ChangePasswordRequest;
+import app.omniOne.authentication.token.RefreshTokenRepo;
 import app.omniOne.exception.NotAllowedException;
 import app.omniOne.model.entity.User;
 import app.omniOne.repository.ClientRepo;
 import app.omniOne.repository.CoachRepo;
 import app.omniOne.repository.CoachingRepo;
-import app.omniOne.authentication.token.RefreshTokenRepo;
 import app.omniOne.repository.UserRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
 import java.util.UUID;
 
 import static app.omniOne.TestFixtures.user;
@@ -96,7 +97,7 @@ import static org.mockito.Mockito.*;
 
         when(userRepo.findByIdOrThrow(userId)).thenReturn(user);
         when(passwordEncoder.encode(any())).thenReturn("encoded-random");
-        when(refreshTokenRepo.findByUserId(user.getId())).thenReturn(java.util.Optional.empty());
+        when(refreshTokenRepo.findAllByUserId(user.getId())).thenReturn(List.of());
 
         userService.softDeleteUser(userId);
 

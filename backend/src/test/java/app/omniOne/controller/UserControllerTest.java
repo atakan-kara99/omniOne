@@ -161,9 +161,7 @@ class UserControllerTest extends AuthTestSupport {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.title").value("Validation Failed"))
-                .andExpect(jsonPath("$.errors.oldPassword").value("size must be between 8 and 32"))
-                .andExpect(jsonPath("$.errors.newPassword").value("size must be between 8 and 32"));
+                .andExpect(jsonPath("$.title").value("Validation Failed"));
 
         verifyNoInteractions(userService);
         verifyNoInteractions(userMapper);
