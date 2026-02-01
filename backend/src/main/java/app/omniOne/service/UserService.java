@@ -86,8 +86,8 @@ public class UserService {
                 client.setCoach(null);
             }
         }
-        refreshTokenRepo.findByUserId(user.getId())
-                .ifPresent(rt -> rt.setRevokedAt(LocalDateTime.now()));
+        refreshTokenRepo.findAllByUserId(user.getId())
+                .forEach(rt -> rt.setRevokedAt(LocalDateTime.now()));
         log.info("Successfully soft deleted User and removed Coaching associations");
     }
 
