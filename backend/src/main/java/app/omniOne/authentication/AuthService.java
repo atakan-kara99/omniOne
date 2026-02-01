@@ -91,7 +91,7 @@ public class AuthService {
         RefreshToken refreshToken = refreshTokenService.getRefreshToken(rawToken, deviceId);
         UserDetails userDetails = new UserDetails(refreshToken.getUser());
         if (!userDetails.isEnabled())
-            throw new NotAllowedException("User is disabled or deleted");
+            throw new DisabledException("User account is disabled/deleted");
         String jwt = jwtService.createAuthJwt(userDetails);
         String newToken = refreshTokenService.rotateRefreshToken(rawToken, deviceId);
         log.info("Successfully refreshed jwt and refresh token");
@@ -214,8 +214,8 @@ public class AuthService {
     public void sendForgotMail(String email) {
         email = normalize(email);
         User user = userRepo.findByEmailOrThrow(email);
-        if (!user.isEnabled())
-            throw new DisabledException("User account is disabled");
+        if (!user.isEnabled() || user.isDeleted())
+            throw new DisabledException("User account is disabled/deleted");
         String jwt = jwtService.createResetPasswordJwt(email);
         emailService.sendResetPasswordMail(email, jwt);
     }
@@ -225,6 +225,8 @@ public class AuthService {
         DecodedJWT jwt = jwtService.verifyResetPassword(token);
         String email = normalize(jwt.getClaim("email").asString());
         User user = userRepo.findByEmailOrThrow(email);
+        if (!user.isEnabled() || user.isDeleted())
+            throw new DisabledException("User account is disabled/deleted");
         user.setPassword(encoder.encode(request.password()));
         User savedUser = userRepo.save(user);
         log.info("Successfully reset password from User {}", user.getId());
