@@ -26,11 +26,6 @@ public interface NutritionPlanRepo extends JpaRepository<NutritionPlan, Long> {
                 .orElseThrow(() -> new NoSuchResourceException("NutritionPlan not found"));
     }
 
-    Optional<List<NutritionPlan>> findByClientIdOrderByCreatedAtDesc(UUID clientId);
-
-    default List<NutritionPlan> findByClientIdOrderByCreatedAtDescOrThrow(UUID clientId) {
-        return findByClientIdOrderByCreatedAtDesc(clientId)
-                .orElseThrow(() -> new NoSuchResourceException("NutritionPlan not found"));
-    }
+    List<NutritionPlan> findByClientIdOrderByCreatedAtDesc(UUID clientId);
 
 }

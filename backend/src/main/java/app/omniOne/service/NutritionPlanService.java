@@ -43,7 +43,7 @@ public class NutritionPlanService {
     public List<NutritionPlan> getNutriPlans(UUID clientId) {
         log.debug("Trying to retrieve NutritionPlans for Client {}", clientId);
         clientRepo.findByIdOrThrow(clientId);
-        List<NutritionPlan> nutritionPlans = nutritionPlanRepo.findByClientIdOrderByCreatedAtDescOrThrow(clientId);
+        List<NutritionPlan> nutritionPlans = nutritionPlanRepo.findByClientIdOrderByCreatedAtDesc(clientId);
         log.info("Successfully retrieved NutritionPlans");
         return nutritionPlans;
     }
