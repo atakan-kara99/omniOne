@@ -1,5 +1,6 @@
 package app.omniOne.exception;
 
+import app.omniOne.exception.custom.ResourceNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;

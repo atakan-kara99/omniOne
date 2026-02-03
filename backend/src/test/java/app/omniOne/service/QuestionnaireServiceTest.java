@@ -1,6 +1,6 @@
 package app.omniOne.service;
 
-import app.omniOne.exception.ResourceNotFoundException;
+import app.omniOne.exception.custom.ResourceNotFoundException;
 import app.omniOne.model.dto.QuestionnaireAnswerRequest;
 import app.omniOne.model.dto.QuestionnaireAnswerResponse;
 import app.omniOne.model.dto.QuestionnaireQuestionPostRequest;

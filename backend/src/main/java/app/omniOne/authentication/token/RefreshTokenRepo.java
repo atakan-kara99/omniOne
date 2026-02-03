@@ -1,6 +1,6 @@
 package app.omniOne.authentication.token;
 
-import app.omniOne.exception.ResourceNotFoundException;
+import app.omniOne.exception.custom.ResourceNotFoundException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

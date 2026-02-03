@@ -2,7 +2,7 @@ package app.omniOne.service;
 
 import app.omniOne.authentication.model.dto.ChangePasswordRequest;
 import app.omniOne.authentication.token.RefreshTokenRepo;
-import app.omniOne.exception.OperationNotAllowedException;
+import app.omniOne.exception.custom.OperationNotAllowedException;
 import app.omniOne.model.entity.User;
 import app.omniOne.repository.ClientRepo;
 import app.omniOne.repository.CoachRepo;
