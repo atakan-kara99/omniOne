@@ -160,7 +160,7 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(200px, 240px) 1fr;
+  grid-template-columns: max-content 1fr;
   gap: 24px;
   padding: 28px 36px 48px;
 }
@@ -178,6 +178,7 @@
   flex-direction: column;
   gap: 10px;
   padding: 16px;
+  width: max-content;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid rgba(148, 163, 184, 0.2);
@@ -214,6 +215,7 @@
   color: #0f172a;
   font-weight: 500;
   transition: transform 0.2s ease, background 0.2s ease;
+  white-space: nowrap;
 }
 
 .nav-link.active {
@@ -579,7 +581,8 @@ button {
     top: 92px;
     left: 20px;
     right: auto;
-    width: min(260px, 84vw);
+    width: max-content;
+    max-width: calc(100vw - 40px);
     max-height: calc(100vh - 120px);
     overflow-y: auto;
     transform: translateX(-120%);
@@ -811,6 +814,12 @@ button:disabled {
   border-radius: 10px;
 }
 
+.field-error {
+  margin: 6px 0 0;
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
+
 .success {
   color: #166534;
   background: #dcfce7;
@@ -994,6 +1003,20 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+.inline-actions .danger-button {
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inline-actions .danger-button svg {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  display: block;
 }
 
 .list-link {
