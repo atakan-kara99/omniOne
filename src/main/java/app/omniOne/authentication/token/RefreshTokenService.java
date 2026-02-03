@@ -1,8 +1,8 @@
 package app.omniOne.authentication.token;
 
-import app.omniOne.exception.InternalServerException;
-import app.omniOne.exception.ResourceNotFoundException;
-import app.omniOne.exception.RefreshTokenInvalidException;
+import app.omniOne.exception.custom.InternalServerException;
+import app.omniOne.exception.custom.ResourceNotFoundException;
+import app.omniOne.exception.custom.RefreshTokenInvalidException;
 import app.omniOne.model.entity.User;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;

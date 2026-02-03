@@ -3,7 +3,7 @@ package app.omniOne.email;
 import app.omniOne.email.properties.ActivationProps;
 import app.omniOne.email.properties.InvitationProps;
 import app.omniOne.email.properties.ResetPasswordProps;
-import app.omniOne.exception.EmailDeliveryException;
+import app.omniOne.exception.custom.EmailDeliveryException;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Assertions;

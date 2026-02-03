@@ -2,7 +2,7 @@ package app.omniOne.chatting.repository;
 
 import app.omniOne.chatting.model.dto.ChatConversationDto;
 import app.omniOne.chatting.model.entity.ChatConversation;
-import app.omniOne.exception.ResourceNotFoundException;
+import app.omniOne.exception.custom.ResourceNotFoundException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

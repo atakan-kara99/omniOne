@@ -1,10 +1,10 @@
 package app.omniOne.exception;
 
+import app.omniOne.exception.custom.AccountDisabledException;
+import app.omniOne.exception.custom.ApiException;
+import app.omniOne.exception.custom.JwtExpiredException;
+import app.omniOne.exception.custom.JwtInvalidException;
 import com.auth0.jwt.exceptions.JWTDecodeException;
-import com.auth0.jwt.exceptions.TokenExpiredException;
-import app.omniOne.exception.AccountDisabledException;
-import app.omniOne.exception.JwtExpiredException;
-import app.omniOne.exception.JwtInvalidException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,6 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -51,20 +50,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(pd, ex.getStatus());
     }
 
-    @ExceptionHandler(TokenExpiredException.class)
-    public ResponseEntity<ProblemDetail> handleTokenExpired(TokenExpiredException ex, HttpServletRequest request) {
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-        ProblemDetail pd = problemDetailFactory.create(
-                request,
-                status,
-                ErrorCode.AUTH_TOKEN_EXPIRED,
-                ErrorCode.AUTH_TOKEN_EXPIRED.title(),
-                "Token has expired",
-                Map.of());
-        log.info("Token expired: {}", ex.getMessage());
-        return new ResponseEntity<>(pd, status);
-    }
-
     @ExceptionHandler(JWTDecodeException.class)
     public ResponseEntity<ProblemDetail> handleJwtDecode(JWTDecodeException ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
@@ -89,7 +74,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.AUTH_TOKEN_EXPIRED.title(),
                 ex.getMessage(),
                 Map.of());
-        log.info("Token expired: {}", ex.getMessage());
+        log.info("JWT expired: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
@@ -104,20 +89,6 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 Map.of());
         log.info("JWT invalid: {}", ex.getMessage());
-        return new ResponseEntity<>(pd, status);
-    }
-
-    @ExceptionHandler(DisabledException.class)
-    public ResponseEntity<ProblemDetail> handleDisabled(DisabledException ex, HttpServletRequest request) {
-        HttpStatus status = HttpStatus.FORBIDDEN;
-        ProblemDetail pd = problemDetailFactory.create(
-                request,
-                status,
-                ErrorCode.AUTH_ACCOUNT_DISABLED,
-                ErrorCode.AUTH_ACCOUNT_DISABLED.title(),
-                "Account is disabled",
-                Map.of());
-        log.info("Account disabled: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 

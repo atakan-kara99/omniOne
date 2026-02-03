@@ -1,6 +1,6 @@
 package app.omniOne.repository;
 
-import app.omniOne.exception.ResourceNotFoundException;
+import app.omniOne.exception.custom.ResourceNotFoundException;
 import app.omniOne.model.dto.ClientResponse;
 import app.omniOne.model.entity.Client;
 import org.springframework.data.jpa.repository.JpaRepository;

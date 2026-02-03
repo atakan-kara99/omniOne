@@ -1,6 +1,6 @@
 package app.omniOne.model.entity;
 
-import app.omniOne.exception.ResourceNotFoundException;
+import app.omniOne.exception.custom.ResourceNotFoundException;
 import app.omniOne.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;

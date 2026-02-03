@@ -1,5 +1,6 @@
-package app.omniOne.exception;
+package app.omniOne.exception.custom;
 
+import app.omniOne.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 public class EmailDeliveryException extends ApiException {
