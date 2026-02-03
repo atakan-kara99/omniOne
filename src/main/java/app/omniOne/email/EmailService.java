@@ -47,24 +47,23 @@ public class EmailService {
     public void sendActivationMail(String to, String jwt) {
         sendTemplateMail(to, jwt,
                 activationProps.urlPath(), activationProps.filePath(), activationProps.subject(), activationProps.ttlMins());
-        log.info("Successfully send activation mail to {}", to);
+        log.info("Sent activation email (template={})", activationProps.filePath());
     }
 
     public void sendResetPasswordMail(String to, String jwt) {
         sendTemplateMail(to, jwt,
                 resetPasswordProps.urlPath(), resetPasswordProps.filePath(), resetPasswordProps.subject(),
                 resetPasswordProps.ttlMins());
-        log.info("Successfully send reset-password mail to {}", to);
+        log.info("Sent reset-password email (template={})", resetPasswordProps.filePath());
     }
 
     public void sendInvitationMail(String to, String jwt) {
         sendTemplateMail(to, jwt,
                 invitationProps.urlPath(), invitationProps.filePath(), invitationProps.subject(), invitationProps.ttlMins());
-        log.info("Successfully send invitation mail to {}", to);
+        log.info("Sent invitation email (template={})", invitationProps.filePath());
     }
 
     private void sendTemplateMail(String to, String jwt, String urlPath, String filePath, String subject, int ttlMins) {
-        log.debug("Trying to send mail to {}", to);
         urlPath += "?token=" + jwt;
         String text = render(filePath, Map.of(
                 "baseUrl", baseUrl,
@@ -80,7 +79,6 @@ public class EmailService {
             helper.setText(text, true);
             mailSender.send(message);
         } catch (Exception ex) {
-            log.warn("Failed to send email (to={}, subject={})", to, subject, ex);
             throw new EmailDeliveryException("Failed to send email", ex);
         }
     }
@@ -98,7 +96,6 @@ public class EmailService {
     }
 
     private String render(String templateName, Map<String, Object> variables) {
-        log.debug("Trying to render {} template", templateName);
         Context context = new Context();
         context.setVariables(variables);
         return templateEngine.process(templateName, context);

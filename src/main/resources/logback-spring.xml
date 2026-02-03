@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="60 seconds">
 
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>${PATTERN}</pattern>
-        </encoder>
-    </appender>
-
-
     <springProfile name="test">
-        <property name="PATTERN" value="%d{HH:mm:ss} - %-40.40logger{39} %5p - %10X{traceId} : %m%n"/>
+        <property name="PATTERN" value="%d{HH:mm:ss} | %-36.36logger{36} | %-5level | %-10X{traceId} | %msg%n"/>
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${PATTERN}</pattern>
+            </encoder>
+        </appender>
         <root level="WARN">
             <appender-ref ref="CONSOLE"/>
         </root>
@@ -17,21 +15,50 @@
 
     <springProfile name="dev">
         <logger name="app.omniOne" level="DEBUG"/>
-        <property name="PATTERN" value="%d{HH:mm:ss} - %-40.40logger{39} %5p - %10X{traceId} : %m%n"/>
+        <property name="PATTERN" value="%d{HH:mm:ss} | %-36.36logger{36} | %-5level | %-10X{traceId} | %msg%n"/>
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${PATTERN}</pattern>
+            </encoder>
+        </appender>
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
 
     <springProfile name="prod">
-        <logger name="app.omniOne" level="DEBUG"/>
-        <springProperty scope="context" name="LOG_FILE" source="logging.file.name"/>
-        <springProperty scope="context" name="LOG_PATH" source="logging.file.path"/>
-        <property name="PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p --- [%t] %-40.40logger{39} [%X{traceId}] : %m%n"/>
-        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <logger name="app.omniOne" level="INFO"/>
+        <springProperty scope="context" name="LOG_FILE" source="logging.file.name" defaultValue="omniOne"/>
+        <springProperty scope="context" name="LOG_PATH" source="logging.file.path" defaultValue="./logs"/>
+        <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp>
+                        <timeZone>UTC</timeZone>
+                    </timestamp>
+                    <logLevel/>
+                    <threadName/>
+                    <loggerName/>
+                    <message/>
+                    <mdc/>
+                    <stackTrace/>
+                </providers>
+            </encoder>
+        </appender>
+        <appender name="FILE_JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
             <file>${LOG_PATH}/${LOG_FILE}.log</file>
-            <encoder>
-                <pattern>${PATTERN}</pattern>
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp>
+                        <timeZone>UTC</timeZone>
+                    </timestamp>
+                    <logLevel/>
+                    <threadName/>
+                    <loggerName/>
+                    <message/>
+                    <mdc/>
+                    <stackTrace/>
+                </providers>
             </encoder>
             <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                 <fileNamePattern>${LOG_PATH}/${LOG_FILE}-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
@@ -39,8 +66,8 @@
             </rollingPolicy>
         </appender>
         <root level="INFO">
-            <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="FILE"/>
+            <appender-ref ref="CONSOLE_JSON"/>
+            <appender-ref ref="FILE_JSON"/>
         </root>
     </springProfile>
 

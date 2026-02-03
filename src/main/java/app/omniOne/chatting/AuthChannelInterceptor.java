@@ -58,7 +58,7 @@ public class AuthChannelInterceptor implements ChannelInterceptor {
                                 id, null, Collections.singleton(new SimpleGrantedAuthority(role)));
                 accessor.setUser(authToken);
             } catch (Exception ex) {
-                log.warn("Failed to authenticate STOMP CONNECT: {}", ex.getMessage());
+                log.warn("Failed to authenticate STOMP CONNECT");
                 sendError(accessor,
                         "Authentication Error",
                         "Invalid token",

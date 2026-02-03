@@ -19,18 +19,14 @@ public class CoachService {
     private final CoachMapper coachMapper;
 
     public Coach getCoach(UUID coachId) {
-        log.debug("Trying to retrieve Coach {}", coachId);
-        Coach coach = coachRepo.findByIdOrThrow(coachId);
-        log.info("Successfully retrieved Coach");
-        return coach;
+        return coachRepo.findByIdOrThrow(coachId);
     }
 
     public Coach patchCoach(UUID coachId, CoachPatchRequest request) {
-        log.debug("Trying to update Coach {}", coachId);
         Coach coach = coachRepo.findByIdOrThrow(coachId);
         coachMapper.map(request, coach);
         Coach savedCoach = coachRepo.save(coach);
-        log.info("Successfully updated Coach");
+        log.info("Coach updated (coachId={})", savedCoach.getId());
         return savedCoach;
     }
 

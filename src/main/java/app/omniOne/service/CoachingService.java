@@ -25,25 +25,23 @@ public class CoachingService {
 
     @Transactional
     public void startCoaching(UUID coachId, UUID clientId) {
-        log.debug("Trying to start coaching by Coach {} for Client {}", coachId, clientId);
         Client client = clientRepo.findByIdOrThrow(clientId);
         Coach coach = coachRepo.findByIdOrThrow(coachId);
         client.setCoach(coach);
         Coaching coaching = Coaching.builder().coach(coach).client(client).build();
         coachingRepo.save(coaching);
         clientRepo.save(client);
-        log.info("Successfully started coaching");
+        log.info("Coaching started (coachId={}, clientId={})", coachId, clientId);
     }
 
     @Transactional
     public void endCoaching(UUID clientId) {
-        log.debug("Trying to end coaching for Client {}", clientId);
         Client client = clientRepo.findByIdOrThrow(clientId);
         Coach coach = client.getCoachOrThrow();
         client.setCoach(null);
         Coaching coaching = coachingRepo.findByCoachIdAndClientIdOrThrow(coach.getId(), clientId);
         coaching.setEndDate(LocalDateTime.now());
-        log.info("Successfully ended coaching");
+        log.info("Coaching ended (coachId={}, clientId={})", coach.getId(), clientId);
     }
 
 }

@@ -44,7 +44,7 @@ public class ProblemDetailAccessDeniedHandler implements AccessDeniedHandler {
                     headerToken != null,
                     cookieNames);
         } else {
-            log.info("Access denied: {}", ex.getMessage());
+            log.warn("Access denied");
         }
         problemDetailFactory.write(
                 request,
