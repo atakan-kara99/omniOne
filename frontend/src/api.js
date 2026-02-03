@@ -1,8 +1,11 @@
 import { clearStoredUser, clearToken, getToken, setToken } from './auth.js'
+import { buildAppError, isAuthErrorCode, toAppError } from './errorUtils.js'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080'
 const DEBUG_API = import.meta.env.DEV
 let isLoggingOut = false
+let csrfInitialized = false
+let csrfInitPromise = null
 const DEVICE_ID_KEY = 'omniOne.deviceId'
 
 function logApi(event, details) {
@@ -46,10 +49,26 @@ function getDeviceId() {
 
 export async function refreshCsrf() {
   try {
-    await apiFetch('/auth/csrf', { method: 'POST', skipAuth: true, skipCsrf: true })
+    await apiFetch('/auth/csrf', {
+      method: 'GET',
+      skipAuth: true,
+      skipCsrf: true,
+      credentials: 'include',
+    })
   } catch {
     // ignore csrf refresh errors
   }
+}
+
+async function ensureCsrfInitialized() {
+  if (csrfInitialized || getCsrfCookie()) return
+  if (!csrfInitPromise) {
+    csrfInitPromise = refreshCsrf().finally(() => {
+      csrfInitialized = Boolean(getCsrfCookie())
+      csrfInitPromise = null
+    })
+  }
+  await csrfInitPromise
 }
 
 function buildHeaders(customHeaders, skipAuth) {
@@ -77,7 +96,15 @@ async function parseResponse(response) {
   if (contentType.includes('application/json')) {
     return response.json()
   }
-  return response.text()
+  const text = await response.text()
+  if (text) {
+    try {
+      return JSON.parse(text)
+    } catch {
+      // fall through to raw text
+    }
+  }
+  return text
 }
 
 export async function apiFetch(path, options = {}) {
@@ -85,10 +112,11 @@ export async function apiFetch(path, options = {}) {
   const skipAuth = Boolean(options.skipAuth)
   const skipRefresh = Boolean(options.skipRefresh)
   const skipCsrf = Boolean(options.skipCsrf)
+  const retryOnCsrfFailure = options.retryOnCsrfFailure !== false
   const method = (options.method || 'GET').toUpperCase()
   logApi('request', { path, method: options.method || 'GET', body: options.body })
-  if (!skipCsrf && !['GET', 'HEAD', 'OPTIONS'].includes(method) && !getCsrfCookie()) {
-    await refreshCsrf()
+  if (!skipCsrf && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    await ensureCsrfInitialized()
   }
   try {
     const headers = buildHeaders(options.headers, skipAuth)
@@ -105,20 +133,20 @@ export async function apiFetch(path, options = {}) {
     })
   } catch (err) {
     logApi('error', { path, message: err?.message || 'Network error' })
-    const error = new Error('Service currently unavailable. Please try again later.')
-    error.status = 0
-    error.payload = null
-    throw error
+    throw buildAppError({
+      status: 0,
+      detail: 'Service currently unavailable. Please try again later.',
+      errorCode: 'INTERNAL_ERROR',
+      payload: null,
+    })
   }
 
   if (!response.ok) {
     const payload = await parseResponse(response)
     logApi('response-error', { path, status: response.status, payload })
-    const error = new Error(payload?.message || response.statusText)
-    error.status = response.status
-    error.payload = payload
+    const error = toAppError(payload, response.status, response.statusText)
     if (response.status === 401) {
-      if (!skipRefresh && !isLoggingOut) {
+      if (!skipRefresh && !isLoggingOut && !isAuthErrorCode(error.errorCode)) {
         try {
           const refreshed = await refreshAuth()
           if (refreshed?.jwt) {
@@ -129,11 +157,22 @@ export async function apiFetch(path, options = {}) {
           // fall through to clear session
         }
       }
-      clearToken()
-      clearStoredUser()
-      if (getToken() && window.location.pathname !== '/login') {
-        window.location.href = '/login'
+      if (isAuthErrorCode(error.errorCode) || !skipRefresh) {
+        clearToken()
+        clearStoredUser()
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
       }
+    }
+    if (
+      retryOnCsrfFailure &&
+      !skipCsrf &&
+      !['GET', 'HEAD', 'OPTIONS'].includes(method) &&
+      error.errorCode === 'SECURITY_CSRF'
+    ) {
+      await refreshCsrf()
+      return apiFetch(path, { ...options, retryOnCsrfFailure: false })
     }
     throw error
   }
