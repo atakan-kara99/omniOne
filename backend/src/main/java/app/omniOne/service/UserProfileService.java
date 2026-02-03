@@ -23,22 +23,18 @@ public class UserProfileService {
     private final UserProfileMapper userProfileMapper;
 
     public UserProfile getProfile(UUID id) {
-        log.debug("Trying to retrieve UserProfile for User {}", id);
-        UserProfile profile = userProfileRepo.findByIdOrThrow(id);
-        log.info("Successfully retrieved UserProfile");
-        return profile;
+        return userProfileRepo.findByIdOrThrow(id);
     }
 
     @Transactional
     public UserProfile putProfile(UUID id, UserProfileRequest request) {
-        log.debug("Trying to update UserProfile for User {}", id);
         User user = userRepo.findByIdOrThrow(id);
         UserProfile profile = userProfileRepo.findById(id)
                 .orElseGet(() -> UserProfile.builder()
                         .user(user).build());
         userProfileMapper.map(request, profile);
         userProfileRepo.save(profile);
-        log.info("Successfully updated UserProfile");
+        log.info("UserProfile updated (userId={})", id);
         return profile;
     }
 

@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -24,25 +23,23 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        String traceId = UUID.randomUUID().toString().substring(0, 8) + "HT";
+        String traceId = resolveRequestId(request);
         MDC.put("traceId", traceId);
         response.setHeader("X-Request-Id", traceId);
 
-        String method = request.getMethod();
-        String path = request.getRequestURI();
-        if (!method.equals("OPTIONS"))
-            log.info("→ {} {}", method, path);
-
-        long start = System.currentTimeMillis();
         try {
             filterChain.doFilter(request, response);
         } finally {
-            long duration = System.currentTimeMillis() - start;
-            HttpStatus status = HttpStatus.valueOf(response.getStatus());
-            if (!method.equals("OPTIONS"))
-                log.info("← {} {} with {} in {} ms", method, path, status, duration);
             MDC.clear();
         }
+    }
+
+    private String resolveRequestId(HttpServletRequest request) {
+        String inbound = request.getHeader("X-Request-Id");
+        if (inbound != null && !inbound.isBlank()) {
+            return inbound.trim();
+        }
+        return UUID.randomUUID().toString().substring(0, 8) + "HT";
     }
 
 }

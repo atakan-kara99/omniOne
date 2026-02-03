@@ -46,7 +46,13 @@ public class GlobalExceptionHandler {
                 ex.getErrorCode().title(),
                 ex.getMessage(),
                 ex.getDetails());
-        log.error("Request failed", ex);
+        if (ex.getStatus().is5xxServerError()) {
+            log.error("Request failed (code={}, status={})",
+                    ex.getErrorCode(), ex.getStatus(), ex);
+        } else {
+            log.warn("Request failed (code={}, status={})",
+                    ex.getErrorCode(), ex.getStatus());
+        }
         return new ResponseEntity<>(pd, ex.getStatus());
     }
 
@@ -60,7 +66,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.AUTH_INVALID_TOKEN.title(),
                 "Token is invalid",
                 Map.of());
-        log.info("JWT decode failed: {}", ex.getMessage());
+        log.warn("JWT decode failed");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -74,7 +80,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.AUTH_TOKEN_EXPIRED.title(),
                 ex.getMessage(),
                 Map.of());
-        log.info("JWT expired: {}", ex.getMessage());
+        log.warn("JWT expired");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -88,7 +94,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.AUTH_INVALID_TOKEN.title(),
                 ex.getMessage(),
                 Map.of());
-        log.info("JWT invalid: {}", ex.getMessage());
+        log.warn("JWT invalid");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -103,7 +109,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.AUTH_ACCOUNT_DISABLED.title(),
                 ex.getMessage(),
                 Map.of());
-        log.info("Account disabled: {}", ex.getMessage());
+        log.warn("Account disabled");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -117,7 +123,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.AUTH_INVALID_CREDENTIALS.title(),
                 "Invalid credentials",
                 Map.of());
-        log.info("Bad credentials: {}", ex.getMessage());
+        log.warn("Bad credentials");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -132,7 +138,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.SECURITY_ACCESS_DENIED.title(),
                 "Access is denied",
                 Map.of());
-        log.info("Authorization denied: {}", ex.getMessage());
+        log.warn("Authorization denied");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -147,7 +153,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.RESOURCE_NOT_FOUND.title(),
                 "Resource not found",
                 Map.of());
-        log.info("No resource found: {}", ex.getMessage());
+        log.warn("No resource found");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -162,7 +168,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.REQUEST_METHOD_NOT_ALLOWED.title(),
                 "Method not allowed",
                 Map.of("method", ex.getMethod()));
-        log.info("Method not supported: {}", ex.getMessage());
+        log.warn("Method not supported");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -177,7 +183,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.REQUEST_MEDIA_TYPE_UNSUPPORTED.title(),
                 "Unsupported media type",
                 Map.of("contentType", ex.getContentType() == null ? "unknown" : ex.getContentType().toString()));
-        log.info("Unsupported media type: {}", ex.getMessage());
+        log.warn("Unsupported media type");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -192,7 +198,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.REQUEST_MISSING_PARAMETER.title(),
                 "Missing required parameter",
                 Map.of("parameter", ex.getParameterName()));
-        log.info("Missing parameter: {}", ex.getMessage());
+        log.warn("Missing parameter");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -207,7 +213,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.REQUEST_TYPE_MISMATCH.title(),
                 "Parameter has invalid value",
                 Map.of("parameter", ex.getName(), "value", String.valueOf(ex.getValue())));
-        log.info("Type mismatch: {}", ex.getMessage());
+        log.warn("Type mismatch");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -222,7 +228,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.REQUEST_MALFORMED.title(),
                 "Invalid request body",
                 Map.of());
-        log.info("Unreadable request body: {}", ex.getMessage());
+        log.warn("Unreadable request body");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -240,7 +246,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.VALIDATION_ERROR.title(),
                 "Validation failed",
                 Map.of("errors", errors));
-        log.info("Validation failed: {}", ex.getMessage());
+        log.warn("Validation failed");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -260,7 +266,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.VALIDATION_ERROR.title(),
                 "Validation failed",
                 Map.of("errors", errors));
-        log.info("Method validation failed: {}", ex.getMessage());
+        log.warn("Method validation failed");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -278,7 +284,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.VALIDATION_ERROR.title(),
                 "Validation failed",
                 Map.of("errors", errors));
-        log.info("Constraint violation: {}", ex.getMessage());
+        log.warn("Constraint violation");
         return new ResponseEntity<>(pd, status);
     }
 
@@ -293,7 +299,7 @@ public class GlobalExceptionHandler {
                 ErrorCode.RESOURCE_CONFLICT.title(),
                 "Request conflicts with existing data",
                 Map.of());
-        log.info("Data integrity violation: {}", ex.getMessage());
+        log.warn("Data integrity violation");
         return new ResponseEntity<>(pd, status);
     }
 

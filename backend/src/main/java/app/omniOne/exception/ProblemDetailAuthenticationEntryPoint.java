@@ -34,7 +34,7 @@ public class ProblemDetailAuthenticationEntryPoint implements AuthenticationEntr
             errorCode = ErrorCode.AUTH_INVALID_CREDENTIALS;
             detail = "Invalid credentials";
         }
-        log.info("Authentication failed: {}", ex.getMessage());
+        log.warn("Authentication failed");
         problemDetailFactory.write(
                 request,
                 response,

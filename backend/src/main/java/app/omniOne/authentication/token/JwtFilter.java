@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -45,9 +46,15 @@ public class JwtFilter extends OncePerRequestFilter {
                                     id, null, Collections.singleton(new SimpleGrantedAuthority(role)));
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    MDC.put("userId", id);
+                    MDC.put("role", role.substring(5));
+                    String deviceId = request.getHeader("X-Device-Id");
+                    if (deviceId != null && !deviceId.isBlank()) {
+                        MDC.put("deviceId", deviceId);
+                    }
                 }
             } catch (Exception ex) {
-                log.warn("Invalid JWT or unauthorized access: {}", ex.getMessage());
+                log.warn("Invalid JWT or unauthorized access");
                 problemDetailFactory.write(
                         request,
                         response,

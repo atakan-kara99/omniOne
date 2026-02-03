@@ -39,15 +39,10 @@ public class ChatService {
     private final ChatConversationRepo conversationRepo;
 
     public List<ChatConversationDto> getChatConversations(UUID userId) {
-        log.debug("Trying to retrieve ChatConversations from User {}", userId);
-        List<ChatConversationDto> chats = conversationRepo.findConversationsOf(userId);
-        log.info("Successfully retrieved ChatConversations");
-        return chats;
+        return conversationRepo.findConversationsOf(userId);
     }
 
     public Slice<ChatMessage> getSliceOfMessages(UUID conversationId, LocalDateTime beforeSentAt, int size) {
-        log.debug("Trying to retrieve slice of {} ChatMessages of ChatConversation {} before {}"
-                , size, conversationId, beforeSentAt);
         Pageable pageable = PageRequest.of(0, size);
         Slice<ChatMessage> chatMessages;
         if (beforeSentAt == null) {
@@ -55,13 +50,11 @@ public class ChatService {
         } else {
             chatMessages = messageRepo.findMessagesOlderThan(conversationId, beforeSentAt, pageable);
         }
-        log.info("Successfully retrieve slice of ChatMessages");
         return chatMessages;
     }
 
     @Transactional
     public ChatMessageDto saveMessage(UUID fromId, UUID toId, String content) {
-        log.debug("Trying to save ChatMessage from User {} to User {}", fromId, toId);
         LocalDateTime now = LocalDateTime.now();
         ChatConversation conversation = conversationRepo.findConversationBetween(fromId, toId)
                 .orElseGet(() -> createConversationWithParticipants(fromId, toId));
@@ -72,13 +65,10 @@ public class ChatService {
         User from = userRepo.findByIdOrThrow(fromId);
         ChatMessage message = messageRepo.save(ChatMessage.builder()
                 .conversation(conversation).sender(from).sentAt(now).content(content).build());
-        ChatMessageDto messageDto = chatMapper.map(message);
-        log.info("Successfully saved ChatMessage");
-        return messageDto;
+        return chatMapper.map(message);
     }
 
     private ChatConversation createConversationWithParticipants(UUID fromId, UUID toId) {
-        log.debug("Trying to create ChatConversation from User {} to User {}", fromId, toId);
         User to = userRepo.findByIdOrThrow(toId);
         User from = userRepo.findByIdOrThrow(fromId);
         ChatConversation conversation = conversationRepo.save(new ChatConversation());
@@ -87,26 +77,20 @@ public class ChatService {
         ChatParticipant participantTo = ChatParticipant.builder()
                 .id(new ChatParticipantId()).user(to).conversation(conversation).build();
         participantRepo.saveAll(List.of(participantFrom, participantTo));
-        log.info("Successfully created ChatConversation");
         return conversation;
     }
 
     public ChatConversationDto startChatConversation(UUID myId, UUID otherId) {
-        log.debug("Trying to start a ChatConversation between User {} and User {}", myId, otherId);
         ChatConversation conversation = conversationRepo.findConversationBetween(myId, otherId)
                 .orElseGet(() -> createConversationWithParticipants(myId, otherId));
         UserProfile otherProfile = userProfileRepo.findByIdOrThrow(otherId);
-        ChatConversationDto conversationDto = chatMapper.map(conversation, otherProfile);
-        log.info("Successfully started ChatConversation");
-        return conversationDto;
+        return chatMapper.map(conversation, otherProfile);
     }
 
     public void readMessage(UUID userId, UUID conversationId) {
-        log.debug("Trying to update lastReadAt in ChatConversation {} for User {}", conversationId, userId);
         ChatParticipant participant = participantRepo.findByIdOrThrow(new ChatParticipantId(conversationId, userId));
         participant.setLastReadAt(LocalDateTime.now());
         participantRepo.save(participant);
-        log.info("Successfully updated lastReadAt in ChatConversation");
     }
 
 }

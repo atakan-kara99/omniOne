@@ -23,7 +23,7 @@ public class WebSocketExceptionHandler {
         BindingResult result = ex.getBindingResult();
         if (result != null)
             result.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
-        log.info("Failed to validate websocket message because: {}", ex.getMessage());
+        log.warn("Failed to validate websocket message");
         return new WebSocketError(
                 "Validation Error",
                 "Message could not be sent",

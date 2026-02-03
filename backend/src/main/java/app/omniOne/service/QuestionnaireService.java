@@ -31,48 +31,39 @@ public class QuestionnaireService {
     private final QuestionnaireQuestionRepo questionRepo;
 
     public List<QuestionnaireQuestion> getQuestionsForCoach(UUID coachId) {
-        log.debug("Trying to retrieve questions for coach {}", coachId);
-        List<QuestionnaireQuestion> questions = questionRepo.findAllByCoachIdOrCoachIdIsNull(coachId);
-        log.info("Successfully retrieved questions for coach");
-        return questions;
+        return questionRepo.findAllByCoachIdOrCoachIdIsNull(coachId);
     }
 
     public QuestionnaireQuestion addQuestion(UUID coachId, QuestionnaireQuestionPostRequest request) {
-        log.debug("Trying to add question for coach {}", coachId);
         QuestionnaireQuestion question = new QuestionnaireQuestion();
         Coach coach = coachRepo.findByIdOrThrow(coachId);
         question.setText(request.text());
         question.setCoach(coach);
         questionRepo.save(question);
-        log.info("Successfully added question");
+        log.info("Question added (coachId={}, questionId={})", coachId, question.getId());
         return question;
     }
 
     public void deleteQuestion(UUID coachId, Long questionId) {
-        log.debug("Trying to delete question {} for coach {}", questionId, coachId);
         QuestionnaireQuestion question = questionRepo.findByIdAndCoachIdOrThrow(questionId, coachId);
         questionRepo.delete(question);
-        log.info("Successfully deleted question");
+        log.info("Question deleted (coachId={}, questionId={})", coachId, questionId);
     }
 
     public List<QuestionnaireQuestion> getQuestionsForClient(UUID clientId) {
-        log.debug("Trying to retrieve questions for client {}", clientId);
         Client client = clientRepo.findByIdOrThrow(clientId);
         Coach coach = client.getCoachOrThrow();
-        List<QuestionnaireQuestion> questions = questionRepo.findAllByCoachIdOrCoachIdIsNull(coach.getId());
-        log.info("Successfully retrieved questions for client");
-        return questions;
+        return questionRepo.findAllByCoachIdOrCoachIdIsNull(coach.getId());
     }
 
     public void putAnswers(UUID clientId, List<QuestionnaireAnswerRequest> requests) {
-        log.debug("Trying to add QuestionnaireAnswers for Client {}", clientId);
         Client client = clientRepo.findByIdOrThrow(clientId);
         List<QuestionnaireAnswer> answers = new ArrayList<>();
         for (QuestionnaireAnswerRequest req : requests) {
             QuestionnaireQuestion question = questionRepo.findByIdAOrThrow(req.questionId());
             if (question.getCoach() != null &&
                     !question.getCoach().getId().equals(client.getCoachOrThrow().getId())) {
-                log.info("Question not found for coach (questionId={}, coachId={})",
+                log.warn("Question not found for coach (questionId={}, coachId={})",
                         question.getId(), client.getCoachOrThrow().getId());
                 throw new ResourceNotFoundException("Question not found for coach");
             }
@@ -90,17 +81,15 @@ public class QuestionnaireService {
             answers.add(answer);
         }
         answerRepo.saveAll(answers);
-        log.info("Successfully added QuestionnaireAnswers");
+        log.info("Questionnaire answers added (clientId={}, count={})", clientId, answers.size());
     }
 
     public List<QuestionnaireAnswerResponse> getAnswers(UUID clientId) {
-        log.debug("Trying to retrieve QuestionnaireAnswers for client {}", clientId);
         List<QuestionnaireAnswer> answers = answerRepo.findAllByClientId(clientId);
         List<QuestionnaireAnswerResponse> responses = new ArrayList<>();
         for (QuestionnaireAnswer ans : answers) {
             responses.add(new QuestionnaireAnswerResponse(ans.getQuestion().getId(), ans.getQuestion().getText(), ans.getAnswer()));
         }
-        log.debug("Successfully retrieved QuestionnaireAnswers");
         return responses;
     }
 

@@ -34,26 +34,21 @@ public class UserService {
     private final RefreshTokenRepo refreshTokenRepo;
 
     public User getUser(UUID id) {
-        log.debug("Trying to retrieve User {}", id);
-        User user = userRepo.findByIdOrThrow(id);
-        log.info("Successfully retrieved User");
-        return user;
+        return userRepo.findByIdOrThrow(id);
     }
 
     public User changePassword(UUID id, ChangePasswordRequest request) {
-        log.debug("Trying to change password for User {}", id);
         User user = userRepo.findByIdOrThrow(id);
         if (!encoder.matches(request.oldPassword(), user.getPassword()))
             throw new OperationNotAllowedException("Old password is incorrect");
         user.setPassword(encoder.encode(request.newPassword()));
         User savedUser = userRepo.save(user);
-        log.info("Successfully changed password");
+        log.info("Password changed (userId={})", savedUser.getId());
         return savedUser;
     }
 
     @Transactional
     public void softDeleteUser(UUID id) {
-        log.debug("Trying to soft delete User {}", id);
         User user = userRepo.findByIdOrThrow(id);
         if (user.isDeleted())
             throw new OperationNotAllowedException("User already deleted");
@@ -88,7 +83,7 @@ public class UserService {
         }
         refreshTokenRepo.findAllByUserId(user.getId())
                 .forEach(rt -> rt.setRevokedAt(LocalDateTime.now()));
-        log.info("Successfully soft deleted User and removed Coaching associations");
+        log.info("User soft deleted and coaching associations removed (userId={})", user.getId());
     }
 
 }

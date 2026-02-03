@@ -1,6 +1,8 @@
 package app.omniOne.authentication.token;
 
 import app.omniOne.authentication.model.UserDetails;
+import app.omniOne.exception.custom.JwtExpiredException;
+import app.omniOne.exception.custom.JwtInvalidException;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator.Builder;
 import com.auth0.jwt.JWTVerifier;
@@ -8,8 +10,6 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import app.omniOne.exception.custom.JwtExpiredException;
-import app.omniOne.exception.custom.JwtInvalidException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -80,7 +80,6 @@ public class JwtService {
     }
 
     private String createTemplateJwt(String subject, Map<String, String> claims, long minutes, Algorithm algorithm) {
-        log.debug("Creating JWT for {}", subject);
         Builder jwtBuilder = JWT.create()
                 .withIssuer(applicationName)
                 .withSubject(subject)
@@ -107,11 +106,8 @@ public class JwtService {
     }
 
     private DecodedJWT verify(String jwt, JWTVerifier verifier) {
-        log.debug("Trying to verify JWT");
         try {
-            DecodedJWT decodedJWT = verifier.verify(jwt);
-            log.info("Successfully verified JWT for {}", decodedJWT.getSubject());
-            return decodedJWT;
+            return verifier.verify(jwt);
         } catch (TokenExpiredException ex) {
             throw new JwtExpiredException("Token has expired");
         } catch (JWTVerificationException ex) {

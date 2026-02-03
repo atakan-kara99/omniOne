@@ -8,8 +8,8 @@ import app.omniOne.authentication.token.RefreshTokenService;
 import app.omniOne.chatting.repository.ChatParticipantRepo;
 import app.omniOne.email.EmailService;
 import app.omniOne.exception.custom.AccountDisabledException;
-import app.omniOne.exception.custom.ResourceConflictException;
 import app.omniOne.exception.custom.OperationNotAllowedException;
+import app.omniOne.exception.custom.ResourceConflictException;
 import app.omniOne.model.entity.Client;
 import app.omniOne.model.entity.Coach;
 import app.omniOne.model.entity.User;
@@ -57,23 +57,19 @@ public class AuthService {
 
     public boolean isCoachedByMe(UUID clientId) {
         UUID coachId = getMyId();
-        log.debug("Checking if Coach {} has permission to access Client {} info", coachId, clientId);
         return coachingRepo.existsByCoachIdAndClientId(coachId, clientId);
     }
 
     public boolean isRelated(UUID userId1, UUID userId2) {
-        log.debug("Checking if User {} has permission to message User {}", userId1, userId2);
         return coachingRepo.existsByCoachIdAndClientId(userId1, userId2) ||
                 coachingRepo.existsByCoachIdAndClientId(userId2, userId1);
     }
 
     public boolean isChatOf(UUID userId, UUID conversationId) {
-        log.debug("Checking if User {} has permission to access ChatConversation {}", userId, conversationId);
         return chatParticipantRepo.existsByConversationIdAndUserId(conversationId, userId);
     }
 
     public LoginResponse login(LoginRequest request, UUID deviceId) {
-        log.debug("Trying to log in User {}", request.email());
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.email(),
@@ -82,41 +78,37 @@ public class AuthService {
         String jwt = jwtService.createAuthJwt(userDetails);
         String token = refreshTokenService.generateToken();
         refreshTokenService.saveRefreshToken(token, userDetails.getUser(), deviceId);
-        log.info("Successfully logged in");
+        log.info("User logged in (userId={})", userDetails.getUser().getId());
         return new LoginResponse(jwt, token);
     }
 
     public LoginResponse refreshTokens(String rawToken, UUID deviceId) {
-        log.debug("Trying to refresh jwt for User");
         RefreshToken refreshToken = refreshTokenService.getRefreshToken(rawToken, deviceId);
         UserDetails userDetails = new UserDetails(refreshToken.getUser());
         if (!userDetails.isEnabled())
             throw new AccountDisabledException("User account is disabled/deleted");
         String jwt = jwtService.createAuthJwt(userDetails);
         String newToken = refreshTokenService.rotateRefreshToken(rawToken, deviceId);
-        log.info("Successfully refreshed jwt and refresh token");
+        log.info("Tokens refreshed (userId={})", refreshToken.getUser().getId());
         return new LoginResponse(jwt, newToken);
     }
 
     public void logout(String refreshToken) {
-        log.debug("Trying to log out User");
         refreshTokenService.revokeRefreshToken(refreshToken);
-        log.info("Successfully logged out");
+        log.info("User logged out");
     }
 
     @Transactional
     public User registerCoach(RegisterRequest dto) {
         String email = normalize(dto.email());
-        log.debug("Trying to register Coach with Email {}", email);
         User user = userRepo.findByEmail(email).orElse(null);
         if (user != null) {
             if (user.isEnabled()) {
-                log.info("Registration rejected: user already exists (email={})", email);
+                log.info("Registration rejected: user already exists (role={})", user.getRole());
                 throw new ResourceConflictException("User already exists");
             }
             if (user.getRole() != UserRole.COACH) {
-                log.info("Registration rejected: email reserved for other role (email={}, role={})",
-                        email, user.getRole());
+                log.info("Registration rejected: email reserved for other role (role={})", user.getRole());
                 throw new OperationNotAllowedException("Email already reserved");
             }
         } else {
@@ -126,24 +118,23 @@ public class AuthService {
                     .role(UserRole.COACH)
                     .enabled(false).build());
             coachRepo.save(Coach.builder().user(user).build());
-            log.info("Successfully registered Coach");
+            log.info("Coach registered (userId={})", user.getId());
         }
         sendActivationMail(email);
         return user;
     }
 
     public User activate(String token) {
-        log.debug("Trying to activate User");
         DecodedJWT jwt = jwtService.verifyActivation(token);
         String email = normalize(jwt.getClaim("email").asString());
         User user = userRepo.findByEmailOrThrow(email);
         if (user.isEnabled()) {
-            log.info("Activation rejected: already activated (email={})", email);
+            log.info("Activation rejected: already activated (userId={})", user.getId());
             throw new OperationNotAllowedException("User already activated");
         }
         user.setEnabled(true);
         User savedUser = userRepo.save(user);
-        log.info("Successfully activated User {}", savedUser.getId());
+        log.info("User activated (userId={})", savedUser.getId());
         return savedUser;
     }
 
@@ -151,7 +142,7 @@ public class AuthService {
         email = normalize(email);
         User user = userRepo.findByEmailOrThrow(email);
         if (user.isEnabled()) {
-            log.info("Activation mail rejected: already activated (email={})", email);
+            log.info("Activation mail rejected: already activated (userId={})", user.getId());
             throw new OperationNotAllowedException("User already activated");
         }
         String jwt = jwtService.createActivationJwt(email);
@@ -164,8 +155,8 @@ public class AuthService {
         User user = userRepo.findByEmail(clientMail).orElse(null);
         if (user != null) {
             if (user.getRole() != UserRole.CLIENT) {
-                log.info("Invitation rejected: existing user not a client (email={}, role={})",
-                        clientMail, user.getRole());
+                log.info("Invitation rejected: existing user not a client (role={}, coachId={})",
+                        user.getRole(), coachId);
                 throw new OperationNotAllowedException("Existing user is not a client");
             }
             Client client = clientRepo.findByIdOrThrow(user.getId());
@@ -180,7 +171,6 @@ public class AuthService {
     }
 
     public InvitationResponse validateInvitation(String token) {
-        log.debug("Trying to validate invitation");
         DecodedJWT jwt = jwtService.verifyInvitation(token);
         UUID coachId = UUID.fromString(jwt.getClaim("coachId").asString());
         coachRepo.findByIdOrThrow(coachId);
@@ -189,8 +179,8 @@ public class AuthService {
         if (user == null)
             return new InvitationResponse(clientMail, true);
         if (user.getRole() != UserRole.CLIENT) {
-            log.info("Invitation validation rejected: existing user not a client (email={}, role={})",
-                    clientMail, user.getRole());
+            log.info("Invitation validation rejected: existing user not a client (role={}, coachId={})",
+                    user.getRole(), coachId);
             throw new OperationNotAllowedException("Existing user is not a client");
         }
         Client client = clientRepo.findByIdOrThrow(user.getId());
@@ -204,7 +194,6 @@ public class AuthService {
 
     @Transactional
     public User acceptInvitation(String token, PasswordRequest request) {
-        log.debug("Trying to accept invitation");
         DecodedJWT jwt = jwtService.verifyInvitation(token);
         UUID coachId = UUID.fromString(jwt.getClaim("coachId").asString());
         coachRepo.findByIdOrThrow(coachId);
@@ -213,8 +202,8 @@ public class AuthService {
         Client client;
         if (user != null) {
             if (user.getRole() != UserRole.CLIENT) {
-                log.info("Invitation acceptance rejected: existing user not a client (email={}, role={})",
-                        clientMail, user.getRole());
+                log.info("Invitation acceptance rejected: existing user not a client (role={}, coachId={})",
+                        user.getRole(), coachId);
                 throw new OperationNotAllowedException("Existing user is not a client");
             }
             client = clientRepo.findByIdOrThrow(user.getId());
@@ -225,7 +214,7 @@ public class AuthService {
             }
         } else {
             if (request == null || request.password() == null || request.password().isBlank()) {
-                log.info("Invitation acceptance rejected: missing password (email={})", clientMail);
+                log.info("Invitation acceptance rejected: missing password (coachId={})", coachId);
                 throw new OperationNotAllowedException("Password is required for a new client");
             }
             user = userRepo.save(User.builder()
@@ -236,7 +225,7 @@ public class AuthService {
             client = clientRepo.save(Client.builder().user(user).build());
         }
         coachingService.startCoaching(coachId, client.getId());
-        log.info("Successfully accepted invitation Coach {} to Client {}", coachId, client.getId());
+        log.info("Invitation accepted (coachId={}, clientId={})", coachId, client.getId());
         return user;
     }
 
@@ -250,7 +239,6 @@ public class AuthService {
     }
 
     public User reset(String token, PasswordRequest request) {
-        log.debug("Trying to reset password");
         DecodedJWT jwt = jwtService.verifyResetPassword(token);
         String email = normalize(jwt.getClaim("email").asString());
         User user = userRepo.findByEmailOrThrow(email);
@@ -258,7 +246,7 @@ public class AuthService {
             throw new AccountDisabledException("User account is disabled/deleted");
         user.setPassword(encoder.encode(request.password()));
         User savedUser = userRepo.save(user);
-        log.info("Successfully reset password from User {}", user.getId());
+        log.info("Password reset (userId={})", savedUser.getId());
         return savedUser;
     }
 

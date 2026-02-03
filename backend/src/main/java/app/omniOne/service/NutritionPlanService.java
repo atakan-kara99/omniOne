@@ -23,38 +23,30 @@ public class NutritionPlanService {
     private final NutritionPlanMapper nutritionPlanMapper;
 
     public NutritionPlan addNutriPlan(UUID clientId, NutritionPlanRequest request) {
-        log.debug("Trying to add NutritionPlan for Client {}", clientId);
         Client client = clientRepo.findByIdOrThrow(clientId);
         NutritionPlan nutritionPlan = new NutritionPlan();
         nutritionPlanMapper.map(request, nutritionPlan);
         nutritionPlan.setClient(client);
         NutritionPlan savedNutritionPlan = nutritionPlanRepo.save(nutritionPlan);
-        log.info("Successfully added NutritionPlan");
+        log.info("NutritionPlan added (clientId={}, planId={})", clientId, savedNutritionPlan.getId());
         return savedNutritionPlan;
     }
 
     public NutritionPlan getActiveNutriPlan(UUID clientId) {
-        log.debug("Trying to retrieve active NutritionPlan for Client {}", clientId);
-        NutritionPlan nutritionPlan = nutritionPlanRepo.findFirstByClientIdOrderByCreatedAtDescOrThrow(clientId);
-        log.info("Successfully retrieved active NutritionPlan");
-        return nutritionPlan;
+        return nutritionPlanRepo.findFirstByClientIdOrderByCreatedAtDescOrThrow(clientId);
     }
 
     public List<NutritionPlan> getNutriPlans(UUID clientId) {
-        log.debug("Trying to retrieve NutritionPlans for Client {}", clientId);
         clientRepo.findByIdOrThrow(clientId);
-        List<NutritionPlan> nutritionPlans = nutritionPlanRepo.findByClientIdOrderByCreatedAtDesc(clientId);
-        log.info("Successfully retrieved NutritionPlans");
-        return nutritionPlans;
+        return nutritionPlanRepo.findByClientIdOrderByCreatedAtDesc(clientId);
     }
 
     public NutritionPlan correctNutriPlan(UUID clientId, Long nutriPlanId, NutritionPlanRequest request) {
-        log.debug("Trying to correct NutritionPlan {} for Client {}", nutriPlanId, clientId);
         clientRepo.findByIdOrThrow(clientId);
         NutritionPlan nutritionPlan = nutritionPlanRepo.findByIdAndClientIdOrThrow(nutriPlanId, clientId);
         nutritionPlanMapper.map(request, nutritionPlan);
         NutritionPlan savedNutritionPlan = nutritionPlanRepo.save(nutritionPlan);
-        log.info("Successfully corrected NutritionPlan");
+        log.info("NutritionPlan corrected (clientId={}, planId={})", clientId, savedNutritionPlan.getId());
         return savedNutritionPlan;
     }
 
