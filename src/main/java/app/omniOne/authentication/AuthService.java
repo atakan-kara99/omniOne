@@ -110,10 +110,15 @@ public class AuthService {
         log.debug("Trying to register Coach with Email {}", email);
         User user = userRepo.findByEmail(email).orElse(null);
         if (user != null) {
-            if (user.isEnabled())
+            if (user.isEnabled()) {
+                log.info("Registration rejected: user already exists (email={})", email);
                 throw new DuplicateResourceException("User already exists");
-            if (user.getRole() != UserRole.COACH)
+            }
+            if (user.getRole() != UserRole.COACH) {
+                log.info("Registration rejected: email reserved for other role (email={}, role={})",
+                        email, user.getRole());
                 throw new NotAllowedException("Email already reserved");
+            }
         } else {
             user = userRepo.save(User.builder()
                     .email(email)
@@ -132,8 +137,10 @@ public class AuthService {
         DecodedJWT jwt = jwtService.verifyActivation(token);
         String email = normalize(jwt.getClaim("email").asString());
         User user = userRepo.findByEmailOrThrow(email);
-        if (user.isEnabled())
+        if (user.isEnabled()) {
+            log.info("Activation rejected: already activated (email={})", email);
             throw new NotAllowedException("User already activated");
+        }
         user.setEnabled(true);
         User savedUser = userRepo.save(user);
         log.info("Successfully activated User {}", savedUser.getId());
@@ -143,8 +150,10 @@ public class AuthService {
     public void sendActivationMail(String email) {
         email = normalize(email);
         User user = userRepo.findByEmailOrThrow(email);
-        if (user.isEnabled())
+        if (user.isEnabled()) {
+            log.info("Activation mail rejected: already activated (email={})", email);
             throw new NotAllowedException("User already activated");
+        }
         String jwt = jwtService.createActivationJwt(email);
         emailService.sendActivationMail(email, jwt);
     }
@@ -154,11 +163,17 @@ public class AuthService {
         coachRepo.findByIdOrThrow(coachId);
         User user = userRepo.findByEmail(clientMail).orElse(null);
         if (user != null) {
-            if (user.getRole() != UserRole.CLIENT)
+            if (user.getRole() != UserRole.CLIENT) {
+                log.info("Invitation rejected: existing user not a client (email={}, role={})",
+                        clientMail, user.getRole());
                 throw new NotAllowedException("Existing user is not a client");
+            }
             Client client = clientRepo.findByIdOrThrow(user.getId());
-            if (client.getCoach() != null)
-                throw new NotAllowedException("Client already has Coach");
+            if (client.getCoach() != null) {
+                log.info("Invitation rejected: client already has coach (clientId={}, coachId={})",
+                        user.getId(), client.getCoach().getId());
+                throw new NotAllowedException("Client already has a coach");
+            }
         }
         String jwt = jwtService.createInvitationJwt(clientMail, coachId);
         emailService.sendInvitationMail(clientMail, jwt);
@@ -173,11 +188,17 @@ public class AuthService {
         User user = userRepo.findByEmail(clientMail).orElse(null);
         if (user == null)
             return new InvitationResponse(clientMail, true);
-        if (user.getRole() != UserRole.CLIENT)
+        if (user.getRole() != UserRole.CLIENT) {
+            log.info("Invitation validation rejected: existing user not a client (email={}, role={})",
+                    clientMail, user.getRole());
             throw new NotAllowedException("Existing user is not a client");
+        }
         Client client = clientRepo.findByIdOrThrow(user.getId());
-        if (client.getCoach() != null)
-            throw new NotAllowedException("Client already has Coach");
+        if (client.getCoach() != null) {
+            log.info("Invitation validation rejected: client already has coach (clientId={}, coachId={})",
+                    user.getId(), client.getCoach().getId());
+            throw new NotAllowedException("Client already has a coach");
+        }
         return new InvitationResponse(clientMail, false);
     }
 
@@ -191,14 +212,22 @@ public class AuthService {
         User user = userRepo.findByEmail(clientMail).orElse(null);
         Client client;
         if (user != null) {
-            if (user.getRole() != UserRole.CLIENT)
+            if (user.getRole() != UserRole.CLIENT) {
+                log.info("Invitation acceptance rejected: existing user not a client (email={}, role={})",
+                        clientMail, user.getRole());
                 throw new NotAllowedException("Existing user is not a client");
+            }
             client = clientRepo.findByIdOrThrow(user.getId());
-            if (client.getCoach() != null)
-                throw new NotAllowedException("Client already has Coach");
+            if (client.getCoach() != null) {
+                log.info("Invitation acceptance rejected: client already has coach (clientId={}, coachId={})",
+                        user.getId(), client.getCoach().getId());
+                throw new NotAllowedException("Client already has a coach");
+            }
         } else {
-            if (request == null || request.password() == null || request.password().isBlank())
-                throw new NotAllowedException("Password is required for new client");
+            if (request == null || request.password() == null || request.password().isBlank()) {
+                log.info("Invitation acceptance rejected: missing password (email={})", clientMail);
+                throw new NotAllowedException("Password is required for a new client");
+            }
             user = userRepo.save(User.builder()
                     .email(clientMail)
                     .password(encoder.encode(request.password()))
