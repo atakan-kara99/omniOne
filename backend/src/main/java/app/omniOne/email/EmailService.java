@@ -80,6 +80,7 @@ public class EmailService {
             helper.setText(text, true);
             mailSender.send(message);
         } catch (Exception ex) {
+            log.warn("Failed to send email (to={}, subject={})", to, subject, ex);
             throw new SendEmailException("Failed to send email", ex);
         }
     }

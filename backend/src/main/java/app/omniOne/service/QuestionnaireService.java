@@ -72,7 +72,9 @@ public class QuestionnaireService {
             QuestionnaireQuestion question = questionRepo.findByIdAOrThrow(req.questionId());
             if (question.getCoach() != null &&
                     !question.getCoach().getId().equals(client.getCoachOrThrow().getId())) {
-                throw new NoSuchResourceException("Question does not belong to this coach.");
+                log.info("Question not found for coach (questionId={}, coachId={})",
+                        question.getId(), client.getCoachOrThrow().getId());
+                throw new NoSuchResourceException("Question not found for coach");
             }
             // Try to find existing answer
             QuestionnaireAnswer answer = answerRepo
