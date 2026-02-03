@@ -3,11 +3,10 @@ package app.omniOne.authentication;
 import app.omniOne.authentication.model.AuthMapper;
 import app.omniOne.authentication.model.dto.*;
 import app.omniOne.authentication.token.JwtFilter;
-import app.omniOne.authentication.token.RefreshTokenProps;
+import app.omniOne.exception.ProblemDetailFactory;
 import app.omniOne.model.entity.User;
 import app.omniOne.model.enums.UserRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +15,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import app.omniOne.exception.ProblemDetailFactory;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -47,11 +46,7 @@ class AuthControllerTest {
     @MockitoBean private JwtFilter jwtFilter;
     @MockitoBean private AuthMapper authMapper;
     @MockitoBean private AuthService authService;
-    @MockitoBean private RefreshTokenProps refreshTokenProps;
-
-    @BeforeEach void setup() {
-        when(refreshTokenProps.ttlDays()).thenReturn(30);
-    }
+    @MockitoBean private CookieCsrfTokenRepository csrfTokenRepository;
 
     @Test void login_returnsJwtResponse() throws Exception {
         LoginRequest request = new LoginRequest(userEmail, "Testpq12");
