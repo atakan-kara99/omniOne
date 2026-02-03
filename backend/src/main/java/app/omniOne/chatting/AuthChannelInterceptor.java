@@ -2,6 +2,7 @@ package app.omniOne.chatting;
 
 import app.omniOne.authentication.token.JwtService;
 import app.omniOne.chatting.exception.WebSocketError;
+import app.omniOne.exception.ErrorCode;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +42,10 @@ public class AuthChannelInterceptor implements ChannelInterceptor {
                 authHeader = accessor.getFirstNativeHeader("Authorization");
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 log.warn("Failed to read authorization header on STOMP CONNECT");
-                sendError(accessor, "Authentication Error", "Missing or invalid Authorization header");
+                sendError(accessor,
+                        "Authentication Error",
+                        "Missing or invalid Authorization header",
+                        ErrorCode.AUTH_INVALID_CREDENTIALS);
                 return null;
             }
             String jwt = authHeader.substring(7);
@@ -55,17 +59,21 @@ public class AuthChannelInterceptor implements ChannelInterceptor {
                 accessor.setUser(authToken);
             } catch (Exception ex) {
                 log.warn("Failed to authenticate STOMP CONNECT: {}", ex.getMessage());
-                sendError(accessor, "Authentication Error", "Invalid token");
+                sendError(accessor,
+                        "Authentication Error",
+                        "Invalid token",
+                        ErrorCode.AUTH_INVALID_TOKEN);
                 return null;
             }
         }
         return message;
     }
 
-    private void sendError(StompHeaderAccessor accessor, String type, String message) {
+    private void sendError(StompHeaderAccessor accessor, String type, String message, ErrorCode errorCode) {
         if (accessor == null || accessor.getSessionId() == null)
             return;
-        WebSocketError error = new WebSocketError(type, message, Map.of());
+        String traceId = accessor.getSessionId().substring(0, 8) + "WS";
+        WebSocketError error = new WebSocketError(type, message, errorCode.name(), traceId, Map.of());
         SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
         headers.setSessionId(accessor.getSessionId());
         headers.setLeaveMutable(true);

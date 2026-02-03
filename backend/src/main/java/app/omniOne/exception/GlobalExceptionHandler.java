@@ -2,7 +2,11 @@ package app.omniOne.exception;
 
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -11,175 +15,283 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(DisabledException.class)
-    public ResponseEntity<ProblemDetail> handleDisabled(DisabledException ex) {
-        HttpStatus status = HttpStatus.FORBIDDEN;
-        ProblemDetail pd = pd("User Account Disabled", status, ex.getMessage());
-        log.warn("Failed to login to account because: {}", ex.getMessage());
-        return new ResponseEntity<>(pd, status);
+    private final ProblemDetailFactory problemDetailFactory;
+
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ProblemDetail> handleApiException(ApiException ex, HttpServletRequest request) {
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                ex.getStatus(),
+                ex.getErrorCode(),
+                ex.getErrorCode().title(),
+                ex.getMessage(),
+                ex.getDetails());
+        log.error("Request failed", ex);
+        return new ResponseEntity<>(pd, ex.getStatus());
     }
 
-    @ExceptionHandler(SendEmailException.class)
-    public ResponseEntity<ProblemDetail> handleSendMail(SendEmailException ex) {
-        HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
-        ProblemDetail pd = pd("Send Email Failed", status, ex.getMessage());
-        log.error("Failed to process or send email", ex);
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<ProblemDetail> handleTokenExpired(TokenExpiredException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.AUTH_TOKEN_EXPIRED,
+                ErrorCode.AUTH_TOKEN_EXPIRED.title(),
+                "Token has expired",
+                Map.of());
+        log.info("Token expired: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
     @ExceptionHandler(JWTDecodeException.class)
-    public ResponseEntity<ProblemDetail> handleJWTDecode(JWTDecodeException ex) {
+    public ResponseEntity<ProblemDetail> handleJwtDecode(JWTDecodeException ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        ProblemDetail pd = pd("JWT Decode", status, ex.getMessage());
-        log.info("Failed to decode provided JWT because: {}", ex.getMessage());
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.AUTH_INVALID_TOKEN,
+                ErrorCode.AUTH_INVALID_TOKEN.title(),
+                "Token is invalid",
+                Map.of());
+        log.info("JWT decode failed: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
-    @ExceptionHandler(TokenExpiredException.class)
-    public ResponseEntity<ProblemDetail> handleTokenExpiry(TokenExpiredException ex) {
-        HttpStatus status = HttpStatus.UNAUTHORIZED;
-        ProblemDetail pd = pd("JWT Expired", status, ex.getMessage());
-        log.info("Failed to validate provided JWT because: {}", ex.getMessage());
-        return new ResponseEntity<>(pd, status);
-    }
-
-    @ExceptionHandler(RefreshTokenInvalidException.class)
-    public ResponseEntity<ProblemDetail> handleRefreshToken(RefreshTokenInvalidException ex) {
-        HttpStatus status = HttpStatus.UNAUTHORIZED;
-        ProblemDetail pd = pd("RefreshToken Invalid", status, ex.getMessage());
-        log.info("Failed to validate provided RefreshToken because: {}", ex.getMessage());
-        return new ResponseEntity<>(pd, status);
-    }
-
-    @ExceptionHandler(AuthorizationDeniedException.class)
-    public ResponseEntity<ProblemDetail> handleNoAuthorization(AuthorizationDeniedException ex) {
-        HttpStatus status = HttpStatus.UNAUTHORIZED;
-        ProblemDetail pd = pd("Authorization Denied", status, ex.getMessage());
-        log.info("Failed to authorize to the server because: {}", ex.getMessage());
-        return new ResponseEntity<>(pd, status);
-    }
-
-    @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ProblemDetail> handleNoResourceFound(NoResourceFoundException ex) {
-        HttpStatus status = HttpStatus.NOT_FOUND;
-        ProblemDetail pd = pd("No Resource Found", status, ex.getMessage());
-        log.info("Failed to find resource because: {}", ex.getMessage());
-        return new ResponseEntity<>(pd, status);
-    }
-
-    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<ProblemDetail> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
-        HttpStatus status = HttpStatus.METHOD_NOT_ALLOWED;
-        ProblemDetail pd = pd("Http Request Method Not Supported", status, ex.getMessage());
-        log.info("Failed to process http request because: {}", ex.getMessage());
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ProblemDetail> handleDisabled(DisabledException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.FORBIDDEN;
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.AUTH_ACCOUNT_DISABLED,
+                ErrorCode.AUTH_ACCOUNT_DISABLED.title(),
+                "Account is disabled",
+                Map.of());
+        log.info("Account disabled: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ProblemDetail> handleBadCred(BadCredentialsException ex) {
+    public ResponseEntity<ProblemDetail> handleBadCredentials(BadCredentialsException ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.UNAUTHORIZED;
-        ProblemDetail pd = pd("Bad Credentials", status, ex.getMessage());
-        log.info("Failed to authorize request because: {}", ex.getMessage());
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.AUTH_INVALID_CREDENTIALS,
+                ErrorCode.AUTH_INVALID_CREDENTIALS.title(),
+                "Invalid credentials",
+                Map.of());
+        log.info("Bad credentials: {}", ex.getMessage());
+        return new ResponseEntity<>(pd, status);
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ProblemDetail> handleAuthorizationDenied(AuthorizationDeniedException ex,
+                                                                   HttpServletRequest request) {
+        HttpStatus status = HttpStatus.FORBIDDEN;
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.SECURITY_ACCESS_DENIED,
+                ErrorCode.SECURITY_ACCESS_DENIED.title(),
+                "Access is denied",
+                Map.of());
+        log.info("Authorization denied: {}", ex.getMessage());
+        return new ResponseEntity<>(pd, status);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ProblemDetail> handleNoResourceFound(NoResourceFoundException ex,
+                                                               HttpServletRequest request) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.RESOURCE_NOT_FOUND,
+                ErrorCode.RESOURCE_NOT_FOUND.title(),
+                "Resource not found",
+                Map.of());
+        log.info("No resource found: {}", ex.getMessage());
+        return new ResponseEntity<>(pd, status);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ProblemDetail> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex,
+                                                                  HttpServletRequest request) {
+        HttpStatus status = HttpStatus.METHOD_NOT_ALLOWED;
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.REQUEST_METHOD_NOT_ALLOWED,
+                ErrorCode.REQUEST_METHOD_NOT_ALLOWED.title(),
+                "Method not allowed",
+                Map.of("method", ex.getMethod()));
+        log.info("Method not supported: {}", ex.getMessage());
+        return new ResponseEntity<>(pd, status);
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ProblemDetail> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex,
+                                                                     HttpServletRequest request) {
+        HttpStatus status = HttpStatus.UNSUPPORTED_MEDIA_TYPE;
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.REQUEST_MEDIA_TYPE_UNSUPPORTED,
+                ErrorCode.REQUEST_MEDIA_TYPE_UNSUPPORTED.title(),
+                "Unsupported media type",
+                Map.of("contentType", ex.getContentType() == null ? "unknown" : ex.getContentType().toString()));
+        log.info("Unsupported media type: {}", ex.getMessage());
+        return new ResponseEntity<>(pd, status);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ProblemDetail> handleMissingParameter(MissingServletRequestParameterException ex,
+                                                                HttpServletRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.REQUEST_MISSING_PARAMETER,
+                ErrorCode.REQUEST_MISSING_PARAMETER.title(),
+                "Missing required parameter",
+                Map.of("parameter", ex.getParameterName()));
+        log.info("Missing parameter: {}", ex.getMessage());
+        return new ResponseEntity<>(pd, status);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ProblemDetail> handleTypeMismatch(MethodArgumentTypeMismatchException ex,
+                                                            HttpServletRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.REQUEST_TYPE_MISMATCH,
+                ErrorCode.REQUEST_TYPE_MISMATCH.title(),
+                "Parameter has invalid value",
+                Map.of("parameter", ex.getName(), "value", String.valueOf(ex.getValue())));
+        log.info("Type mismatch: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ProblemDetail> handleParsing(HttpMessageNotReadableException ex) {
+    public ResponseEntity<ProblemDetail> handleParsing(HttpMessageNotReadableException ex,
+                                                       HttpServletRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        ProblemDetail pd = pd("Http Message Not Readable", status, "Invalid request body");
-        log.info("Failed to read http message because: {}", ex.getMessage());
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.REQUEST_MALFORMED,
+                ErrorCode.REQUEST_MALFORMED.title(),
+                "Invalid request body",
+                Map.of());
+        log.info("Unreadable request body: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ProblemDetail> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ProblemDetail> handleValidation(MethodArgumentNotValidException ex,
+                                                          HttpServletRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        ProblemDetail pd = pd("Validation Failed", status);
-        Map<String, String> errors = new HashMap<>();
+        Map<String, String> errors = new LinkedHashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage())
-        );
-        pd.setProperty("errors", errors);
-        log.info("Failed to validate http request because: {}", ex.getMessage());
+                errors.put(error.getField(), error.getDefaultMessage()));
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.VALIDATION_ERROR,
+                ErrorCode.VALIDATION_ERROR.title(),
+                "Validation failed",
+                Map.of("errors", errors));
+        log.info("Validation failed: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
     @ExceptionHandler(HandlerMethodValidationException.class)
-    public ResponseEntity<ProblemDetail> handleMethodValidation(HandlerMethodValidationException ex) {
+    public ResponseEntity<ProblemDetail> handleMethodValidation(HandlerMethodValidationException ex,
+                                                                HttpServletRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        ProblemDetail pd = pd("Validation Failed", status);
         Map<String, String> errors = new LinkedHashMap<>();
         ex.getAllErrors().forEach(error -> {
-            String field = error instanceof FieldError fe
-                    ? fe.getField()
-                    : "request";
+            String field = error instanceof FieldError fe ? fe.getField() : "request";
             errors.put(field, error.getDefaultMessage());
         });
-        pd.setProperty("errors", errors);
-        log.info("Failed to validate method because: {}", ex.getMessage());
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.VALIDATION_ERROR,
+                ErrorCode.VALIDATION_ERROR.title(),
+                "Validation failed",
+                Map.of("errors", errors));
+        log.info("Method validation failed: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
-    @ExceptionHandler(NotAllowedException.class)
-    public ResponseEntity<ProblemDetail> handleNotAllowed(NotAllowedException ex) {
-        HttpStatus status = HttpStatus.FORBIDDEN;
-        ProblemDetail pd = pd("Not Allowed", status, ex.getMessage());
-        log.info("Failed to process request because: {}", ex.getMessage());
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ProblemDetail> handleConstraintViolation(ConstraintViolationException ex,
+                                                                   HttpServletRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        Map<String, String> errors = new LinkedHashMap<>();
+        ex.getConstraintViolations().forEach(violation ->
+                errors.put(String.valueOf(violation.getPropertyPath()), violation.getMessage()));
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.VALIDATION_ERROR,
+                ErrorCode.VALIDATION_ERROR.title(),
+                "Validation failed",
+                Map.of("errors", errors));
+        log.info("Constraint violation: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
-    @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<ProblemDetail> handleDuplicateResource(DuplicateResourceException ex) {
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ProblemDetail> handleDataIntegrity(DataIntegrityViolationException ex,
+                                                            HttpServletRequest request) {
         HttpStatus status = HttpStatus.CONFLICT;
-        ProblemDetail pd = pd("Duplicate Resource", status, ex.getMessage());
-        log.info("Failed to insert into database because: {}", ex.getMessage());
-        return new ResponseEntity<>(pd, status);
-    }
-
-    @ExceptionHandler(NoSuchResourceException.class)
-    public ResponseEntity<ProblemDetail> handleNoSuchResource(NoSuchResourceException ex) {
-        HttpStatus status = HttpStatus.NOT_FOUND;
-        ProblemDetail pd = pd("No Such Resource", status, ex.getMessage());
-        log.info("Failed to retrieve from database because: {}", ex.getMessage());
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.RESOURCE_CONFLICT,
+                ErrorCode.RESOURCE_CONFLICT.title(),
+                "Request conflicts with existing data",
+                Map.of());
+        log.info("Data integrity violation: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ProblemDetail> handleUnexpected(Exception ex) {
+    public ResponseEntity<ProblemDetail> handleUnexpected(Exception ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-        ProblemDetail pd = pd("Something went wrong", status);
-        log.error("Server Error", ex);
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.INTERNAL_ERROR,
+                ErrorCode.INTERNAL_ERROR.title(),
+                "Unexpected server error",
+                Map.of());
+        log.error("Unexpected server error", ex);
         return new ResponseEntity<>(pd, status);
-    }
-
-    // Helper Functions
-    private ProblemDetail pd(String title, HttpStatus status) {
-        ProblemDetail pd = ProblemDetail.forStatus(status);
-        pd.setProperty("timestamp", LocalDateTime.now());
-        pd.setTitle(title);
-        return pd;
-    }
-
-    private ProblemDetail pd(String title, HttpStatus status, String message) {
-        ProblemDetail pd = pd(title, status);
-        pd.setDetail(message);
-        return pd;
     }
 
 }

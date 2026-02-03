@@ -8,7 +8,10 @@ public record WebSocketError(
 
         String message,
 
+        String errorCode,
+
+        String traceId,
+
         Map<String, String> fieldErrors
 
-) {
-}
+) {}

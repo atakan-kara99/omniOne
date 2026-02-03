@@ -1,7 +1,8 @@
 package app.omniOne.authentication.token;
 
+import app.omniOne.exception.ErrorCode;
+import app.omniOne.exception.ProblemDetailFactory;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Map;
 
@@ -27,7 +27,7 @@ import java.util.Map;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final ObjectMapper objectMapper;
+    private final ProblemDetailFactory problemDetailFactory;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -47,17 +47,15 @@ public class JwtFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             } catch (Exception ex) {
-                int status = HttpStatus.UNAUTHORIZED.value();
-                response.setStatus(status);
-                response.setContentType("application/json");
-                var body = Map.of(
-                        "timestamp", LocalDateTime.now().toString(),
-                        "status", status,
-                        "error", "Invalid JWToken",
-                        "path", request.getRequestURI()
-                );
-                objectMapper.writeValue(response.getWriter(), body);
-                log.warn("Invalid JWToken or Unauthorized access {}", ex.getMessage());
+                log.warn("Invalid JWT or unauthorized access: {}", ex.getMessage());
+                problemDetailFactory.write(
+                        request,
+                        response,
+                        HttpStatus.UNAUTHORIZED,
+                        ErrorCode.AUTH_INVALID_TOKEN,
+                        ErrorCode.AUTH_INVALID_TOKEN.title(),
+                        "Invalid or expired token",
+                        Map.of());
                 return;
             }
         }

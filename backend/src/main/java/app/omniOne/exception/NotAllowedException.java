@@ -1,7 +1,11 @@
 package app.omniOne.exception;
 
-public class NotAllowedException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class NotAllowedException extends ApiException {
+
     public NotAllowedException(String message) {
-        super(message);
+        super(ErrorCode.NOT_ALLOWED, HttpStatus.FORBIDDEN, message);
     }
+
 }

@@ -1,6 +1,8 @@
 package app.omniOne.chatting.exception;
 
+import app.omniOne.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.support.MethodArgumentNotValidException;
 import org.springframework.messaging.simp.annotation.SendToUser;
@@ -22,14 +24,24 @@ public class WebSocketExceptionHandler {
         if (result != null)
             result.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
         log.info("Failed to validate websocket message because: {}", ex.getMessage());
-        return new WebSocketError("Validation Error", "Message could not be send", errors);
+        return new WebSocketError(
+                "Validation Error",
+                "Message could not be sent",
+                ErrorCode.VALIDATION_ERROR.name(),
+                MDC.get("traceId"),
+                errors);
     }
 
     @SendToUser("/queue/errors")
     @MessageExceptionHandler(Exception.class)
     public WebSocketError handleUnexpected(Exception ex) {
         log.error("Server Error", ex);
-        return new WebSocketError("Server Error", "Message failed", Map.of());
+        return new WebSocketError(
+                "Server Error",
+                "Message failed",
+                ErrorCode.INTERNAL_ERROR.name(),
+                MDC.get("traceId"),
+                Map.of());
     }
 
 }

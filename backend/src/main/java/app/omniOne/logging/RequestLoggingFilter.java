@@ -24,8 +24,9 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        String traceId = UUID.randomUUID().toString().substring(0, 8);
-        MDC.put("traceId", traceId + "HT");
+        String traceId = UUID.randomUUID().toString().substring(0, 8) + "HT";
+        MDC.put("traceId", traceId);
+        response.setHeader("X-Request-Id", traceId);
 
         String method = request.getMethod();
         String path = request.getRequestURI();
@@ -35,9 +36,6 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         long start = System.currentTimeMillis();
         try {
             filterChain.doFilter(request, response);
-        } catch (Exception ex) {
-            log.error("Request failed: {} {}", method, path);
-            throw ex;
         } finally {
             long duration = System.currentTimeMillis() - start;
             HttpStatus status = HttpStatus.valueOf(response.getStatus());

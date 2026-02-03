@@ -1,5 +1,6 @@
 package app.omniOne.authentication.token;
 
+import app.omniOne.exception.InternalServerException;
 import app.omniOne.exception.NoSuchResourceException;
 import app.omniOne.exception.RefreshTokenInvalidException;
 import app.omniOne.model.entity.User;
@@ -193,7 +194,7 @@ public class RefreshTokenService {
             return HexFormat.of().formatHex(out);
         } catch (Exception ex) {
             log.error("Failed to hash refresh token (algo={})", HMAC_ALGO, ex);
-            throw new IllegalStateException("Failed to hash refresh token", ex);
+            throw new InternalServerException("Failed to hash refresh token", ex);
         }
     }
 
@@ -203,7 +204,7 @@ public class RefreshTokenService {
             mac.init(key);
             return mac;
         } catch (GeneralSecurityException ex) {
-            throw new IllegalStateException("Failed to initialize HMAC", ex);
+            throw new InternalServerException("Failed to initialize HMAC", ex);
         }
     }
 

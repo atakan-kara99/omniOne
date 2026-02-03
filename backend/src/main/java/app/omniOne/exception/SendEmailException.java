@@ -1,7 +1,11 @@
 package app.omniOne.exception;
 
-public class SendEmailException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class SendEmailException extends ApiException {
+
     public SendEmailException(String message, Exception ex) {
-        super(message, ex);
+        super(ErrorCode.INTEGRATION_EMAIL_FAILED, HttpStatus.SERVICE_UNAVAILABLE, message, ex);
     }
+
 }
