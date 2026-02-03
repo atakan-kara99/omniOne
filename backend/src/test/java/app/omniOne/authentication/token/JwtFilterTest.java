@@ -1,22 +1,21 @@
 package app.omniOne.authentication.token;
 
+import app.omniOne.exception.ProblemDetailFactory;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -27,7 +26,13 @@ import static org.mockito.Mockito.*;
     @Mock private FilterChain filterChain;
     @Spy private ObjectMapper objectMapper;
 
-    @InjectMocks private JwtFilter jwtFilter;
+    private JwtFilter jwtFilter;
+    private ProblemDetailFactory problemDetailFactory;
+
+    @BeforeEach void setUp() {
+        problemDetailFactory = new ProblemDetailFactory(objectMapper);
+        jwtFilter = new JwtFilter(jwtService, problemDetailFactory);
+    }
 
     @AfterEach void clearSecurityContext() {
         SecurityContextHolder.clearContext();
@@ -84,13 +89,19 @@ import static org.mockito.Mockito.*;
         verify(jwtService).verifyAuth(token);
         verifyNoInteractions(filterChain);
         assertEquals(401, response.getStatus());
-        assertEquals("application/json", response.getContentType());
+        assertEquals("application/problem+json", response.getContentType());
 
-        Map<String, Object> body = objectMapper
-                .readValue(response.getContentAsByteArray(), new TypeReference<>() {});
-        assertEquals("Invalid JWToken", body.get("error"));
-        assertEquals("/coach/clients", body.get("path"));
-        assertEquals(401, body.get("status"));
+        JsonNode body = objectMapper.readTree(response.getContentAsByteArray());
+        String errorCode = body.hasNonNull("errorCode")
+                ? body.path("errorCode").asText()
+                : body.path("properties").path("errorCode").asText(null);
+        assertEquals("Invalid Token", body.path("title").asText());
+        assertEquals("AUTH_INVALID_TOKEN", errorCode);
+        String path = body.hasNonNull("path")
+                ? body.path("path").asText()
+                : body.path("properties").path("path").asText("");
+        assertEquals("/coach/clients", path);
+        assertEquals(401, body.path("status").asInt());
     }
 
 }

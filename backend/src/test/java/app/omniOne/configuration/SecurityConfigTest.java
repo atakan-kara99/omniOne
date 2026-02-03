@@ -1,6 +1,9 @@
 package app.omniOne.configuration;
 
 import app.omniOne.authentication.token.JwtService;
+import app.omniOne.exception.ProblemDetailAccessDeniedHandler;
+import app.omniOne.exception.ProblemDetailAuthenticationEntryPoint;
+import app.omniOne.exception.ProblemDetailFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -19,7 +22,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, ProblemDetailFactory.class, ProblemDetailAuthenticationEntryPoint.class,
+        ProblemDetailAccessDeniedHandler.class})
 @WebMvcTest(TestController.class)
 class SecurityConfigTest {
 
@@ -36,7 +40,7 @@ class SecurityConfigTest {
 
     @Test void clientEndpoints_requireClientRole() throws Exception {
         mockMvc.perform(get("/client/area"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
         mockMvc.perform(get("/client/area").with(user(coachEmail).roles("COACH")))
                 .andExpect(status().isForbidden());
         mockMvc.perform(get("/client/area").with(user(clientEmail).roles("CLIENT")))
@@ -47,7 +51,7 @@ class SecurityConfigTest {
 
     @Test void coachEndpoints_requireCoachRole() throws Exception {
         mockMvc.perform(get("/coach/area"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
         mockMvc.perform(get("/coach/area").with(user(coachEmail).roles("COACH")))
                 .andExpect(status().isOk());
         mockMvc.perform(get("/coach/area").with(user(clientEmail).roles("CLIENT")))
@@ -58,7 +62,7 @@ class SecurityConfigTest {
 
     @Test void userEndpoints_allowCoachOrClient() throws Exception {
         mockMvc.perform(get("/user/area"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
         mockMvc.perform(get("/user/area").with(user(coachEmail).roles("COACH")))
                 .andExpect(status().isOk());
         mockMvc.perform(get("/user/area").with(user(clientEmail).roles("CLIENT")))
@@ -69,7 +73,7 @@ class SecurityConfigTest {
 
     @Test void adminEndpoints_requireAdminRole() throws Exception {
         mockMvc.perform(get("/admin/area"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
         mockMvc.perform(get("/admin/area").with(user(coachEmail).roles("COACH")))
                 .andExpect(status().isForbidden());
         mockMvc.perform(get("/admin/area").with(user(clientEmail).roles("CLIENT")))
