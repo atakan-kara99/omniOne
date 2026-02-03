@@ -12,6 +12,7 @@ import app.omniOne.repository.ClientRepo;
 import app.omniOne.repository.CoachRepo;
 import app.omniOne.repository.QuestionnaireAnswerRepo;
 import app.omniOne.repository.QuestionnaireQuestionRepo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -84,6 +85,7 @@ public class QuestionnaireService {
         log.info("Questionnaire answers added (clientId={}, count={})", clientId, answers.size());
     }
 
+    @Transactional
     public List<QuestionnaireAnswerResponse> getAnswers(UUID clientId) {
         List<QuestionnaireAnswer> answers = answerRepo.findAllByClientId(clientId);
         List<QuestionnaireAnswerResponse> responses = new ArrayList<>();

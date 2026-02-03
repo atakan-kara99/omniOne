@@ -12,6 +12,9 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
@@ -26,8 +29,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        List<String> origins = parseOrigins(allowedOrigin);
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns(allowedOrigin);
+                .setAllowedOriginPatterns(origins.toArray(String[]::new));
     }
 
     @Override
@@ -40,6 +44,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(messageLoggingInterceptor, authChannelInterceptor);
+    }
+
+    private List<String> parseOrigins(String raw) {
+        if (raw == null || raw.isBlank())
+            return List.of();
+        return Arrays.stream(raw.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isBlank())
+                .toList();
     }
 
 }

@@ -3,17 +3,18 @@ package app.omniOne.authentication;
 import app.omniOne.authentication.model.AuthMapper;
 import app.omniOne.authentication.model.dto.*;
 import app.omniOne.authentication.token.JwtDto;
-import app.omniOne.authentication.token.RefreshTokenProps;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +31,10 @@ public class AuthController {
     private static final String DEVICE_ID_HEADER = "X-Device-Id";
     private static final String REFRESH_TOKEN_HEADER = "refresh_token";
 
-    private final RefreshTokenProps refreshTokenProps;
+    @Value("${refresh-token.ttl-days}")
+    private int refreshTokenTtlDays;
+
+    private final CookieCsrfTokenRepository csrfTokenRepository;
 
     private final AuthMapper authMapper;
     private final AuthService authService;
@@ -38,8 +42,8 @@ public class AuthController {
     private ResponseCookie buildRefreshCookie(String refreshToken, Duration duration) {
         return ResponseCookie.from(REFRESH_TOKEN_HEADER, refreshToken)
                 .httpOnly(true)
-                .secure(refreshTokenProps.secure())
-                .sameSite(refreshTokenProps.sameSite())
+                .secure(true)
+                .sameSite("None")
                 .path("/auth")
                 .maxAge(duration).build();
     }
@@ -55,7 +59,7 @@ public class AuthController {
         UUID resolvedDeviceId = deviceId != null ? deviceId : UUID.randomUUID();
         LoginResponse loginResponse = authService.login(request, resolvedDeviceId);
         ResponseCookie refreshCookie =
-                buildRefreshCookie(loginResponse.refreshToken(), Duration.ofDays(refreshTokenProps.ttlDays()));
+                buildRefreshCookie(loginResponse.refreshToken(), Duration.ofDays(refreshTokenTtlDays));
         return ResponseEntity.ok()
                 .header(DEVICE_ID_HEADER, resolvedDeviceId.toString())
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
@@ -67,7 +71,7 @@ public class AuthController {
                                           @RequestHeader(name = DEVICE_ID_HEADER) UUID deviceId) {
         LoginResponse loginResponse = authService.refreshTokens(refreshToken, deviceId);
         ResponseCookie refreshCookie =
-                buildRefreshCookie(loginResponse.refreshToken(), Duration.ofDays(refreshTokenProps.ttlDays()));
+                buildRefreshCookie(loginResponse.refreshToken(), Duration.ofDays(refreshTokenTtlDays));
         return ResponseEntity.ok()
                 .header(DEVICE_ID_HEADER, deviceId.toString())
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
