@@ -3,6 +3,9 @@ package app.omniOne.authentication;
 import app.omniOne.authentication.token.JwtFilter;
 import app.omniOne.configuration.SecurityConfig;
 import app.omniOne.controller.coach.CoachClientController;
+import app.omniOne.exception.ProblemDetailAccessDeniedHandler;
+import app.omniOne.exception.ProblemDetailAuthenticationEntryPoint;
+import app.omniOne.exception.ProblemDetailFactory;
 import app.omniOne.model.mapper.ClientMapper;
 import app.omniOne.service.ClientService;
 import app.omniOne.service.CoachingService;
@@ -22,7 +25,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, ProblemDetailFactory.class, ProblemDetailAuthenticationEntryPoint.class,
+        ProblemDetailAccessDeniedHandler.class})
 @WebMvcTest(CoachClientController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class MethodSecurityTest {
@@ -40,7 +44,7 @@ class MethodSecurityTest {
         when(authService.isCoachedByMe(clientId)).thenReturn(false);
 
         mockMvc.perform(get("/coach/clients/{clientId}", clientId))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
 
         verify(authService).isCoachedByMe(clientId);
         verifyNoInteractions(clientService, clientMapper);
