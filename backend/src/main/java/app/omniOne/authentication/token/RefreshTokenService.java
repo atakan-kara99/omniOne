@@ -1,7 +1,7 @@
 package app.omniOne.authentication.token;
 
 import app.omniOne.exception.InternalServerException;
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import app.omniOne.exception.RefreshTokenInvalidException;
 import app.omniOne.model.entity.User;
 import jakarta.transaction.Transactional;
@@ -146,7 +146,7 @@ public class RefreshTokenService {
                 return refreshTokenRepo.findByTokenHashOrThrow(tokenHash);
             }
             return refreshTokenRepo.findByTokenHashAndDeviceIdOrThrow(tokenHash, deviceId);
-        } catch (NoSuchResourceException ex) {
+        } catch (ResourceNotFoundException ex) {
             if (deviceId == null) {
                 log.info("Invalid refresh token presented (tokenHashPrefix={})", hashPrefix(tokenHash));
                 throw new RefreshTokenInvalidException("Invalid refresh token");

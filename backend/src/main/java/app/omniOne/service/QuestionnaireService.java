@@ -1,6 +1,6 @@
 package app.omniOne.service;
 
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import app.omniOne.model.dto.QuestionnaireAnswerRequest;
 import app.omniOne.model.dto.QuestionnaireAnswerResponse;
 import app.omniOne.model.dto.QuestionnaireQuestionPostRequest;
@@ -74,7 +74,7 @@ public class QuestionnaireService {
                     !question.getCoach().getId().equals(client.getCoachOrThrow().getId())) {
                 log.info("Question not found for coach (questionId={}, coachId={})",
                         question.getId(), client.getCoachOrThrow().getId());
-                throw new NoSuchResourceException("Question not found for coach");
+                throw new ResourceNotFoundException("Question not found for coach");
             }
             // Try to find existing answer
             QuestionnaireAnswer answer = answerRepo

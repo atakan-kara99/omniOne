@@ -1,6 +1,6 @@
 package app.omniOne.repository;
 
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import app.omniOne.model.entity.Coach;
 import app.omniOne.model.entity.questionnaire.QuestionnaireQuestion;
 import app.omniOne.model.enums.UserRole;
@@ -45,8 +45,8 @@ class QuestionnaireQuestionRepoTest extends RepositoryTestBase {
     }
 
     @Test void findByIdAndCoachIdOrThrow_throwsWhenMissing() {
-        NoSuchResourceException exception = assertThrows(
-                NoSuchResourceException.class,
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
                 () -> questionnaireQuestionRepo.findByIdAndCoachIdOrThrow(999L, coach.getId()));
 
         assertEquals("QuestionnaireQuestion not found", exception.getMessage());
@@ -59,8 +59,8 @@ class QuestionnaireQuestionRepoTest extends RepositoryTestBase {
     }
 
     @Test void findByIdAOrThrow_throwsWhenMissing() {
-        NoSuchResourceException exception = assertThrows(
-                NoSuchResourceException.class,
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
                 () -> questionnaireQuestionRepo.findByIdAOrThrow(1000L));
 
         assertEquals("QuestionnaireQuestion not found", exception.getMessage());

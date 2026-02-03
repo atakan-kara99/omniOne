@@ -1,6 +1,6 @@
 package app.omniOne.model.entity;
 
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import app.omniOne.model.entity.questionnaire.QuestionnaireAnswer;
 import jakarta.persistence.*;
 import lombok.*;
@@ -37,7 +37,7 @@ public class Client extends BaseEntity {
 
     public Coach getCoachOrThrow() {
         if (coach == null)
-            throw new NoSuchResourceException("Coach not found");
+            throw new ResourceNotFoundException("Coach not found");
         return coach;
     }
 

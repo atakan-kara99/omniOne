@@ -3,7 +3,7 @@ package app.omniOne.email;
 import app.omniOne.email.properties.ActivationProps;
 import app.omniOne.email.properties.InvitationProps;
 import app.omniOne.email.properties.ResetPasswordProps;
-import app.omniOne.exception.SendEmailException;
+import app.omniOne.exception.EmailDeliveryException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -81,7 +81,7 @@ public class EmailService {
             mailSender.send(message);
         } catch (Exception ex) {
             log.warn("Failed to send email (to={}, subject={})", to, subject, ex);
-            throw new SendEmailException("Failed to send email", ex);
+            throw new EmailDeliveryException("Failed to send email", ex);
         }
     }
 

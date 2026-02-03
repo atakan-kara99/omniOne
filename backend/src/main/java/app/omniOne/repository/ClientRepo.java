@@ -1,6 +1,6 @@
 package app.omniOne.repository;
 
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import app.omniOne.model.dto.ClientResponse;
 import app.omniOne.model.entity.Client;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,7 +15,7 @@ public interface ClientRepo extends JpaRepository<Client, UUID> {
 
     default Client findByIdOrThrow(UUID id) {
         return findById(id)
-                .orElseThrow(() -> new NoSuchResourceException("Client not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Client not found"));
     }
 
     List<Client> findAllByCoachId(UUID coachId);

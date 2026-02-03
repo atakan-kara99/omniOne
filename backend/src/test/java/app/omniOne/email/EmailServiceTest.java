@@ -3,7 +3,7 @@ package app.omniOne.email;
 import app.omniOne.email.properties.ActivationProps;
 import app.omniOne.email.properties.InvitationProps;
 import app.omniOne.email.properties.ResetPasswordProps;
-import app.omniOne.exception.SendEmailException;
+import app.omniOne.exception.EmailDeliveryException;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Assertions;
@@ -105,8 +105,8 @@ import static org.mockito.Mockito.*;
         when(templateEngine.process(any(String.class), any(Context.class))).thenReturn("<html>body</html>");
         doThrow(new RuntimeException("boom")).when(mailSender).send(mimeMessage);
 
-        SendEmailException exception = assertThrows(
-                SendEmailException.class,
+        EmailDeliveryException exception = assertThrows(
+                EmailDeliveryException.class,
                 () -> emailService.sendResetPasswordMail(userEmail, "reset-token"));
 
         assertEquals("Failed to send email", exception.getMessage());

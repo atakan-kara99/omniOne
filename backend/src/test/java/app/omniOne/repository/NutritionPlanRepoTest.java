@@ -1,6 +1,6 @@
 package app.omniOne.repository;
 
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import app.omniOne.model.entity.Client;
 import app.omniOne.model.entity.Coach;
 import app.omniOne.model.entity.NutritionPlan;
@@ -43,8 +43,8 @@ class NutritionPlanRepoTest extends RepositoryTestBase {
     }
 
     @Test void findByIdAndClientIdOrThrow_throwsWhenMissing() {
-        NoSuchResourceException exception = assertThrows(
-                NoSuchResourceException.class,
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
                 () -> nutritionPlanRepo.findByIdAndClientIdOrThrow(999L, client.getId()));
 
         assertEquals("NutritionPlan not found", exception.getMessage());
@@ -57,8 +57,8 @@ class NutritionPlanRepoTest extends RepositoryTestBase {
     }
 
     @Test void findFirstByClientIdOrderByCreatedAtDescOrThrow_throwsWhenMissing() {
-        NoSuchResourceException exception = assertThrows(
-                NoSuchResourceException.class,
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
                 () -> nutritionPlanRepo.findFirstByClientIdOrderByCreatedAtDescOrThrow(UUID.randomUUID()));
 
         assertEquals("NutritionPlan not found", exception.getMessage());

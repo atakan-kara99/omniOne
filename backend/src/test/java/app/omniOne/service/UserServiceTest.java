@@ -2,7 +2,7 @@ package app.omniOne.service;
 
 import app.omniOne.authentication.model.dto.ChangePasswordRequest;
 import app.omniOne.authentication.token.RefreshTokenRepo;
-import app.omniOne.exception.NotAllowedException;
+import app.omniOne.exception.OperationNotAllowedException;
 import app.omniOne.model.entity.User;
 import app.omniOne.repository.ClientRepo;
 import app.omniOne.repository.CoachRepo;
@@ -81,7 +81,7 @@ import static org.mockito.Mockito.*;
         when(userRepo.findByIdOrThrow(userId)).thenReturn(user);
         when(passwordEncoder.matches("old", "old-hash")).thenReturn(false);
 
-        assertThrows(NotAllowedException.class,
+        assertThrows(OperationNotAllowedException.class,
                 () -> userService.changePassword(userId, request),
                 "Expected changePassword to reject incorrect old password");
 

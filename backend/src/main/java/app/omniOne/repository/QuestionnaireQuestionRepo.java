@@ -1,6 +1,6 @@
 package app.omniOne.repository;
 
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import app.omniOne.model.entity.questionnaire.QuestionnaireQuestion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -18,12 +18,12 @@ public interface QuestionnaireQuestionRepo extends JpaRepository<QuestionnaireQu
 
     default QuestionnaireQuestion findByIdAndCoachIdOrThrow(Long questionId, UUID coachId) {
         return findByIdAndCoachId(questionId, coachId)
-                .orElseThrow(() -> new NoSuchResourceException("QuestionnaireQuestion not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("QuestionnaireQuestion not found"));
     }
 
     default QuestionnaireQuestion findByIdAOrThrow(Long questionId) {
         return findById(questionId)
-                .orElseThrow(() -> new NoSuchResourceException("QuestionnaireQuestion not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("QuestionnaireQuestion not found"));
     }
 
 }

@@ -1,6 +1,6 @@
 package app.omniOne.repository;
 
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import app.omniOne.model.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -17,12 +17,12 @@ public interface UserRepo extends JpaRepository<User, UUID> {
 
     default User findByIdOrThrow(UUID id) {
         return findById(id)
-                .orElseThrow(() -> new NoSuchResourceException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     default User findByEmailOrThrow(String email) {
         return findByEmail(email)
-                .orElseThrow(() -> new NoSuchResourceException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
 }

@@ -1,6 +1,6 @@
 package app.omniOne.repository;
 
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import app.omniOne.model.entity.NutritionPlan;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -16,14 +16,14 @@ public interface NutritionPlanRepo extends JpaRepository<NutritionPlan, Long> {
 
     default NutritionPlan findByIdAndClientIdOrThrow(Long id, UUID clientId) {
         return findByIdAndClientId(id, clientId)
-                .orElseThrow(() -> new NoSuchResourceException("NutritionPlan not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan not found"));
     }
 
     Optional<NutritionPlan> findFirstByClientIdOrderByCreatedAtDesc(UUID clientId);
 
     default NutritionPlan findFirstByClientIdOrderByCreatedAtDescOrThrow(UUID clientId) {
         return findFirstByClientIdOrderByCreatedAtDesc(clientId)
-                .orElseThrow(() -> new NoSuchResourceException("NutritionPlan not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan not found"));
     }
 
     List<NutritionPlan> findByClientIdOrderByCreatedAtDesc(UUID clientId);

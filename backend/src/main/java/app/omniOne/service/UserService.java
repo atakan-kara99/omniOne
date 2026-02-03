@@ -2,7 +2,7 @@ package app.omniOne.service;
 
 import app.omniOne.authentication.model.dto.ChangePasswordRequest;
 import app.omniOne.authentication.token.RefreshTokenRepo;
-import app.omniOne.exception.NotAllowedException;
+import app.omniOne.exception.OperationNotAllowedException;
 import app.omniOne.model.entity.*;
 import app.omniOne.model.enums.Gender;
 import app.omniOne.model.enums.UserRole;
@@ -44,7 +44,7 @@ public class UserService {
         log.debug("Trying to change password for User {}", id);
         User user = userRepo.findByIdOrThrow(id);
         if (!encoder.matches(request.oldPassword(), user.getPassword()))
-            throw new NotAllowedException("Old password is incorrect");
+            throw new OperationNotAllowedException("Old password is incorrect");
         user.setPassword(encoder.encode(request.newPassword()));
         User savedUser = userRepo.save(user);
         log.info("Successfully changed password");
@@ -56,7 +56,7 @@ public class UserService {
         log.debug("Trying to soft delete User {}", id);
         User user = userRepo.findByIdOrThrow(id);
         if (user.isDeleted())
-            throw new NotAllowedException("User already deleted");
+            throw new OperationNotAllowedException("User already deleted");
         LocalDateTime now = LocalDateTime.now();
         user.setDeleted(true);
         user.setDeletedAt(now);

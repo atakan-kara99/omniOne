@@ -1,6 +1,6 @@
 package app.omniOne.authentication.token;
 
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -28,17 +28,17 @@ public interface RefreshTokenRepo extends JpaRepository<RefreshToken, UUID> {
 
     default RefreshToken findByUserId(String tokenHash) {
         return findByTokenHash(tokenHash)
-                .orElseThrow(() -> new NoSuchResourceException("RefreshToken not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("RefreshToken not found"));
     }
 
     default RefreshToken findByTokenHashAndDeviceIdOrThrow(String tokenHash, UUID deviceId) {
         return findByTokenHashAndDeviceId(tokenHash, deviceId)
-                .orElseThrow(() -> new NoSuchResourceException("RefreshToken not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("RefreshToken not found"));
     }
 
     default RefreshToken findByTokenHashOrThrow(String tokenHash) {
         return findByTokenHash(tokenHash)
-                .orElseThrow(() -> new NoSuchResourceException("RefreshToken not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("RefreshToken not found"));
     }
 
 }

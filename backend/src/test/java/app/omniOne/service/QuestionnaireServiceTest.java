@@ -1,6 +1,6 @@
 package app.omniOne.service;
 
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import app.omniOne.model.dto.QuestionnaireAnswerRequest;
 import app.omniOne.model.dto.QuestionnaireAnswerResponse;
 import app.omniOne.model.dto.QuestionnaireQuestionPostRequest;
@@ -158,7 +158,7 @@ import static org.mockito.Mockito.*;
         List<QuestionnaireAnswerRequest> requests =
                 List.of(new QuestionnaireAnswerRequest(5L, "answer"));
 
-        assertThrows(NoSuchResourceException.class,
+        assertThrows(ResourceNotFoundException.class,
                 () -> questionnaireService.putAnswers(clientId, requests),
                 "Expected rejection when question belongs to another coach");
 

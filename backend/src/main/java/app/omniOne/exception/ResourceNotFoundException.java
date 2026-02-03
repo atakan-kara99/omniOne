@@ -2,9 +2,9 @@ package app.omniOne.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class NoSuchResourceException extends ApiException {
+public class ResourceNotFoundException extends ApiException {
 
-    public NoSuchResourceException(String message) {
+    public ResourceNotFoundException(String message) {
         super(ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, message);
     }
 

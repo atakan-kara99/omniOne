@@ -1,6 +1,6 @@
 package app.omniOne.repository;
 
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import app.omniOne.model.entity.Client;
 import app.omniOne.model.enums.UserRole;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,8 +31,8 @@ class ClientRepoTest extends RepositoryTestBase {
     }
 
     @Test void findByIdOrThrow_throwsWhenMissing() {
-        NoSuchResourceException exception = assertThrows(
-                NoSuchResourceException.class,
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
                 () -> clientRepo.findByIdOrThrow(UUID.randomUUID()));
 
         assertEquals("Client not found", exception.getMessage());

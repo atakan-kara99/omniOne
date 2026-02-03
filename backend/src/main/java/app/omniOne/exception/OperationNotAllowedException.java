@@ -2,9 +2,9 @@ package app.omniOne.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class NotAllowedException extends ApiException {
+public class OperationNotAllowedException extends ApiException {
 
-    public NotAllowedException(String message) {
+    public OperationNotAllowedException(String message) {
         super(ErrorCode.NOT_ALLOWED, HttpStatus.FORBIDDEN, message);
     }
 

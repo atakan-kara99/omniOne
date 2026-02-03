@@ -11,7 +11,7 @@ public class TestExceptionController {
 
     @GetMapping("/test/not-found")
     public void notFound() {
-        throw new NoSuchResourceException("User not found");
+        throw new ResourceNotFoundException("User not found");
     }
 
     @PostMapping("/test/validation")

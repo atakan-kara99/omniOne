@@ -1,6 +1,6 @@
 package app.omniOne.repository;
 
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import app.omniOne.model.entity.UserProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,7 +12,7 @@ public interface UserProfileRepo extends JpaRepository<UserProfile, UUID> {
 
     default UserProfile findByIdOrThrow(UUID id) {
         return findById(id)
-                .orElseThrow(() -> new NoSuchResourceException("UserProfile not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("UserProfile not found"));
     }
 
 }

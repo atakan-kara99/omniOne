@@ -1,6 +1,6 @@
 package app.omniOne.model.entity;
 
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import app.omniOne.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
@@ -45,7 +45,7 @@ public class User extends BaseEntity {
 
     public UserProfile getProfileOrThrow() {
         if (profile == null)
-            throw new NoSuchResourceException("UserProfile not found");
+            throw new ResourceNotFoundException("UserProfile not found");
         return profile;
     }
 

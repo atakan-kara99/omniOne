@@ -5,7 +5,11 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator.Builder;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import app.omniOne.exception.JwtExpiredException;
+import app.omniOne.exception.JwtInvalidException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -104,9 +108,15 @@ public class JwtService {
 
     private DecodedJWT verify(String jwt, JWTVerifier verifier) {
         log.debug("Trying to verify JWT");
-        DecodedJWT decodedJWT = verifier.verify(jwt);
-        log.info("Successfully verified JWT for {}", decodedJWT.getSubject());
-        return decodedJWT;
+        try {
+            DecodedJWT decodedJWT = verifier.verify(jwt);
+            log.info("Successfully verified JWT for {}", decodedJWT.getSubject());
+            return decodedJWT;
+        } catch (TokenExpiredException ex) {
+            throw new JwtExpiredException("Token has expired");
+        } catch (JWTVerificationException ex) {
+            throw new JwtInvalidException("Token is invalid");
+        }
     }
 
 }

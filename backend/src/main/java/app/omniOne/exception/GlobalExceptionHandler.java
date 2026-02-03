@@ -2,6 +2,9 @@ package app.omniOne.exception;
 
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
+import app.omniOne.exception.AccountDisabledException;
+import app.omniOne.exception.JwtExpiredException;
+import app.omniOne.exception.JwtInvalidException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
@@ -76,6 +79,34 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(pd, status);
     }
 
+    @ExceptionHandler(JwtExpiredException.class)
+    public ResponseEntity<ProblemDetail> handleJwtExpired(JwtExpiredException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.AUTH_TOKEN_EXPIRED,
+                ErrorCode.AUTH_TOKEN_EXPIRED.title(),
+                ex.getMessage(),
+                Map.of());
+        log.info("Token expired: {}", ex.getMessage());
+        return new ResponseEntity<>(pd, status);
+    }
+
+    @ExceptionHandler(JwtInvalidException.class)
+    public ResponseEntity<ProblemDetail> handleJwtInvalid(JwtInvalidException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.AUTH_INVALID_TOKEN,
+                ErrorCode.AUTH_INVALID_TOKEN.title(),
+                ex.getMessage(),
+                Map.of());
+        log.info("JWT invalid: {}", ex.getMessage());
+        return new ResponseEntity<>(pd, status);
+    }
+
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<ProblemDetail> handleDisabled(DisabledException ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.FORBIDDEN;
@@ -85,6 +116,21 @@ public class GlobalExceptionHandler {
                 ErrorCode.AUTH_ACCOUNT_DISABLED,
                 ErrorCode.AUTH_ACCOUNT_DISABLED.title(),
                 "Account is disabled",
+                Map.of());
+        log.info("Account disabled: {}", ex.getMessage());
+        return new ResponseEntity<>(pd, status);
+    }
+
+    @ExceptionHandler(AccountDisabledException.class)
+    public ResponseEntity<ProblemDetail> handleAccountDisabled(AccountDisabledException ex,
+                                                               HttpServletRequest request) {
+        HttpStatus status = HttpStatus.FORBIDDEN;
+        ProblemDetail pd = problemDetailFactory.create(
+                request,
+                status,
+                ErrorCode.AUTH_ACCOUNT_DISABLED,
+                ErrorCode.AUTH_ACCOUNT_DISABLED.title(),
+                ex.getMessage(),
                 Map.of());
         log.info("Account disabled: {}", ex.getMessage());
         return new ResponseEntity<>(pd, status);

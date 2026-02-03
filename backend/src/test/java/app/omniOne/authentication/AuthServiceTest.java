@@ -9,8 +9,8 @@ import app.omniOne.authentication.token.JwtService;
 import app.omniOne.authentication.token.RefreshTokenService;
 import app.omniOne.chatting.repository.ChatParticipantRepo;
 import app.omniOne.email.EmailService;
-import app.omniOne.exception.DuplicateResourceException;
-import app.omniOne.exception.NotAllowedException;
+import app.omniOne.exception.ResourceConflictException;
+import app.omniOne.exception.OperationNotAllowedException;
 import app.omniOne.model.entity.Client;
 import app.omniOne.model.entity.Coach;
 import app.omniOne.model.entity.User;
@@ -132,7 +132,7 @@ import static org.mockito.Mockito.*;
         existing.setEnabled(false);
         existing.setRole(UserRole.ADMIN);
         when(userRepo.findByEmail(adminEmail)).thenReturn(java.util.Optional.of(existing));
-        assertThrows(NotAllowedException.class, () -> authService.registerCoach(dto));
+        assertThrows(OperationNotAllowedException.class, () -> authService.registerCoach(dto));
     }
 
     @Test void register_throwsForDuplicateEmail() {
@@ -141,7 +141,7 @@ import static org.mockito.Mockito.*;
         existing.setEnabled(true);
         when(userRepo.findByEmail(userEmail)).thenReturn(java.util.Optional.of(existing));
 
-        assertThrows(DuplicateResourceException.class, () -> authService.registerCoach(dto));
+        assertThrows(ResourceConflictException.class, () -> authService.registerCoach(dto));
     }
 
     @Test void activate_enablesUserFromVerifiedToken() {
@@ -167,7 +167,7 @@ import static org.mockito.Mockito.*;
         user.setEnabled(true);
         when(userRepo.findByEmailOrThrow(userEmail)).thenReturn(user);
 
-        assertThrows(NotAllowedException.class, () -> authService.sendActivationMail(userEmail));
+        assertThrows(OperationNotAllowedException.class, () -> authService.sendActivationMail(userEmail));
     }
 
     @Test void sendActivationMail_sendsMailWhenNotEnabled() {

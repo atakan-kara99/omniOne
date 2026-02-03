@@ -1,6 +1,6 @@
 package app.omniOne.repository;
 
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import app.omniOne.model.entity.User;
 import app.omniOne.model.enums.UserRole;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,8 +52,8 @@ class UserRepoTest extends RepositoryTestBase {
     }
 
     @Test void findByIdOrThrow_throwsWhenMissing() {
-        NoSuchResourceException exception = assertThrows(
-                NoSuchResourceException.class,
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
                 () -> userRepo.findByIdOrThrow(UUID.randomUUID()));
 
         assertEquals("User not found", exception.getMessage());
@@ -66,8 +66,8 @@ class UserRepoTest extends RepositoryTestBase {
     }
 
     @Test void findByEmailOrThrow_throwsWhenMissing() {
-        NoSuchResourceException exception = assertThrows(
-                NoSuchResourceException.class,
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
                 () -> userRepo.findByEmailOrThrow("missing@omni.one"));
 
         assertEquals("User not found", exception.getMessage());

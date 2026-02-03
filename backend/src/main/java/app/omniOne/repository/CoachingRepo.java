@@ -1,6 +1,6 @@
 package app.omniOne.repository;
 
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import app.omniOne.model.entity.Coaching;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -18,7 +18,7 @@ public interface CoachingRepo extends JpaRepository<Coaching, Long> {
 
     default Coaching findByCoachIdAndClientIdOrThrow(UUID coachId, UUID clientId) {
         return findByCoachIdAndClientId(coachId, clientId)
-                .orElseThrow(() -> new NoSuchResourceException("Coaching not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Coaching not found"));
     }
 
     List<Coaching> findAllByCoachId(UUID coachId);

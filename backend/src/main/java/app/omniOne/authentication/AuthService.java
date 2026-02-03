@@ -7,8 +7,9 @@ import app.omniOne.authentication.token.RefreshToken;
 import app.omniOne.authentication.token.RefreshTokenService;
 import app.omniOne.chatting.repository.ChatParticipantRepo;
 import app.omniOne.email.EmailService;
-import app.omniOne.exception.DuplicateResourceException;
-import app.omniOne.exception.NotAllowedException;
+import app.omniOne.exception.AccountDisabledException;
+import app.omniOne.exception.ResourceConflictException;
+import app.omniOne.exception.OperationNotAllowedException;
 import app.omniOne.model.entity.Client;
 import app.omniOne.model.entity.Coach;
 import app.omniOne.model.entity.User;
@@ -23,7 +24,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -91,7 +91,7 @@ public class AuthService {
         RefreshToken refreshToken = refreshTokenService.getRefreshToken(rawToken, deviceId);
         UserDetails userDetails = new UserDetails(refreshToken.getUser());
         if (!userDetails.isEnabled())
-            throw new DisabledException("User account is disabled/deleted");
+            throw new AccountDisabledException("User account is disabled/deleted");
         String jwt = jwtService.createAuthJwt(userDetails);
         String newToken = refreshTokenService.rotateRefreshToken(rawToken, deviceId);
         log.info("Successfully refreshed jwt and refresh token");
@@ -112,12 +112,12 @@ public class AuthService {
         if (user != null) {
             if (user.isEnabled()) {
                 log.info("Registration rejected: user already exists (email={})", email);
-                throw new DuplicateResourceException("User already exists");
+                throw new ResourceConflictException("User already exists");
             }
             if (user.getRole() != UserRole.COACH) {
                 log.info("Registration rejected: email reserved for other role (email={}, role={})",
                         email, user.getRole());
-                throw new NotAllowedException("Email already reserved");
+                throw new OperationNotAllowedException("Email already reserved");
             }
         } else {
             user = userRepo.save(User.builder()
@@ -139,7 +139,7 @@ public class AuthService {
         User user = userRepo.findByEmailOrThrow(email);
         if (user.isEnabled()) {
             log.info("Activation rejected: already activated (email={})", email);
-            throw new NotAllowedException("User already activated");
+            throw new OperationNotAllowedException("User already activated");
         }
         user.setEnabled(true);
         User savedUser = userRepo.save(user);
@@ -152,7 +152,7 @@ public class AuthService {
         User user = userRepo.findByEmailOrThrow(email);
         if (user.isEnabled()) {
             log.info("Activation mail rejected: already activated (email={})", email);
-            throw new NotAllowedException("User already activated");
+            throw new OperationNotAllowedException("User already activated");
         }
         String jwt = jwtService.createActivationJwt(email);
         emailService.sendActivationMail(email, jwt);
@@ -166,13 +166,13 @@ public class AuthService {
             if (user.getRole() != UserRole.CLIENT) {
                 log.info("Invitation rejected: existing user not a client (email={}, role={})",
                         clientMail, user.getRole());
-                throw new NotAllowedException("Existing user is not a client");
+                throw new OperationNotAllowedException("Existing user is not a client");
             }
             Client client = clientRepo.findByIdOrThrow(user.getId());
             if (client.getCoach() != null) {
                 log.info("Invitation rejected: client already has coach (clientId={}, coachId={})",
                         user.getId(), client.getCoach().getId());
-                throw new NotAllowedException("Client already has a coach");
+                throw new OperationNotAllowedException("Client already has a coach");
             }
         }
         String jwt = jwtService.createInvitationJwt(clientMail, coachId);
@@ -191,13 +191,13 @@ public class AuthService {
         if (user.getRole() != UserRole.CLIENT) {
             log.info("Invitation validation rejected: existing user not a client (email={}, role={})",
                     clientMail, user.getRole());
-            throw new NotAllowedException("Existing user is not a client");
+            throw new OperationNotAllowedException("Existing user is not a client");
         }
         Client client = clientRepo.findByIdOrThrow(user.getId());
         if (client.getCoach() != null) {
             log.info("Invitation validation rejected: client already has coach (clientId={}, coachId={})",
                     user.getId(), client.getCoach().getId());
-            throw new NotAllowedException("Client already has a coach");
+            throw new OperationNotAllowedException("Client already has a coach");
         }
         return new InvitationResponse(clientMail, false);
     }
@@ -215,18 +215,18 @@ public class AuthService {
             if (user.getRole() != UserRole.CLIENT) {
                 log.info("Invitation acceptance rejected: existing user not a client (email={}, role={})",
                         clientMail, user.getRole());
-                throw new NotAllowedException("Existing user is not a client");
+                throw new OperationNotAllowedException("Existing user is not a client");
             }
             client = clientRepo.findByIdOrThrow(user.getId());
             if (client.getCoach() != null) {
                 log.info("Invitation acceptance rejected: client already has coach (clientId={}, coachId={})",
                         user.getId(), client.getCoach().getId());
-                throw new NotAllowedException("Client already has a coach");
+                throw new OperationNotAllowedException("Client already has a coach");
             }
         } else {
             if (request == null || request.password() == null || request.password().isBlank()) {
                 log.info("Invitation acceptance rejected: missing password (email={})", clientMail);
-                throw new NotAllowedException("Password is required for a new client");
+                throw new OperationNotAllowedException("Password is required for a new client");
             }
             user = userRepo.save(User.builder()
                     .email(clientMail)
@@ -244,7 +244,7 @@ public class AuthService {
         email = normalize(email);
         User user = userRepo.findByEmailOrThrow(email);
         if (!user.isEnabled() || user.isDeleted())
-            throw new DisabledException("User account is disabled/deleted");
+            throw new AccountDisabledException("User account is disabled/deleted");
         String jwt = jwtService.createResetPasswordJwt(email);
         emailService.sendResetPasswordMail(email, jwt);
     }
@@ -255,7 +255,7 @@ public class AuthService {
         String email = normalize(jwt.getClaim("email").asString());
         User user = userRepo.findByEmailOrThrow(email);
         if (!user.isEnabled() || user.isDeleted())
-            throw new DisabledException("User account is disabled/deleted");
+            throw new AccountDisabledException("User account is disabled/deleted");
         user.setPassword(encoder.encode(request.password()));
         User savedUser = userRepo.save(user);
         log.info("Successfully reset password from User {}", user.getId());

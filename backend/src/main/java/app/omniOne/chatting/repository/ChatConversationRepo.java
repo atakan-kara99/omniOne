@@ -2,7 +2,7 @@ package app.omniOne.chatting.repository;
 
 import app.omniOne.chatting.model.dto.ChatConversationDto;
 import app.omniOne.chatting.model.entity.ChatConversation;
-import app.omniOne.exception.NoSuchResourceException;
+import app.omniOne.exception.ResourceNotFoundException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -39,7 +39,7 @@ public interface ChatConversationRepo extends JpaRepository<ChatConversation, UU
 
     default ChatConversation findByIdOrThrow(UUID chatId) {
         return findById(chatId)
-                .orElseThrow(() -> new NoSuchResourceException("Chat not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Chat not found"));
     }
 
 }
