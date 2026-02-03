@@ -6,6 +6,7 @@ import {
   updateProfile,
 } from '../api.js'
 import { useAuth } from '../authContext.js'
+import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
 import { EMPTY_PROFILE, isProfileComplete } from '../profileUtils.js'
 import { isValidPassword, PASSWORD_PATTERN_STRING, PASSWORD_REQUIREMENTS } from '../passwordUtils.js'
 
@@ -15,6 +16,7 @@ function Profile() {
   const [passwords, setPasswords] = useState({ oldPassword: '', newPassword: '' })
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [savingPassword, setSavingPassword] = useState(false)
@@ -24,6 +26,7 @@ function Profile() {
     async function load() {
       setLoading(true)
       setError('')
+      setFieldErrors(null)
       try {
         const profileData = await getProfile()
         if (mounted) {
@@ -34,7 +37,7 @@ function Profile() {
         }
       } catch (err) {
         if (mounted) {
-          setError(err.message || 'Failed to load profile.')
+          setError(err || 'Failed to load profile.')
         }
       } finally {
         if (mounted) {
@@ -53,6 +56,7 @@ function Profile() {
     event.preventDefault()
     setStatus('')
     setError('')
+    setFieldErrors(null)
     setSaving(true)
     try {
       await updateProfile(profile)
@@ -62,7 +66,8 @@ function Profile() {
       }
       setStatus('Profile updated.')
     } catch (err) {
-      setError(err.message || 'Failed to update profile.')
+      setFieldErrors(getFieldErrors(err))
+      setError(err || 'Failed to update profile.')
     } finally {
       setSaving(false)
     }
@@ -72,6 +77,7 @@ function Profile() {
     event.preventDefault()
     setStatus('')
     setError('')
+    setFieldErrors(null)
     setSavingPassword(true)
     try {
       if (!isValidPassword(passwords.newPassword)) {
@@ -83,7 +89,8 @@ function Profile() {
       setStatus('Password updated.')
       setPasswords({ oldPassword: '', newPassword: '' })
     } catch (err) {
-      setError(err.message || 'Failed to update password.')
+      setFieldErrors(getFieldErrors(err))
+      setError(err || 'Failed to update password.')
     } finally {
       setSavingPassword(false)
     }
@@ -97,7 +104,7 @@ function Profile() {
       sessionStorage.setItem('omniOne.accountDeleted', '1')
       logout()
     } catch (err) {
-      setError(err.message || 'Failed to delete account.')
+      setError(err || 'Failed to delete account.')
     }
   }
 
@@ -110,21 +117,31 @@ function Profile() {
         </div>
       </div>
       {loading ? <p className="muted">Loading profile...</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
       {status ? <p className="success">{status}</p> : null}
       {!loading ? (
         <div className="split-grid">
           <div className="card">
             <div className="card-title">Personal details</div>
-            <form className="form" onSubmit={handleProfileSave}>
+            <form className="form" onSubmit={handleProfileSave} autoComplete="off">
               <label className="field">
                 <span>Email</span>
-                <input type="email" value={user?.email || ''} disabled />
+                <input
+                  type="email"
+                  name="email"
+                  id="profile-email"
+                  autoComplete="off"
+                  value={user?.email || ''}
+                  disabled
+                />
               </label>
               <label className="field">
                 <span>First name</span>
                 <input
                   type="text"
+                  name="firstName"
+                  id="profile-firstName"
+                  autoComplete="off"
                   value={profile.firstName}
                   onChange={(event) =>
                     setProfile((prev) => ({
@@ -134,11 +151,17 @@ function Profile() {
                   }
                   required
                 />
+                {fieldErrors?.firstName ? (
+                  <p className="field-error">{fieldErrors.firstName}</p>
+                ) : null}
               </label>
               <label className="field">
                 <span>Last name</span>
                 <input
                   type="text"
+                  name="lastName"
+                  id="profile-lastName"
+                  autoComplete="off"
                   value={profile.lastName}
                   onChange={(event) =>
                     setProfile((prev) => ({
@@ -148,11 +171,17 @@ function Profile() {
                   }
                   required
                 />
+                {fieldErrors?.lastName ? (
+                  <p className="field-error">{fieldErrors.lastName}</p>
+                ) : null}
               </label>
               <label className="field">
                 <span>Birth date</span>
                 <input
                   type="date"
+                  name="birthDate"
+                  id="profile-birthDate"
+                  autoComplete="off"
                   value={profile.birthDate}
                   onChange={(event) =>
                     setProfile((prev) => ({
@@ -162,10 +191,16 @@ function Profile() {
                   }
                   required
                 />
+                {fieldErrors?.birthDate ? (
+                  <p className="field-error">{fieldErrors.birthDate}</p>
+                ) : null}
               </label>
               <label className="field">
                 <span>Gender</span>
                 <select
+                  name="gender"
+                  id="profile-gender"
+                  autoComplete="off"
                   value={profile.gender}
                   onChange={(event) =>
                     setProfile((prev) => ({
@@ -179,6 +214,7 @@ function Profile() {
                   <option value="FEMALE">Female</option>
                   <option value="OTHER">Other</option>
                 </select>
+                {fieldErrors?.gender ? <p className="field-error">{fieldErrors.gender}</p> : null}
               </label>
               <button type="submit" disabled={saving}>
                 {saving ? 'Saving...' : 'Save profile'}
@@ -187,11 +223,14 @@ function Profile() {
           </div>
           <div className="card">
             <div className="card-title">Security</div>
-            <form className="form" onSubmit={handlePasswordSave}>
+            <form className="form" onSubmit={handlePasswordSave} autoComplete="off">
               <label className="field">
                 <span>Current password</span>
                 <input
                   type="password"
+                  name="oldPassword"
+                  id="profile-oldPassword"
+                  autoComplete="off"
                   value={passwords.oldPassword}
                   onChange={(event) =>
                     setPasswords((prev) => ({
@@ -207,11 +246,17 @@ function Profile() {
                   onInput={(event) => event.target.setCustomValidity('')}
                   required
                 />
+                {fieldErrors?.oldPassword ? (
+                  <p className="field-error">{fieldErrors.oldPassword}</p>
+                ) : null}
               </label>
               <label className="field">
                 <span>New password</span>
                 <input
                   type="password"
+                  name="newPassword"
+                  id="profile-newPassword"
+                  autoComplete="off"
                   value={passwords.newPassword}
                   onChange={(event) =>
                     setPasswords((prev) => ({
@@ -227,6 +272,9 @@ function Profile() {
                   onInput={(event) => event.target.setCustomValidity('')}
                   required
                 />
+                {fieldErrors?.newPassword ? (
+                  <p className="field-error">{fieldErrors.newPassword}</p>
+                ) : null}
               </label>
               <button type="submit" disabled={savingPassword}>
                 {savingPassword ? 'Updating...' : 'Change password'}

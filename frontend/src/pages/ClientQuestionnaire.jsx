@@ -4,6 +4,7 @@ import {
   getClientQuestionnaire,
   updateClientAnswers,
 } from '../api.js'
+import { formatErrorMessage } from '../errorUtils.js'
 
 function ClientQuestionnaire() {
   const [questions, setQuestions] = useState([])
@@ -34,7 +35,7 @@ function ClientQuestionnaire() {
         }
       } catch (err) {
         if (mounted) {
-          setError(err.message || 'Failed to load questionnaire.')
+          setError(err || 'Failed to load questionnaire.')
         }
       } finally {
         if (mounted) {
@@ -62,7 +63,7 @@ function ClientQuestionnaire() {
       await updateClientAnswers(payload)
       setStatus('Answers saved.')
     } catch (err) {
-      setError(err.message || 'Failed to save answers.')
+      setError(err || 'Failed to save answers.')
     } finally {
       setSaving(false)
     }
@@ -77,17 +78,20 @@ function ClientQuestionnaire() {
         </div>
       </div>
       {loading ? <p className="muted">Loading questionnaire...</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
       {!loading && !error ? (
         questions.length === 0 ? (
           <p className="muted">No questions available yet.</p>
         ) : (
-          <form className="form" onSubmit={handleSubmit}>
+          <form className="form" onSubmit={handleSubmit} autoComplete="off">
             {questions.map((question) => (
               <label key={question.id} className="field">
                 <span>{question.text}</span>
                 <input
                   type="text"
+                  name={`question-${question.id}`}
+                  id={`client-question-${question.id}`}
+                  autoComplete="off"
                   value={answers[question.id] || ''}
                   onChange={(event) =>
                     setAnswers((prev) => ({

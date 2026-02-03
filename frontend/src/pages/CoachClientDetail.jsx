@@ -10,6 +10,7 @@ import {
   getCoachClientPlans,
   updateCoachClientPlan,
 } from '../api.js'
+import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
 
 const EMPTY_PLAN = {
   carbs: '',
@@ -31,6 +32,7 @@ function CoachClientDetail() {
   const [editingPlanId, setEditingPlanId] = useState(null)
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -52,6 +54,7 @@ function CoachClientDetail() {
     async function load() {
       setLoading(true)
       setError('')
+      setFieldErrors(null)
       try {
         const [clientData, active, list, questionnaire] = await Promise.all([
           getCoachClient(clientId),
@@ -67,7 +70,7 @@ function CoachClientDetail() {
         }
       } catch (err) {
         if (mounted) {
-          setError(err.message || 'Failed to load client.')
+          setError(err || 'Failed to load client.')
         }
       } finally {
         if (mounted) {
@@ -86,6 +89,7 @@ function CoachClientDetail() {
     event.preventDefault()
     setStatus('')
     setError('')
+    setFieldErrors(null)
     setSaving(true)
 
     const payload = {
@@ -114,7 +118,8 @@ function CoachClientDetail() {
       setPlanForm(EMPTY_PLAN)
       setEditingPlanId(null)
     } catch (err) {
-      setError(err.message || 'Failed to save plan.')
+      setFieldErrors(getFieldErrors(err))
+      setError(err || 'Failed to save plan.')
     } finally {
       setSaving(false)
     }
@@ -127,7 +132,7 @@ function CoachClientDetail() {
       await endCoaching(clientId)
       navigate('/coach/clients')
     } catch (err) {
-      setError(err.message || 'Failed to end coaching.')
+      setError(err || 'Failed to end coaching.')
     }
   }
 
@@ -144,7 +149,7 @@ function CoachClientDetail() {
         </Link>
       </div>
       {loading ? <p className="muted">Loading client...</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
       {!loading && client ? (
         <>
           <div className="stat-grid">
@@ -166,12 +171,15 @@ function CoachClientDetail() {
           <div className="split-grid">
             <div className="card">
               <div className="card-title">Nutrition plan editor</div>
-              <form className="form" onSubmit={handlePlanSubmit}>
+              <form className="form" onSubmit={handlePlanSubmit} autoComplete="off">
                 {nutritionFields.map((field) => (
                   <label key={field.key} className="field">
                     <span>{field.label}</span>
                     <input
                       type="number"
+                      name={field.key}
+                      id={`plan-${field.key}`}
+                      autoComplete="off"
                       min="0"
                       step="0.1"
                       value={planForm[field.key]}
@@ -183,6 +191,9 @@ function CoachClientDetail() {
                       }
                       required={['carbs', 'proteins', 'fats'].includes(field.key)}
                     />
+                    {fieldErrors?.[field.key] ? (
+                      <p className="field-error">{fieldErrors[field.key]}</p>
+                    ) : null}
                   </label>
                 ))}
                 <button type="submit" disabled={saving}>

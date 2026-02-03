@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { acceptInvitation, validateInvitation } from '../api.js'
+import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
 import { isValidPassword, PASSWORD_PATTERN_STRING, PASSWORD_REQUIREMENTS } from '../passwordUtils.js'
 
 function AcceptInvitation() {
@@ -12,6 +13,7 @@ function AcceptInvitation() {
   const [requiresPassword, setRequiresPassword] = useState(false)
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState(null)
   const [loading, setLoading] = useState(false)
   const [validating, setValidating] = useState(true)
 
@@ -20,6 +22,7 @@ function AcceptInvitation() {
     async function validate() {
       setValidating(true)
       setError('')
+      setFieldErrors(null)
       if (!token) {
         setError('Invitation token missing.')
         setValidating(false)
@@ -33,7 +36,8 @@ function AcceptInvitation() {
         }
       } catch (err) {
         if (mounted) {
-          setError(err?.payload?.detail || err.message || 'Invalid invitation token.')
+          setFieldErrors(getFieldErrors(err))
+          setError(formatErrorMessage(err) || 'Invalid invitation token.')
         }
       } finally {
         if (mounted) {
@@ -52,6 +56,7 @@ function AcceptInvitation() {
     event.preventDefault()
     setStatus('')
     setError('')
+    setFieldErrors(null)
     if (!token) {
       setError('Invitation token missing.')
       return
@@ -72,7 +77,8 @@ function AcceptInvitation() {
       setStatus('Invitation accepted. You can now sign in.')
       setTimeout(() => navigate('/login'), 1000)
     } catch (err) {
-      setError(err?.payload?.detail || err.message || 'Failed to accept invitation.')
+      setFieldErrors(getFieldErrors(err))
+      setError(formatErrorMessage(err) || 'Failed to accept invitation.')
     } finally {
       setLoading(false)
     }
@@ -83,23 +89,32 @@ function AcceptInvitation() {
       <h1>Accept Invitation</h1>
       <p className="muted">Complete the invitation to activate the account.</p>
       {validating ? <p className="muted">Validating invitation...</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
       {status ? <p className="success">{status}</p> : null}
       {!validating && !error ? (
-        <form className="form" onSubmit={handleSubmit}>
+        <form className="form" onSubmit={handleSubmit} autoComplete="off">
           {email ? (
             <label className="field">
-              <input type="email" value={email} disabled />
+              <input
+                type="email"
+                name="email"
+                id="invite-email"
+                autoComplete="off"
+                value={email}
+                disabled
+              />
             </label>
           ) : null}
           {requiresPassword ? (
             <label className="field">
               <input
                 type="password"
+                name="password"
+                id="invite-password"
+                autoComplete="off"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="Password"
-                autoComplete="new-password"
                 minLength={8}
                 maxLength={32}
                 pattern={PASSWORD_PATTERN_STRING}
@@ -108,6 +123,7 @@ function AcceptInvitation() {
                 onInput={(event) => event.target.setCustomValidity('')}
                 required
               />
+              {fieldErrors?.password ? <p className="field-error">{fieldErrors.password}</p> : null}
             </label>
           ) : (
             <p className="muted">No password required. Confirm to accept the invitation.</p>

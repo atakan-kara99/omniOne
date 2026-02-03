@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getProfile, updateProfile } from '../api.js'
 import { useAuth } from '../authContext.js'
+import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
 import { EMPTY_PROFILE, isProfileComplete } from '../profileUtils.js'
 
 function CompleteProfile() {
@@ -10,6 +11,7 @@ function CompleteProfile() {
   const [profile, setProfile] = useState(EMPTY_PROFILE)
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -24,6 +26,7 @@ function CompleteProfile() {
     async function load() {
       setLoading(true)
       setError('')
+      setFieldErrors(null)
       try {
         const profileData = await getProfile()
         if (mounted) {
@@ -37,7 +40,7 @@ function CompleteProfile() {
           if (err?.status === 404) {
             setProfile(EMPTY_PROFILE)
           } else {
-            setError(err.message || 'Failed to load profile.')
+            setError(err || 'Failed to load profile.')
           }
         }
       } finally {
@@ -57,6 +60,7 @@ function CompleteProfile() {
     event.preventDefault()
     setStatus('')
     setError('')
+    setFieldErrors(null)
     setSaving(true)
     try {
       await updateProfile(profile)
@@ -70,7 +74,8 @@ function CompleteProfile() {
         navigate('/', { replace: true })
       }
     } catch (err) {
-      setError(err.message || 'Failed to update profile.')
+      setFieldErrors(getFieldErrors(err))
+      setError(err || 'Failed to update profile.')
     } finally {
       setSaving(false)
     }
@@ -85,20 +90,30 @@ function CompleteProfile() {
         </div>
       </div>
       {loading ? <p className="muted">Loading profile...</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
       {status ? <p className="success">{status}</p> : null}
       {!loading ? (
         <div className="card">
           <div className="card-title">Required details</div>
-          <form className="form" onSubmit={handleProfileSave}>
+          <form className="form" onSubmit={handleProfileSave} autoComplete="off">
             <label className="field">
               <span>Email</span>
-              <input type="email" value={user?.email || ''} disabled />
+              <input
+                type="email"
+                name="email"
+                id="profile-email"
+                autoComplete="off"
+                value={user?.email || ''}
+                disabled
+              />
             </label>
             <label className="field">
               <span>First name</span>
               <input
                 type="text"
+                name="firstName"
+                id="profile-firstName"
+                autoComplete="off"
                 value={profile.firstName}
                 onChange={(event) =>
                   setProfile((prev) => ({
@@ -108,11 +123,15 @@ function CompleteProfile() {
                 }
                 required
               />
+              {fieldErrors?.firstName ? <p className="field-error">{fieldErrors.firstName}</p> : null}
             </label>
             <label className="field">
               <span>Last name</span>
               <input
                 type="text"
+                name="lastName"
+                id="profile-lastName"
+                autoComplete="off"
                 value={profile.lastName}
                 onChange={(event) =>
                   setProfile((prev) => ({
@@ -122,11 +141,15 @@ function CompleteProfile() {
                 }
                 required
               />
+              {fieldErrors?.lastName ? <p className="field-error">{fieldErrors.lastName}</p> : null}
             </label>
             <label className="field">
               <span>Birth date</span>
               <input
                 type="date"
+                name="birthDate"
+                id="profile-birthDate"
+                autoComplete="off"
                 value={profile.birthDate}
                 onChange={(event) =>
                   setProfile((prev) => ({
@@ -136,10 +159,14 @@ function CompleteProfile() {
                 }
                 required
               />
+              {fieldErrors?.birthDate ? <p className="field-error">{fieldErrors.birthDate}</p> : null}
             </label>
             <label className="field">
               <span>Gender</span>
               <select
+                name="gender"
+                id="profile-gender"
+                autoComplete="off"
                 value={profile.gender}
                 onChange={(event) =>
                   setProfile((prev) => ({
@@ -154,6 +181,7 @@ function CompleteProfile() {
                 <option value="FEMALE">Female</option>
                 <option value="OTHER">Other</option>
               </select>
+              {fieldErrors?.gender ? <p className="field-error">{fieldErrors.gender}</p> : null}
             </label>
             <button type="submit" disabled={saving}>
               {saving ? 'Saving...' : 'Save and continue'}

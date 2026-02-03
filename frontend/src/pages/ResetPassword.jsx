@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { resetPassword } from '../api.js'
+import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
 import { isValidPassword, PASSWORD_PATTERN_STRING, PASSWORD_REQUIREMENTS } from '../passwordUtils.js'
 
 function ResetPassword() {
@@ -10,12 +11,14 @@ function ResetPassword() {
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState(null)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(event) {
     event.preventDefault()
     setStatus('')
     setError('')
+    setFieldErrors(null)
     if (!token) {
       setError('Reset token missing.')
       return
@@ -31,7 +34,8 @@ function ResetPassword() {
       setStatus('Password updated. You can now sign in.')
       setTimeout(() => navigate('/login'), 1000)
     } catch (err) {
-      setError(err.message || 'Failed to reset password.')
+      setFieldErrors(getFieldErrors(err))
+      setError(formatErrorMessage(err) || 'Failed to reset password.')
     } finally {
       setLoading(false)
     }
@@ -41,14 +45,16 @@ function ResetPassword() {
     <section className="panel panel-narrow">
       <h1>Create A New Password</h1>
       <p className="muted">Choose a password to secure your account.</p>
-      <form className="form" onSubmit={handleSubmit}>
+      <form className="form" onSubmit={handleSubmit} autoComplete="off">
         <label className="field">
           <input
             type="password"
+            name="password"
+            id="reset-password"
+            autoComplete="off"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="New password"
-            autoComplete="new-password"
             minLength={8}
             maxLength={32}
             pattern={PASSWORD_PATTERN_STRING}
@@ -57,12 +63,13 @@ function ResetPassword() {
             onInput={(event) => event.target.setCustomValidity('')}
             required
           />
+          {fieldErrors?.password ? <p className="field-error">{fieldErrors.password}</p> : null}
         </label>
         <button type="submit" disabled={loading}>
           {loading ? 'Updating...' : 'Reset password'}
         </button>
         {status ? <p className="success">{status}</p> : null}
-        {error ? <p className="error">{error}</p> : null}
+        {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
       </form>
       <p className="hint">
         <Link to="/login">Back to sign in</Link>

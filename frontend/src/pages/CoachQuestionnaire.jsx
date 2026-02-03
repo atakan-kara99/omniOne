@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { addCoachQuestion, deleteCoachQuestion, getCoachQuestions } from '../api.js'
+import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
 
 function CoachQuestionnaire() {
   const [questions, setQuestions] = useState([])
   const [text, setText] = useState('')
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -15,6 +17,7 @@ function CoachQuestionnaire() {
     async function load() {
       setLoading(true)
       setError('')
+      setFieldErrors(null)
       try {
         const list = await getCoachQuestions()
         if (mounted) {
@@ -22,7 +25,7 @@ function CoachQuestionnaire() {
         }
       } catch (err) {
         if (mounted) {
-          setError(err.message || 'Failed to load questions.')
+          setError(err || 'Failed to load questions.')
         }
       } finally {
         if (mounted) {
@@ -41,6 +44,7 @@ function CoachQuestionnaire() {
     event.preventDefault()
     setStatus('')
     setError('')
+    setFieldErrors(null)
     setSaving(true)
     try {
       const created = await addCoachQuestion({ text })
@@ -48,7 +52,8 @@ function CoachQuestionnaire() {
       setText('')
       setStatus('Question added.')
     } catch (err) {
-      setError(err.message || 'Failed to add question.')
+      setFieldErrors(getFieldErrors(err))
+      setError(err || 'Failed to add question.')
     } finally {
       setSaving(false)
     }
@@ -61,7 +66,7 @@ function CoachQuestionnaire() {
       await deleteCoachQuestion(questionId)
       setQuestions((prev) => prev.filter((item) => item.id !== questionId))
     } catch (err) {
-      setError(err.message || 'Failed to delete question.')
+      setError(err || 'Failed to delete question.')
     }
   }
 
@@ -76,16 +81,20 @@ function CoachQuestionnaire() {
       <div className="split-grid">
         <div className="card">
           <div className="card-title">Add a question</div>
-          <form className="form" onSubmit={handleAdd}>
+          <form className="form" onSubmit={handleAdd} autoComplete="off">
             <label className="field">
               <span>Prompt</span>
               <input
                 type="text"
+                name="text"
+                id="coach-question-text"
+                autoComplete="off"
                 value={text}
                 onChange={(event) => setText(event.target.value)}
                 placeholder="Ex: How many meals do you eat daily?"
                 required
               />
+              {fieldErrors?.text ? <p className="field-error">{fieldErrors.text}</p> : null}
             </label>
             <button type="submit" disabled={saving}>
               {saving ? 'Saving...' : 'Add question'}
@@ -96,7 +105,7 @@ function CoachQuestionnaire() {
         <div className="card">
           <div className="card-title">Live questions</div>
           {loading ? <p className="muted">Loading questions...</p> : null}
-          {error ? <p className="error">{error}</p> : null}
+          {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
           {!loading && !error ? (
             questions.length === 0 ? (
               <p className="muted">No questions yet.</p>

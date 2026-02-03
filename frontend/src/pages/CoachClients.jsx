@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { PaperPlaneTilt, Plus } from 'phosphor-react'
 import { getCoachClients, inviteClient } from '../api.js'
 import { openChatDock } from '../chatDockEvents.js'
+import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
 
 function CoachClients() {
   const inviteRef = useRef(null)
@@ -11,6 +12,7 @@ function CoachClients() {
   const [inviteEmail, setInviteEmail] = useState('')
   const [status, setStatus] = useState('')
   const [inviteError, setInviteError] = useState('')
+  const [inviteFieldErrors, setInviteFieldErrors] = useState(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [inviting, setInviting] = useState(false)
@@ -29,7 +31,7 @@ function CoachClients() {
         }
       } catch (err) {
         if (mounted) {
-          setError(err.message || 'Failed to load clients.')
+          setError(err || 'Failed to load clients.')
         }
       } finally {
         if (mounted) {
@@ -69,6 +71,7 @@ function CoachClients() {
     event.preventDefault()
     setStatus('')
     setInviteError('')
+    setInviteFieldErrors(null)
     setInviting(true)
     try {
       await inviteClient(inviteEmail)
@@ -81,7 +84,8 @@ function CoachClients() {
       }, 1000)
       setInviteEmail('')
     } catch (err) {
-      setInviteError(err.message || 'Failed to send invite.')
+      setInviteFieldErrors(getFieldErrors(err))
+      setInviteError(err || 'Failed to send invite.')
     } finally {
       setInviting(false)
     }
@@ -99,7 +103,7 @@ function CoachClients() {
           <h1>Your clients</h1>
           <p className="muted">Invite new clients and manage active coaching.</p>
         </div>
-        <div className="chat-actions invite-actions">
+        <div className="chat-actions invite-actions" ref={inviteRef}>
           <button
             type="button"
             className={`icon-button user-action invite-button${showInvite ? ' is-active' : ''}`}
@@ -111,31 +115,37 @@ function CoachClients() {
             <span className="button-label">Invite</span>
           </button>
           {showInvite ? (
-            <div className="chat-start-menu invite-menu" id="invite-form" ref={inviteRef}>
+            <div className="chat-start-menu invite-menu" id="invite-form">
               <div className="chat-start-title">Invite a client</div>
-              <form className="form invite-form" onSubmit={handleInvite}>
+              <form className="form invite-form" onSubmit={handleInvite} autoComplete="off">
                 <label className="field">
                   <span>Client email</span>
                   <input
                     type="email"
+                    name="inviteEmail"
+                    id="invite-client-email"
+                    autoComplete="off"
                     value={inviteEmail}
                     onChange={(event) => setInviteEmail(event.target.value)}
                     placeholder="client@example.com"
                     required
                   />
+                  {inviteFieldErrors?.email ? (
+                    <p className="field-error">{inviteFieldErrors.email}</p>
+                  ) : null}
                 </label>
                 <button type="submit" disabled={inviting}>
                   {inviting ? 'Sending...' : 'Send invite'}
                 </button>
                 {status ? <p className="success">{status}</p> : null}
-                {inviteError ? <p className="error">{inviteError}</p> : null}
+                {inviteError ? <p className="error">{formatErrorMessage(inviteError)}</p> : null}
               </form>
             </div>
           ) : null}
         </div>
       </div>
       {loading ? <p className="muted">Loading clients...</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
       {!loading && !error ? (
         clients.length === 0 ? (
           <p className="muted">No clients yet.</p>

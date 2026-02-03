@@ -10,6 +10,7 @@ import {
 } from '../api.js'
 import { getToken } from '../auth.js'
 import { useAuth } from '../authContext.js'
+import { formatErrorMessage } from '../errorUtils.js'
 import { Client } from '@stomp/stompjs'
 import { Link } from 'react-router-dom'
 import { CHAT_DOCK_OPEN_EVENT } from '../chatDockEvents.js'
@@ -471,7 +472,7 @@ function ChatDock() {
         setMessages((prev) => mergeMessages(incoming, prev))
       }
     } catch (err) {
-      setMessageError(err.message || 'Failed to load older messages.')
+      setMessageError(err || 'Failed to load older messages.')
     } finally {
       loadingOlderRef.current = false
       setLoadingOlder(false)
@@ -923,7 +924,7 @@ function ChatDock() {
         lastLoadedChatIdRef.current = activeChatId
       } catch (err) {
         if (mounted) {
-          setMessageError(err.message || 'Failed to load messages.')
+          setMessageError(err || 'Failed to load messages.')
         }
       }
     }
@@ -1111,10 +1112,14 @@ function ChatDock() {
           const clientMessageId = payload?.clientMessageId || lastSentMessageIdRef.current
           const pendingEntry = clientMessageId ? pendingMessagesRef.current.get(clientMessageId) : null
           const conversationId = pendingEntry?.conversationId || null
-          const errorMessage =
+          const errorDetail =
             payload?.message ||
             (payload?.fieldErrors ? Object.values(payload.fieldErrors)[0] : '') ||
             'Message failed to send.'
+          const errorMessage = formatErrorMessage({
+            detail: errorDetail,
+            traceId: payload?.traceId,
+          })
           if (clientMessageId && conversationId) {
             pendingMessagesRef.current.delete(clientMessageId)
             updateMessageByClientIdRef.current?.(conversationId, clientMessageId, (item) => ({
@@ -1150,7 +1155,7 @@ function ChatDock() {
             }
           }
         } catch (err) {
-          setChatError(err.message || 'Failed to load chats.')
+          setChatError(err || 'Failed to load chats.')
         } finally {
           setLoadingChats(false)
         }
@@ -1242,7 +1247,7 @@ function ChatDock() {
           setActiveTargetName(`${coach?.firstName || ''} ${coach?.lastName || ''}`.trim())
         }
       } catch (err) {
-        setChatError(err.message || 'Failed to start chat.')
+        setChatError(err || 'Failed to start chat.')
       }
     },
     [isCoach, selectChat],
@@ -1277,7 +1282,7 @@ function ChatDock() {
         setStartTargets(filtered)
         setShowStart(true)
       } catch (err) {
-        setChatError(err.message || 'Failed to load clients.')
+        setChatError(err || 'Failed to load clients.')
       } finally {
         setStarting(false)
       }
@@ -1299,7 +1304,7 @@ function ChatDock() {
       setActiveTargetId(coach.id)
       setActiveTargetName(`${coach.firstName || ''} ${coach.lastName || ''}`.trim())
     } catch (err) {
-      setChatError(err.message || 'Failed to start chat.')
+      setChatError(err || 'Failed to start chat.')
     } finally {
       setStarting(false)
     }
@@ -1318,7 +1323,7 @@ function ChatDock() {
       setActiveTargetName(`${client?.firstName || ''} ${client?.lastName || ''}`.trim())
       setShowStart(false)
     } catch (err) {
-      setChatError(err.message || 'Failed to start chat.')
+      setChatError(err || 'Failed to start chat.')
     } finally {
       setStarting(false)
     }
@@ -1522,7 +1527,7 @@ function ChatDock() {
                 ) : null}
               </div>
             </div>
-            {chatError ? <p className="error">{chatError}</p> : null}
+            {chatError ? <p className="error">{formatErrorMessage(chatError)}</p> : null}
             <div
               className={`chat-dock-body${showList ? '' : ' is-list-hidden'}${
                 isDockNarrow ? (showList ? ' is-list-only' : ' is-thread-only') : ''
@@ -1674,9 +1679,14 @@ function ChatDock() {
                         </div>
                       )}
                     </div>
-                    {messageError ? <p className="error">{messageError}</p> : null}
-                    <form className="chat-input" onSubmit={handleSend}>
+                    {messageError ? (
+                      <p className="error">{formatErrorMessage(messageError)}</p>
+                    ) : null}
+                    <form className="chat-input" onSubmit={handleSend} autoComplete="off">
                       <textarea
+                        name="message"
+                        id="chat-message"
+                        autoComplete="off"
                         ref={inputRef}
                         className="chat-textarea"
                         placeholder={activeTargetId ? 'Type your message...' : 'Recipient unavailable'}

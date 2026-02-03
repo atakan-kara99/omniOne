@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getClientActivePlan, getClientPlans } from '../api.js'
+import { formatErrorMessage } from '../errorUtils.js'
 
 function PlanCard({ title, plan }) {
   if (!plan) {
@@ -66,7 +67,7 @@ function ClientNutritionPlans() {
         }
       } catch (err) {
         if (mounted) {
-          setError(err.message || 'Failed to load plans.')
+          setError(err || 'Failed to load plans.')
         }
       } finally {
         if (mounted) {
@@ -90,7 +91,7 @@ function ClientNutritionPlans() {
         </div>
       </div>
       {loading ? <p className="muted">Loading plans...</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
       {!loading && !error ? (
         <>
           <PlanCard title="Active plan" plan={activePlan} />

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getProfile, getUser, login, refreshAuth, refreshCsrf, setLoggingOut } from '../api.js'
 import { getToken, setToken } from '../auth.js'
 import { useAuth } from '../authContext.js'
+import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
 import { isValidPassword, PASSWORD_PATTERN_STRING, PASSWORD_REQUIREMENTS } from '../passwordUtils.js'
 
 function Login() {
@@ -11,6 +12,7 @@ function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState(null)
   const [status, setStatus] = useState('')
   const [loading, setLoading] = useState(false)
   const refreshAttemptedRef = useRef(false)
@@ -64,6 +66,7 @@ function Login() {
   async function runLogin(nextEmail, nextPassword) {
     setError('')
     setStatus('')
+    setFieldErrors(null)
     setLoading(true)
 
     try {
@@ -96,20 +99,21 @@ function Login() {
         setError('This UI only supports Coach and Client roles.')
       }
     } catch (err) {
-      const detail = err?.payload?.detail
-      const payloadText = typeof err?.payload === 'string' ? err.payload : ''
-      if (
-        err?.status === 403 &&
-        (detail?.includes('User Account Disabled') || payloadText.includes('User Account Disabled'))
-      ) {
-        setError('Your account is not activated yet. Check your email for the activation link.')
-      } else if (
-        err?.status === 403 &&
-        (detail?.includes('Der Benutzer') || payloadText.includes('Der Benutzer'))
-      ) {
-        setError('Your account is disabled. Please contact support.')
+      const errorCode = err?.errorCode
+      setFieldErrors(getFieldErrors(err))
+      if (errorCode === 'AUTH_ACCOUNT_DISABLED') {
+        setError(
+          formatErrorMessage({
+            detail: 'Your account is not activated yet. Check your email for the activation link.',
+            traceId: err?.traceId,
+          }),
+        )
+      } else if (errorCode === 'AUTH_INVALID_CREDENTIALS') {
+        setError(
+          formatErrorMessage({ detail: 'Invalid email or password.', traceId: err?.traceId }),
+        )
       } else {
-        setError(err.message || 'Login failed.')
+        setError(formatErrorMessage(err) || 'Login failed.')
       }
     } finally {
       setLoading(false)
@@ -133,24 +137,29 @@ function Login() {
         <div className="hero-body">
           <h1>Welcome Back!</h1>
           <p className="muted">Sign in to continue your coaching.</p>
-          <form className="form" onSubmit={handleSubmit}>
+          <form className="form" onSubmit={handleSubmit} autoComplete="off">
             <label className="field">
               <input
                 type="email"
+                name="email"
+                id="login-email"
+                autoComplete="off"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="Email"
-                autoComplete="email"
                 required
               />
+              {fieldErrors?.email ? <p className="field-error">{fieldErrors.email}</p> : null}
             </label>
             <label className="field">
               <input
                 type="password"
+                name="password"
+                id="login-password"
+                autoComplete="off"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="Password"
-                autoComplete="current-password"
                 minLength={8}
                 maxLength={32}
                 pattern={PASSWORD_PATTERN_STRING}
@@ -159,11 +168,12 @@ function Login() {
                 onInput={(event) => event.target.setCustomValidity('')}
                 required
               />
+              {fieldErrors?.password ? <p className="field-error">{fieldErrors.password}</p> : null}
             </label>
             <button type="submit" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
-            {error ? <p className="error">{error}</p> : null}
+            {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
             {status ? <p className="success">{status}</p> : null}
           </form>
           <div className="hint-row">

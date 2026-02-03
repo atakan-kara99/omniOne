@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getCoach, getCoachClients, getChats } from '../api.js'
+import { getCoach, getCoachClients } from '../api.js'
+import { formatErrorMessage } from '../errorUtils.js'
 
 function CoachDashboard() {
   const [coach, setCoach] = useState(null)
   const [clients, setClients] = useState([])
-  const [chats, setChats] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -16,19 +16,14 @@ function CoachDashboard() {
       setLoading(true)
       setError('')
       try {
-        const [coachData, clientList, chatList] = await Promise.all([
-          getCoach(),
-          getCoachClients(),
-          getChats(),
-        ])
+        const [coachData, clientList] = await Promise.all([getCoach(), getCoachClients()])
         if (mounted) {
           setCoach(coachData)
           setClients(clientList || [])
-          setChats(chatList || [])
         }
       } catch (err) {
         if (mounted) {
-          setError(err.message || 'Failed to load coach data.')
+          setError(err || 'Failed to load coach data.')
         }
       } finally {
         if (mounted) {
@@ -55,7 +50,7 @@ function CoachDashboard() {
         </Link>
       </div>
       {loading ? <p className="muted">Loading coach data...</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
       {!loading && !error ? (
         <>
           <div className="stat-grid">
@@ -66,10 +61,6 @@ function CoachDashboard() {
             <div className="stat">
               <div className="label">Active clients</div>
               <div className="value">{clients.length}</div>
-            </div>
-            <div className="stat">
-              <div className="label">Open chats</div>
-              <div className="value">{chats.length}</div>
             </div>
           </div>
           <div className="list">

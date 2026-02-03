@@ -6,6 +6,7 @@ import {
   getClientActivePlan,
   getClientQuestionnaire,
 } from '../api.js'
+import { formatErrorMessage } from '../errorUtils.js'
 
 function ClientDashboard() {
   const [client, setClient] = useState(null)
@@ -36,7 +37,7 @@ function ClientDashboard() {
         }
       } catch (err) {
         if (mounted) {
-          setError(err.message || 'Failed to load client data.')
+          setError(err || 'Failed to load client data.')
         }
       } finally {
         if (mounted) {
@@ -63,7 +64,7 @@ function ClientDashboard() {
         </Link>
       </div>
       {loading ? <p className="muted">Loading client data...</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
       {!loading && !error ? (
         <>
           <div className="stat-grid">

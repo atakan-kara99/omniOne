@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { activateAccount } from '../api.js'
+import { formatErrorMessage } from '../errorUtils.js'
 
 function ActivateAccount() {
   const [searchParams] = useSearchParams()
@@ -25,7 +26,7 @@ function ActivateAccount() {
         }
       } catch (err) {
         if (mounted) {
-          setError(err.message || 'Activation failed.')
+          setError(err || 'Activation failed.')
           setStatus('')
         }
       }
@@ -42,7 +43,7 @@ function ActivateAccount() {
       <h1>Activate Account</h1>
       <p className="muted">We are verifying your activation link.</p>
       {status ? <p className="success">{status}</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
       <p className="hint">
         <Link to="/login">Return to sign in</Link>
       </p>
