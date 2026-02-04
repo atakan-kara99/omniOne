@@ -4,19 +4,21 @@ import java.time.LocalDateTime;
 
 public record NutritionPlanResponse(
 
-        Double calories,
+        Long id,
 
-        Double carbs,
+        Integer calories,
 
-        Double proteins,
+        Integer carbs,
 
-        Double fats,
+        Integer proteins,
 
-        Double water,
+        Integer fats,
 
-        Double salt,
+        Integer water,
 
-        Double fiber,
+        Float salt,
+
+        Float fiber,
 
         LocalDateTime createdAt
 

@@ -58,10 +58,10 @@ class CoachNutritionPlanControllerTest {
 
     @Test void addNutriPlan_createsPlanAndReturnsResponse() throws Exception {
         NutritionPlanRequest request = new NutritionPlanRequest(
-                200.0, 150.0, 70.0, 2.0, 1.0, 5.0);
+                200, 150, 70, 2000, 1.0f, 5.0f);
         NutritionPlan plan = nutritionPlan(null);
         NutritionPlanResponse response = new NutritionPlanResponse(
-                1800.0, 200.0, 150.0, 70.0, 2.0, 1.0, 5.0,
+                null, 1800, 200, 150, 70, 2000, 1.0f, 5.0f,
                 LocalDateTime.of(2025, 1, 1, 10, 0));
 
         when(nutritionPlanService.addNutriPlan(eq(clientId), any(NutritionPlanRequest.class))).thenReturn(plan);
@@ -71,22 +71,22 @@ class CoachNutritionPlanControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.calories").value(1800.0))
-                .andExpect(jsonPath("$.proteins").value(150.0));
+                .andExpect(jsonPath("$.calories").value(1800))
+                .andExpect(jsonPath("$.proteins").value(150));
 
         ArgumentCaptor<NutritionPlanRequest> captor = ArgumentCaptor.forClass(NutritionPlanRequest.class);
         verify(nutritionPlanService).addNutriPlan(eq(clientId), captor.capture());
-        assertEquals(200.0, captor.getValue().carbs());
+        assertEquals(200, captor.getValue().carbs());
         verify(nutritionPlanMapper).map(plan);
     }
 
     @Test void correctNutriPlan_updatesPlan() throws Exception {
         long planId = 5L;
         NutritionPlanRequest request = new NutritionPlanRequest(
-                220.0, 160.0, 80.0, 3.0, 1.5, 6.0);
+                220, 160, 80, 3000, 1.5f, 6.0f);
         NutritionPlan plan = nutritionPlan(null);
         NutritionPlanResponse response = new NutritionPlanResponse(
-                1900.0, 220.0, 160.0, 80.0, 3.0, 1.5, 6.0,
+                null, 1900, 220, 160, 80, 3000, 1.5f, 6.0f,
                 LocalDateTime.of(2025, 2, 2, 9, 30));
 
         when(authService.isCoachedByMe(clientId)).thenReturn(true);
@@ -98,8 +98,8 @@ class CoachNutritionPlanControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.calories").value(1900.0))
-                .andExpect(jsonPath("$.fats").value(80.0));
+                .andExpect(jsonPath("$.calories").value(1900))
+                .andExpect(jsonPath("$.fats").value(80));
 
         verify(nutritionPlanService).correctNutriPlan(eq(clientId), eq(planId), any(NutritionPlanRequest.class));
         verify(nutritionPlanMapper).map(plan);
@@ -108,7 +108,7 @@ class CoachNutritionPlanControllerTest {
     @Test void getActiveNutriPlan_returnsMappedResponse() throws Exception {
         NutritionPlan plan = new NutritionPlan();
         NutritionPlanResponse response = new NutritionPlanResponse(
-                1600.0, 180.0, 140.0, 60.0, 2.5, 1.2, 7.0,
+                null, 1600, 180, 140, 60, 2500, 1.2f, 7.0f,
                 LocalDateTime.of(2025, 3, 3, 7, 15));
 
         when(authService.isCoachedByMe(clientId)).thenReturn(true);
@@ -117,8 +117,8 @@ class CoachNutritionPlanControllerTest {
 
         mockMvc.perform(get("/coach/clients/{clientId}/nutri-plans/active", clientId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.calories").value(1600.0))
-                .andExpect(jsonPath("$.water").value(2.5));
+                .andExpect(jsonPath("$.calories").value(1600))
+                .andExpect(jsonPath("$.water").value(2500));
 
         verify(nutritionPlanService).getActiveNutriPlan(clientId);
         verify(nutritionPlanMapper).map(plan);
@@ -128,10 +128,10 @@ class CoachNutritionPlanControllerTest {
         NutritionPlan plan1 = nutritionPlan(null);
         NutritionPlan plan2 = nutritionPlan(null);
         NutritionPlanResponse response1 = new NutritionPlanResponse(
-                1500.0, 170.0, 130.0, 55.0, 2.0, 1.0, 6.0,
+                null, 1500, 170, 130, 55, 2000, 1.0f, 6.0f,
                 LocalDateTime.of(2025, 4, 4, 6, 0));
         NutritionPlanResponse response2 = new NutritionPlanResponse(
-                1550.0, 175.0, 135.0, 58.0, 2.1, 1.1, 6.5,
+                null, 1550, 175, 135, 58, 2100, 1.1f, 6.5f,
                 LocalDateTime.of(2025, 4, 5, 6, 0));
 
         when(authService.isCoachedByMe(clientId)).thenReturn(true);
@@ -141,8 +141,8 @@ class CoachNutritionPlanControllerTest {
 
         mockMvc.perform(get("/coach/clients/{clientId}/nutri-plans", clientId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].calories").value(1500.0))
-                .andExpect(jsonPath("$[1].calories").value(1550.0));
+                .andExpect(jsonPath("$[0].calories").value(1500))
+                .andExpect(jsonPath("$[1].calories").value(1550));
 
         verify(nutritionPlanService).getNutriPlans(clientId);
         verify(nutritionPlanMapper).map(plan1);

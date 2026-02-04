@@ -76,7 +76,7 @@ abstract class RepositoryTestBase {
     }
 
     protected NutritionPlan persistNutritionPlan(
-            Client client, double carbs, double proteins, double fats, LocalDateTime createdAt) {
+            Client client, int carbs, int proteins, int fats, LocalDateTime createdAt) {
         NutritionPlan plan = new NutritionPlan();
         plan.setClient(client);
         plan.setCarbs(carbs);

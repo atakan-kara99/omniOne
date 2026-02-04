@@ -28,9 +28,9 @@ class NutritionPlanRepoTest extends RepositoryTestBase {
     @BeforeEach void setUp() {
         Coach coach = persistCoach(persistUser(coachEmail, UserRole.COACH));
         client = persistClient(persistUser(clientEmail, UserRole.CLIENT), coach);
-        olderPlan = persistNutritionPlan(client, 200.0, 100.0, 50.0,
+        olderPlan = persistNutritionPlan(client, 200, 100, 50,
                 LocalDateTime.of(2024, 1, 1, 12, 0));
-        recentPlan = persistNutritionPlan(client, 220.0, 110.0, 60.0,
+        recentPlan = persistNutritionPlan(client, 220, 110, 60,
                 LocalDateTime.of(2024, 6, 1, 12, 0));
         flushAndClear();
     }

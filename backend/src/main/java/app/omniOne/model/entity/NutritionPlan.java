@@ -21,26 +21,27 @@ public class NutritionPlan extends BaseEntity {
     private Client client;
 
     @Column(nullable = false)
-    private Double carbs;
+    private Integer carbs;
 
     @Column(nullable = false)
-    private Double proteins;
+    private Integer proteins;
 
     @Column(nullable = false)
-    private Double fats;
+    private Integer fats;
 
-    private Double calories;
+    @Column(nullable = false)
+    private Integer calories;
 
-    private Double water;
+    private Integer water;
 
-    private Double salt;
+    private Float salt;
 
-    private Double fiber;
+    private Float fiber;
 
     @PrePersist
     @PreUpdate
     private void computeCalories() {
-        this.calories = carbs * 4.1 + proteins * 4.1 + fats * 9.3;
+        this.calories = (int) (carbs * 4.1 + proteins * 4.1 + fats * 9.3);
     }
 
 }

@@ -50,15 +50,15 @@ class ClientNutritionPlanControllerTest extends AuthTestSupport {
     @Test void getActiveNutriPlan_returnsMappedResponse() throws Exception {
         NutritionPlan plan = nutritionPlan(null);
         NutritionPlanResponse response = new NutritionPlanResponse(
-                1600.0, 180.0, 140.0, 60.0, 2.5, 1.0, 7.0,
+                null, 1600, 180, 140, 60, 2500, 1.0f, 7.0f,
                 LocalDateTime.of(2025, 1, 1, 10, 0));
         when(nutritionPlanService.getActiveNutriPlan(clientId)).thenReturn(plan);
         when(nutritionPlanMapper.map(plan)).thenReturn(response);
 
         mockMvc.perform(get("/client/nutri-plans/active"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.calories").value(1600.0))
-                .andExpect(jsonPath("$.proteins").value(140.0));
+                .andExpect(jsonPath("$.calories").value(1600))
+                .andExpect(jsonPath("$.proteins").value(140));
 
         verify(nutritionPlanService).getActiveNutriPlan(clientId);
         verify(nutritionPlanMapper).map(plan);
@@ -68,10 +68,10 @@ class ClientNutritionPlanControllerTest extends AuthTestSupport {
         NutritionPlan plan1 = nutritionPlan(null);
         NutritionPlan plan2 = nutritionPlan(null);
         NutritionPlanResponse response1 = new NutritionPlanResponse(
-                1500.0, 170.0, 130.0, 55.0, 2.0, 1.0, 6.0,
+                null, 1500, 170, 130, 55, 2000, 1.0f, 6.0f,
                 LocalDateTime.of(2025, 2, 2, 9, 0));
         NutritionPlanResponse response2 = new NutritionPlanResponse(
-                1550.0, 175.0, 135.0, 58.0, 2.1, 1.1, 6.5,
+                null, 1550, 175, 135, 58, 2100, 1.1f, 6.5f,
                 LocalDateTime.of(2025, 2, 3, 9, 0));
 
         when(nutritionPlanService.getNutriPlans(clientId)).thenReturn(List.of(plan1, plan2));
@@ -80,8 +80,8 @@ class ClientNutritionPlanControllerTest extends AuthTestSupport {
 
         mockMvc.perform(get("/client/nutri-plans"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].calories").value(1500.0))
-                .andExpect(jsonPath("$[1].calories").value(1550.0));
+                .andExpect(jsonPath("$[0].calories").value(1500))
+                .andExpect(jsonPath("$[1].calories").value(1550));
 
         verify(nutritionPlanService).getNutriPlans(clientId);
         verify(nutritionPlanMapper).map(plan1);

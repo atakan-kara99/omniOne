@@ -5,25 +5,25 @@ import org.hibernate.validator.constraints.Range;
 
 public record NutritionPlanRequest(
 
+        @NotNull
         @Range(min = 0, max = 2500)
-        @NotNull
-        Double carbs,
+        Integer carbs,
 
+        @NotNull
         @Range(min = 0, max = 1000)
-        @NotNull
-        Double proteins,
+        Integer proteins,
 
+        @NotNull
         @Range(min = 0, max = 500)
-        @NotNull
-        Double fats,
+        Integer fats,
+
+        @Range(min = 0, max = 50000)
+        Integer water,
 
         @Range(min = 0, max = 50)
-        Double water,
-
-        @Range(min = 0, max = 50)
-        Double salt,
+        Float salt,
 
         @Range(min = 0, max = 100)
-        Double fiber
+        Float fiber
 
 ) {}

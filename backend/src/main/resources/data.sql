@@ -76,15 +76,15 @@ VALUES
 
 INSERT INTO nutrition_plan (calories, carbs, proteins, fats, water, salt, fiber, created_at, client_id)
 VALUES
-    (2100, 240, 105, 70, 2.6, 5.0, 28, '2024-03-01 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
-    (1950, 220, 95,  65, 2.4, 4.8, 24, '2023-11-15 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
-    (2300, 270, 115, 75, 2.8, 5.5, 30, '2024-06-10 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
-    (2500, 290, 125, 85, 3.0, 6.0, 32, '2024-09-20 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
-    (2250, 260, 112, 78, 2.7, 5.4, 29, '2025-01-05 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
-    (2150, 245, 108, 72, 2.6, 5.1, 27, '2024-12-01 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
-    (2050, 235, 100, 70, 2.5, 5.0, 26, '2024-10-25 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
-    (2350, 275, 118, 76, 2.9, 5.6, 31, '2025-03-15 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
-    (1900, 210, 92,  62, 2.3, 4.6, 23, '2023-08-20 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one'));
+    (2100, 240, 105, 70, 2600, 5.0, 28, '2024-03-01 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
+    (1950, 220, 95,  65, 2400, 4.8, 24, '2023-11-15 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
+    (2300, 270, 115, 75, 2800, 5.5, 30, '2024-06-10 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
+    (2500, 290, 125, 85, 3000, 6.0, 32, '2024-09-20 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
+    (2250, 260, 112, 78, 2700, 5.4, 29, '2025-01-05 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
+    (2150, 245, 108, 72, 2600, 5.1, 27, '2024-12-01 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
+    (2050, 235, 100, 70, 2500, 5.0, 26, '2024-10-25 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
+    (2350, 275, 118, 76, 2900, 5.6, 31, '2025-03-15 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one')),
+    (1900, 210, 92,  62, 2300, 4.6, 23, '2023-08-20 00:00:00', (SELECT id FROM user_ WHERE email = 'client-100@omni.one'));
 
 -----------------------------------------
 -- QUESTIONNAIRE

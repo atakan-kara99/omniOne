@@ -42,7 +42,7 @@ import static org.mockito.Mockito.*;
 
     @Test void addNutriPlan_mapsAndSavesNewPlan() {
         NutritionPlanRequest request = new NutritionPlanRequest(
-                150.0, 100.0, 50.0, 3.0, 2.0, 5.0);
+                150, 100, 50, 3000, 2.0f, 5.0f);
         NutritionPlan savedPlan = nutritionPlan(1L);
 
         when(clientRepo.findByIdOrThrow(clientId)).thenReturn(client);
@@ -91,7 +91,7 @@ import static org.mockito.Mockito.*;
     @Test void correctNutriPlan_mapsAndSavesExistingPlan() {
         Long planId = 5L;
         NutritionPlanRequest request = new NutritionPlanRequest(
-                120.0, 80.0, 40.0, null, null, null);
+                120, 80, 40, null, null, null);
         NutritionPlan existingPlan = nutritionPlan(planId);
         NutritionPlan savedPlan = nutritionPlan(planId);
 
