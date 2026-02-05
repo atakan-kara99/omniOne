@@ -11,6 +11,7 @@ public record ChatMessageRequest(
         @NotNull
         UUID clientMessageId,
 
+        @NotNull
         UUID to,
 
         @NotBlank
