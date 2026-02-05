@@ -14,6 +14,8 @@ public interface CoachingRepo extends JpaRepository<Coaching, Long> {
 
     boolean existsByCoachIdAndClientId(UUID coachId, UUID clientId);
 
+    boolean existsByCoachIdAndClientIdAndEndDateIsNull(UUID coachId, UUID clientId);
+
     Optional<Coaching> findByCoachIdAndClientId(UUID coachId, UUID clientId);
 
     default Coaching findByCoachIdAndClientIdOrThrow(UUID coachId, UUID clientId) {
