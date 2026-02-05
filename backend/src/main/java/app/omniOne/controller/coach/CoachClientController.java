@@ -2,11 +2,11 @@ package app.omniOne.controller.coach;
 
 import app.omniOne.authentication.AuthService;
 import app.omniOne.model.dto.ClientResponse;
+import app.omniOne.model.dto.InvitationRequest;
 import app.omniOne.service.ClientService;
 import app.omniOne.service.CoachingService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,10 +40,10 @@ public class CoachClientController {
         return clientService.getClient(clientId);
     }
 
-    @GetMapping("/invite")
+    @PostMapping("/invite")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void invite(@RequestParam @Email @NotBlank String email) {
-        authService.sendInvitationMail(email, getMyId());
+    public void invite(@RequestBody @Valid InvitationRequest request) {
+        authService.sendInvitationMail(request.email(), getMyId());
     }
 
     @DeleteMapping("/{clientId}")
