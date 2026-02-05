@@ -34,6 +34,7 @@ public interface ChatConversationRepo extends JpaRepository<ChatConversation, UU
       JOIN u.profile up
     WHERE pMe.user.id = :userId
       AND pOther.user.id <> :userId
+    ORDER BY COALESCE(c.lastMessageAt, c.startedAt) DESC, c.startedAt DESC
     """)
     List<ChatConversationDto> findConversationsOf(UUID userId);
 
