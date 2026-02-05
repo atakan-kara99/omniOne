@@ -80,11 +80,31 @@ public class ChatService {
         return conversation;
     }
 
+    @Transactional
     public ChatConversationDto startChatConversation(UUID myId, UUID otherId) {
-        ChatConversation conversation = conversationRepo.findConversationBetween(myId, otherId)
-                .orElseGet(() -> createConversationWithParticipants(myId, otherId));
+        ChatConversation conversation = getOrCreateConversation(myId, otherId);
         UserProfile otherProfile = userProfileRepo.findByIdOrThrow(otherId);
         return chatMapper.map(conversation, otherProfile);
+    }
+
+    private ChatConversation getOrCreateConversation(UUID userIdA, UUID userIdB) {
+        lockUsersInDeterministicOrder(userIdA, userIdB);
+        return conversationRepo.findConversationBetween(userIdA, userIdB)
+                .orElseGet(() -> createConversationWithParticipants(userIdA, userIdB));
+    }
+
+    private void lockUsersInDeterministicOrder(UUID userIdA, UUID userIdB) {
+        if (userIdA.equals(userIdB)) {
+            userRepo.findByIdForUpdateOrThrow(userIdA);
+            return;
+        }
+        if (userIdA.toString().compareTo(userIdB.toString()) <= 0) {
+            userRepo.findByIdForUpdateOrThrow(userIdA);
+            userRepo.findByIdForUpdateOrThrow(userIdB);
+        } else {
+            userRepo.findByIdForUpdateOrThrow(userIdB);
+            userRepo.findByIdForUpdateOrThrow(userIdA);
+        }
     }
 
     public void readMessage(UUID userId, UUID conversationId) {
