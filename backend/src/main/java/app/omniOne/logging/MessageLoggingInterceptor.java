@@ -27,9 +27,7 @@ public class MessageLoggingInterceptor implements ExecutorChannelInterceptor {
     private Message<?> logTraceId(Message<?> message) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
         if (accessor != null) {
-            String sessionId = accessor.getSessionId();
-            if (sessionId != null)
-                MDC.put("traceId", sessionId.substring(0, 8) + "WS");
+            MDC.put("traceId", TraceIdSupport.resolveWebSocketTraceId(accessor.getSessionId()));
         }
         return message;
     }

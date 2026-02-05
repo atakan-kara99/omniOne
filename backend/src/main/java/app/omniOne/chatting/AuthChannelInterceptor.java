@@ -3,6 +3,7 @@ package app.omniOne.chatting;
 import app.omniOne.authentication.token.JwtService;
 import app.omniOne.chatting.exception.WebSocketError;
 import app.omniOne.exception.ErrorCode;
+import app.omniOne.logging.TraceIdSupport;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,7 +73,7 @@ public class AuthChannelInterceptor implements ChannelInterceptor {
     private void sendError(StompHeaderAccessor accessor, String type, String message, ErrorCode errorCode) {
         if (accessor == null || accessor.getSessionId() == null)
             return;
-        String traceId = accessor.getSessionId().substring(0, 8) + "WS";
+        String traceId = TraceIdSupport.resolveWebSocketTraceId(accessor.getSessionId());
         WebSocketError error = new WebSocketError(type, message, errorCode.name(), traceId, Map.of());
         SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
         headers.setSessionId(accessor.getSessionId());
