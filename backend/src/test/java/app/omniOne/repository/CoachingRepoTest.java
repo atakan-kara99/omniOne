@@ -30,18 +30,18 @@ class CoachingRepoTest extends RepositoryTestBase {
         flushAndClear();
     }
 
-    @Test void findByCoachIdAndClientIdOrThrow_returnsCoachingWhenPresent() {
-        Coaching result = coachingRepo.findByCoachIdAndClientIdOrThrow(coach.getId(), client.getId());
+    @Test void findByClientIdAndEndDateIsNullOrThrow_returnsCoachingWhenPresent() {
+        Coaching result = coachingRepo.findByClientIdAndEndDateIsNullOrThrow(client.getId());
 
         assertEquals(coach.getId(), result.getCoach().getId());
         assertEquals(client.getId(), result.getClient().getId());
     }
 
-    @Test void findByCoachIdAndClientIdOrThrow_throwsWhenMissing() {
+    @Test void findByClientIdAndEndDateIsNullOrThrow_throwsWhenMissing() {
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> coachingRepo.findByCoachIdAndClientIdOrThrow(coach.getId(), UUID.randomUUID()));
+                () -> coachingRepo.findByClientIdAndEndDateIsNullOrThrow(UUID.randomUUID()));
 
-        assertEquals("Coaching not found", exception.getMessage());
+        assertEquals("Active coaching not found", exception.getMessage());
     }
 }

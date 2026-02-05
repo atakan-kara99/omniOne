@@ -45,6 +45,7 @@ import static org.mockito.Mockito.when;
     @Test void startCoaching_linksCoachAndClientAndPersistsCoaching() {
         when(clientRepo.findByIdOrThrow(clientId)).thenReturn(client);
         when(coachRepo.findByIdOrThrow(coachId)).thenReturn(coach);
+        when(coachingRepo.existsByClientIdAndEndDateIsNull(clientId)).thenReturn(false);
 
         coachingService.startCoaching(coachId, clientId);
 
@@ -69,7 +70,7 @@ import static org.mockito.Mockito.when;
         coaching.setClient(client);
 
         when(clientRepo.findByIdOrThrow(clientId)).thenReturn(client);
-        when(coachingRepo.findByCoachIdAndClientIdOrThrow(coachId, clientId)).thenReturn(coaching);
+        when(coachingRepo.findByClientIdAndEndDateIsNullOrThrow(clientId)).thenReturn(coaching);
 
         coachingService.endCoaching(clientId);
 
@@ -77,6 +78,6 @@ import static org.mockito.Mockito.when;
         assertEquals(LocalDate.now(), coaching.getEndDate().toLocalDate());
 
         verify(clientRepo).findByIdOrThrow(clientId);
-        verify(coachingRepo).findByCoachIdAndClientIdOrThrow(coachId, clientId);
+        verify(coachingRepo).findByClientIdAndEndDateIsNullOrThrow(clientId);
     }
 }
