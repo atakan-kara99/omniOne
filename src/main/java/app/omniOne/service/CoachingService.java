@@ -1,5 +1,6 @@
 package app.omniOne.service;
 
+import app.omniOne.exception.custom.ResourceConflictException;
 import app.omniOne.model.entity.Client;
 import app.omniOne.model.entity.Coach;
 import app.omniOne.model.entity.Coaching;
@@ -27,6 +28,8 @@ public class CoachingService {
     public void startCoaching(UUID coachId, UUID clientId) {
         Client client = clientRepo.findByIdOrThrow(clientId);
         Coach coach = coachRepo.findByIdOrThrow(coachId);
+        if (coachingRepo.existsByClientIdAndEndDateIsNull(clientId))
+            throw new ResourceConflictException("Client already has an active coaching");
         client.setCoach(coach);
         Coaching coaching = Coaching.builder().coach(coach).client(client).build();
         coachingRepo.save(coaching);
@@ -39,8 +42,9 @@ public class CoachingService {
         Client client = clientRepo.findByIdOrThrow(clientId);
         Coach coach = client.getCoachOrThrow();
         client.setCoach(null);
-        Coaching coaching = coachingRepo.findByCoachIdAndClientIdOrThrow(coach.getId(), clientId);
-        coaching.setEndDate(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        Coaching activeCoaching = coachingRepo.findByClientIdAndEndDateIsNullOrThrow(clientId);
+        activeCoaching.setEndDate(now);
         log.info("Coaching ended (coachId={}, clientId={})", coach.getId(), clientId);
     }
 

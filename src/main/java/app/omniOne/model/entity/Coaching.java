@@ -12,7 +12,10 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @Entity
-@Table(name = "coaching")
+@Table(name = "coaching", indexes = {
+        @Index(name = "idx_coaching_coach_client_end", columnList = "coach_id,client_id,end_date"),
+        @Index(name = "idx_coaching_client_end", columnList = "client_id,end_date")
+})
 public class Coaching {
 
     @Id

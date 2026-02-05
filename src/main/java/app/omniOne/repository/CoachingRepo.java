@@ -16,13 +16,22 @@ public interface CoachingRepo extends JpaRepository<Coaching, Long> {
 
     boolean existsByCoachIdAndClientIdAndEndDateIsNull(UUID coachId, UUID clientId);
 
-    Optional<Coaching> findByCoachIdAndClientId(UUID coachId, UUID clientId);
+    boolean existsByClientIdAndEndDateIsNull(UUID clientId);
 
-    default Coaching findByCoachIdAndClientIdOrThrow(UUID coachId, UUID clientId) {
-        return findByCoachIdAndClientId(coachId, clientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Coaching not found"));
+    List<Coaching> findAllByCoachIdAndEndDateIsNull(UUID coachId);
+
+    Optional<Coaching> findByClientIdAndEndDateIsNull(UUID clientId);
+
+    default Coaching findByClientIdAndEndDateIsNullOrThrow(UUID clientId) {
+        return findByClientIdAndEndDateIsNull(clientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Active coaching not found"));
     }
 
-    List<Coaching> findAllByCoachId(UUID coachId);
+    default List<Coaching> findAllByCoachIdAndEndDateIsNullOrThrow(UUID coachId) {
+        List<Coaching> coachings = findAllByCoachIdAndEndDateIsNull(coachId);
+        if (coachings.isEmpty())
+            throw new ResourceNotFoundException("Active coaching not found");
+        return coachings;
+    }
 
 }
