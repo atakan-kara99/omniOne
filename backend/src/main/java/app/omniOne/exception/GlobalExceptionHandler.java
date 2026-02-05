@@ -27,7 +27,9 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -236,9 +238,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleValidation(MethodArgumentNotValidException ex,
                                                           HttpServletRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        Map<String, String> errors = new LinkedHashMap<>();
+        Map<String, List<String>> errors = new LinkedHashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage()));
+                addError(errors, error.getField(), error.getDefaultMessage()));
         ProblemDetail pd = problemDetailFactory.create(
                 request,
                 status,
@@ -254,10 +256,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleMethodValidation(HandlerMethodValidationException ex,
                                                                 HttpServletRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        Map<String, String> errors = new LinkedHashMap<>();
+        Map<String, List<String>> errors = new LinkedHashMap<>();
         ex.getAllErrors().forEach(error -> {
             String field = error instanceof FieldError fe ? fe.getField() : "request";
-            errors.put(field, error.getDefaultMessage());
+            addError(errors, field, error.getDefaultMessage());
         });
         ProblemDetail pd = problemDetailFactory.create(
                 request,
@@ -274,9 +276,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleConstraintViolation(ConstraintViolationException ex,
                                                                    HttpServletRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        Map<String, String> errors = new LinkedHashMap<>();
+        Map<String, List<String>> errors = new LinkedHashMap<>();
         ex.getConstraintViolations().forEach(violation ->
-                errors.put(String.valueOf(violation.getPropertyPath()), violation.getMessage()));
+                addError(errors, String.valueOf(violation.getPropertyPath()), violation.getMessage()));
         ProblemDetail pd = problemDetailFactory.create(
                 request,
                 status,
@@ -315,6 +317,10 @@ public class GlobalExceptionHandler {
                 Map.of());
         log.error("Unexpected server error", ex);
         return new ResponseEntity<>(pd, status);
+    }
+
+    private void addError(Map<String, List<String>> errors, String field, String message) {
+        errors.computeIfAbsent(field, key -> new ArrayList<>()).add(message);
     }
 
 }
