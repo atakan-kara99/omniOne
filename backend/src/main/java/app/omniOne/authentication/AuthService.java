@@ -8,6 +8,7 @@ import app.omniOne.authentication.token.RefreshTokenService;
 import app.omniOne.chatting.repository.ChatParticipantRepo;
 import app.omniOne.email.EmailService;
 import app.omniOne.exception.custom.AccountDisabledException;
+import app.omniOne.exception.custom.JwtInvalidException;
 import app.omniOne.exception.custom.OperationNotAllowedException;
 import app.omniOne.exception.custom.ResourceConflictException;
 import app.omniOne.model.entity.Client;
@@ -126,7 +127,7 @@ public class AuthService {
 
     public User activate(String token) {
         DecodedJWT jwt = jwtService.verifyActivation(token);
-        String email = normalize(jwt.getClaim("email").asString());
+        String email = normalize(requiredClaim(jwt, "email"));
         User user = userRepo.findByEmailOrThrow(email);
         if (user.isEnabled()) {
             log.info("Activation rejected: already activated (userId={})", user.getId());
@@ -172,9 +173,9 @@ public class AuthService {
 
     public InvitationResponse validateInvitation(String token) {
         DecodedJWT jwt = jwtService.verifyInvitation(token);
-        UUID coachId = UUID.fromString(jwt.getClaim("coachId").asString());
+        UUID coachId = requiredUuidClaim(jwt, "coachId");
         coachRepo.findByIdOrThrow(coachId);
-        String clientMail = normalize(jwt.getClaim("clientEmail").asString());
+        String clientMail = normalize(requiredClaim(jwt, "clientEmail"));
         User user = userRepo.findByEmail(clientMail).orElse(null);
         if (user == null)
             return new InvitationResponse(clientMail, true);
@@ -195,9 +196,9 @@ public class AuthService {
     @Transactional
     public User acceptInvitation(String token, PasswordRequest request) {
         DecodedJWT jwt = jwtService.verifyInvitation(token);
-        UUID coachId = UUID.fromString(jwt.getClaim("coachId").asString());
+        UUID coachId = requiredUuidClaim(jwt, "coachId");
         coachRepo.findByIdOrThrow(coachId);
-        String clientMail = normalize(jwt.getClaim("clientEmail").asString());
+        String clientMail = normalize(requiredClaim(jwt, "clientEmail"));
         User user = userRepo.findByEmail(clientMail).orElse(null);
         Client client;
         if (user != null) {
@@ -240,7 +241,7 @@ public class AuthService {
 
     public User reset(String token, PasswordRequest request) {
         DecodedJWT jwt = jwtService.verifyResetPassword(token);
-        String email = normalize(jwt.getClaim("email").asString());
+        String email = normalize(requiredClaim(jwt, "email"));
         User user = userRepo.findByEmailOrThrow(email);
         if (!user.isEnabled() || user.isDeleted())
             throw new AccountDisabledException("User account is disabled/deleted");
@@ -252,6 +253,22 @@ public class AuthService {
 
     private String normalize(String string) {
         return string.trim().toLowerCase();
+    }
+
+    private String requiredClaim(DecodedJWT jwt, String claimName) {
+        String value = jwt.getClaim(claimName).asString();
+        if (value == null || value.isBlank())
+            throw new JwtInvalidException("Token is invalid");
+        return value;
+    }
+
+    private UUID requiredUuidClaim(DecodedJWT jwt, String claimName) {
+        String value = requiredClaim(jwt, claimName);
+        try {
+            return UUID.fromString(value);
+        } catch (IllegalArgumentException ex) {
+            throw new JwtInvalidException("Token is invalid");
+        }
     }
 
 }

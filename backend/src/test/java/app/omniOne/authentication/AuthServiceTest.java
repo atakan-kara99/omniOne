@@ -11,6 +11,7 @@ import app.omniOne.chatting.repository.ChatParticipantRepo;
 import app.omniOne.email.EmailService;
 import app.omniOne.exception.custom.ResourceConflictException;
 import app.omniOne.exception.custom.OperationNotAllowedException;
+import app.omniOne.exception.custom.JwtInvalidException;
 import app.omniOne.model.entity.Client;
 import app.omniOne.model.entity.Coach;
 import app.omniOne.model.entity.User;
@@ -246,6 +247,28 @@ import static org.mockito.Mockito.*;
         assertSame(saved, result);
         assertEquals("encoded", user.getPassword());
         verify(encoder).encode("new-pwd");
+    }
+
+    @Test void activate_throwsJwtInvalidWhenEmailClaimMissing() {
+        DecodedJWT jwt = mock(DecodedJWT.class);
+        Claim emailClaim = mock(Claim.class);
+        when(jwtService.verifyActivation("token")).thenReturn(jwt);
+        when(jwt.getClaim("email")).thenReturn(emailClaim);
+        when(emailClaim.asString()).thenReturn(null);
+
+        assertThrows(JwtInvalidException.class, () -> authService.activate("token"));
+        verify(userRepo, never()).findByEmailOrThrow(any());
+    }
+
+    @Test void validateInvitation_throwsJwtInvalidWhenCoachIdClaimMalformed() {
+        DecodedJWT jwt = mock(DecodedJWT.class);
+        Claim coachClaim = mock(Claim.class);
+        when(jwtService.verifyInvitation("token")).thenReturn(jwt);
+        when(jwt.getClaim("coachId")).thenReturn(coachClaim);
+        when(coachClaim.asString()).thenReturn("not-a-uuid");
+
+        assertThrows(JwtInvalidException.class, () -> authService.validateInvitation("token"));
+        verify(coachRepo, never()).findByIdOrThrow(any());
     }
 
     private DecodedJWT mockJwt(String claimName, String value) {
