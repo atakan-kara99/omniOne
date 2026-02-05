@@ -100,6 +100,7 @@ public class SecurityConfig {
         config.setAllowedHeaders(List.of(
                 "Authorization", "Content-Type",
                 "X-Device-Id", "X-XSRF-TOKEN"));
+        config.setExposedHeaders(List.of("X-Device-Id"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
