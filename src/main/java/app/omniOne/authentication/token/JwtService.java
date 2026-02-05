@@ -34,11 +34,13 @@ public class JwtService {
     private String authSecret;
     private Algorithm authAlgorithm;
     private JWTVerifier authVerifier;
+    private JWTVerifier resetPasswordVerifier;
 
     @Value("${jwt.secret.init}")
     private String initSecret;
     private Algorithm initAlgorithm;
-    private JWTVerifier initVerifier;
+    private JWTVerifier activationVerifier;
+    private JWTVerifier invitationVerifier;
 
     @Value("${activation.ttlMins}")
     private int activationTtlMins;
@@ -52,9 +54,19 @@ public class JwtService {
     @PostConstruct
     public void init() {
         this.authAlgorithm = Algorithm.HMAC256(authSecret);
-        this.authVerifier = JWT.require(authAlgorithm).withIssuer(applicationName).build();
+        this.authVerifier = JWT.require(authAlgorithm)
+                .withIssuer(applicationName)
+                .withSubject("authorization").build();
+        this.resetPasswordVerifier = JWT.require(authAlgorithm)
+                .withIssuer(applicationName)
+                .withSubject("reset-password").build();
         this.initAlgorithm = Algorithm.HMAC256(initSecret);
-        this.initVerifier = JWT.require(initAlgorithm).withIssuer(applicationName).build();
+        this.activationVerifier = JWT.require(initAlgorithm)
+                .withIssuer(applicationName)
+                .withSubject("activation").build();
+        this.invitationVerifier = JWT.require(initAlgorithm)
+                .withIssuer(applicationName)
+                .withSubject("invitation").build();
     }
 
     public String createAuthJwt(UserDetails user) {
@@ -94,15 +106,15 @@ public class JwtService {
     }
 
     public DecodedJWT verifyResetPassword(String jwt) {
-        return verify(jwt, authVerifier);
+        return verify(jwt, resetPasswordVerifier);
     }
 
     public DecodedJWT verifyActivation(String jwt) {
-        return verify(jwt, initVerifier);
+        return verify(jwt, activationVerifier);
     }
 
     public DecodedJWT verifyInvitation(String jwt) {
-        return verify(jwt, initVerifier);
+        return verify(jwt, invitationVerifier);
     }
 
     private DecodedJWT verify(String jwt, JWTVerifier verifier) {

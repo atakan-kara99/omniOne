@@ -1,6 +1,7 @@
 package app.omniOne.authentication.token;
 
 import app.omniOne.authentication.model.UserDetails;
+import app.omniOne.exception.custom.JwtInvalidException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import java.util.UUID;
 import static app.omniOne.TestFixtures.clientEmail;
 import static app.omniOne.TestFixtures.userEmail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -83,6 +85,21 @@ import static org.mockito.Mockito.when;
         assertEquals(clientEmail, decoded.getClaim("clientEmail").asString());
         assertEquals(coachId.toString(), decoded.getClaim("coachId").asString());
         assertTrue(isExpiresWithin(decoded, Duration.ofMinutes(60 * 24)));
+    }
+
+    @Test void verifyActivation_rejectsInvitationToken() {
+        String invitationToken = jwtService.createInvitationJwt(clientEmail, UUID.randomUUID());
+
+        assertThrows(JwtInvalidException.class, () -> jwtService.verifyActivation(invitationToken));
+    }
+
+    @Test void verifyResetPassword_rejectsAuthorizationToken() {
+        UUID userId = UUID.randomUUID();
+        when(userDetails.getId()).thenReturn(userId);
+        when(userDetails.getRole()).thenReturn("ROLE_CLIENT");
+        String authorizationToken = jwtService.createAuthJwt(userDetails);
+
+        assertThrows(JwtInvalidException.class, () -> jwtService.verifyResetPassword(authorizationToken));
     }
 
     private boolean isExpiresWithin(DecodedJWT jwt, Duration expectedDuration) {
