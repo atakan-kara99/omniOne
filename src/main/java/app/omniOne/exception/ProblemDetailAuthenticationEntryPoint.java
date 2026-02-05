@@ -26,9 +26,11 @@ public class ProblemDetailAuthenticationEntryPoint implements AuthenticationEntr
                          HttpServletResponse response,
                          AuthenticationException ex) throws IOException {
         ErrorCode errorCode = ErrorCode.AUTH_INVALID_CREDENTIALS;
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
         String detail = "Authentication is required";
         if (ex instanceof DisabledException) {
             errorCode = ErrorCode.AUTH_ACCOUNT_DISABLED;
+            status = HttpStatus.FORBIDDEN;
             detail = "Account is disabled";
         } else if (ex instanceof BadCredentialsException) {
             errorCode = ErrorCode.AUTH_INVALID_CREDENTIALS;
@@ -38,7 +40,7 @@ public class ProblemDetailAuthenticationEntryPoint implements AuthenticationEntr
         problemDetailFactory.write(
                 request,
                 response,
-                HttpStatus.UNAUTHORIZED,
+                status,
                 errorCode,
                 errorCode.title(),
                 detail,
