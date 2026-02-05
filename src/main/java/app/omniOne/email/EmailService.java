@@ -12,10 +12,13 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.util.Map;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Service
@@ -36,12 +39,16 @@ public class EmailService {
     private final ResetPasswordProps resetPasswordProps;
 
     public void sendSimpleMail(String to, String subject, String text) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(from);
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(text);
-        mailSender.send(message);
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(from);
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(text);
+            mailSender.send(message);
+        } catch (Exception ex) {
+            throw new EmailDeliveryException("Failed to send email", ex);
+        }
     }
 
     public void sendActivationMail(String to, String jwt) {
@@ -64,14 +71,14 @@ public class EmailService {
     }
 
     private void sendTemplateMail(String to, String jwt, String urlPath, String filePath, String subject, int ttlMins) {
-        urlPath += "?token=" + jwt;
-        String text = render(filePath, Map.of(
-                "baseUrl", baseUrl,
-                "urlPath", urlPath,
-                "appName", applicationName,
-                "ttlText", formatTtl(ttlMins)));
-        MimeMessage message = mailSender.createMimeMessage();
         try {
+            String tokenizedPath = buildTokenizedPath(urlPath, jwt);
+            String text = render(filePath, Map.of(
+                    "baseUrl", baseUrl,
+                    "urlPath", tokenizedPath,
+                    "appName", applicationName,
+                    "ttlText", formatTtl(ttlMins)));
+            MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             helper.setFrom(from);
             helper.setTo(to);
@@ -81,6 +88,14 @@ public class EmailService {
         } catch (Exception ex) {
             throw new EmailDeliveryException("Failed to send email", ex);
         }
+    }
+
+    private String buildTokenizedPath(String urlPath, String jwt) {
+        String encodedToken = URLEncoder.encode(jwt, StandardCharsets.UTF_8);
+        return UriComponentsBuilder.fromPath(urlPath)
+                .queryParam("token", encodedToken)
+                .build(true)
+                .toUriString();
     }
 
     private String formatTtl(int ttlMins) {
