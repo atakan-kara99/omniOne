@@ -2,6 +2,7 @@ package app.omniOne.exception;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -17,6 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.hasItems;
 
 @ActiveProfiles("test")
 @WebMvcTest(controllers = TestExceptionController.class)
@@ -44,7 +46,8 @@ class GlobalExceptionHandlerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("Validation Failed"))
                 .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"))
-                .andExpect(jsonPath("$.errors.name").exists());
+                .andExpect(jsonPath("$.errors.name").isArray())
+                .andExpect(jsonPath("$.errors.name[*]").value(hasItems("name.required", "name.min3")));
     }
 
     @Test
@@ -55,6 +58,9 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.errorCode").value("INTERNAL_ERROR"));
     }
 
-    record TestPayload(@NotBlank String name) {
+    record TestPayload(
+            @NotBlank(message = "name.required")
+            @Size(min = 3, message = "name.min3")
+            String name) {
     }
 }
