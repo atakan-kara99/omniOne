@@ -58,26 +58,22 @@ public class RefreshTokenService {
         LocalDateTime expiresAt = LocalDateTime.now().plusDays(ttlDays);
         RefreshToken refreshToken = refreshTokenRepo.findByUserIdAndDeviceId(user.getId(), deviceId)
                 .orElse(null);
+        String action = "";
         if (refreshToken == null) {
             refreshToken = RefreshToken.builder()
                     .user(user)
-                    .deviceId(deviceId)
-                    .tokenHash(tokenHash)
-                    .expiresAt(expiresAt)
-                    .lastUsedAt(null)
-                    .revokedAt(null).build();
-            refreshTokenRepo.save(refreshToken);
-            log.info("Inserted refresh token (userId={}, deviceId={}, expiresAt={})",
-                    user.getId(), deviceId, expiresAt);
-            return;
+                    .deviceId(deviceId).build();
+            action = "Inserted";
+        } else {
+            action = "Updated";
         }
         refreshToken.setTokenHash(tokenHash);
-        refreshToken.setExpiresAt(expiresAt);
         refreshToken.setLastUsedAt(null);
         refreshToken.setRevokedAt(null);
+        refreshToken.setExpiresAt(expiresAt);
         refreshTokenRepo.save(refreshToken);
-        log.info("Updated refresh token (userId={}, deviceId={}, expiresAt={})",
-                user.getId(), deviceId, expiresAt);
+        log.info("{} refresh token (userId={}, deviceId={}, expiresAt={})",
+                action, user.getId(), deviceId, expiresAt);
     }
 
     public void revokeRefreshToken(String rawToken) {
