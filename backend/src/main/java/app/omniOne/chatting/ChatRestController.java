@@ -3,8 +3,6 @@ package app.omniOne.chatting;
 import app.omniOne.chatting.model.ChatMapper;
 import app.omniOne.chatting.model.dto.ChatConversationDto;
 import app.omniOne.chatting.model.dto.ChatMessageDto;
-import app.omniOne.exception.ErrorCode;
-import app.omniOne.exception.custom.ApiException;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -35,16 +33,10 @@ public class ChatRestController {
     public Slice<ChatMessageDto> getSliceOfMessages(
             @PathVariable UUID conversationId,
             @RequestParam(required = false) LocalDateTime beforeSentAt,
-            @RequestParam(required = false) Long beforeMessageId,
             @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size) {
-        if (beforeSentAt != null && beforeMessageId == null)
-            throw new ApiException(
-                    ErrorCode.VALIDATION_ERROR,
-                    HttpStatus.BAD_REQUEST,
-                    "beforeMessageId is required when beforeSentAt is provided");
         if (beforeSentAt == null)
             chatService.readMessage(getMyId(), conversationId);
-        return chatService.getSliceOfMessages(conversationId, beforeSentAt, beforeMessageId, size).map(chatMapper::map);
+        return chatService.getSliceOfMessages(conversationId, beforeSentAt, size).map(chatMapper::map);
     }
 
     @GetMapping

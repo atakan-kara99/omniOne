@@ -42,7 +42,8 @@ public class ChatService {
         return conversationRepo.findConversationsOf(userId);
     }
 
-    public Slice<ChatMessage> getSliceOfMessages(UUID conversationId, LocalDateTime beforeSentAt, int size) {
+    public Slice<ChatMessage> getSliceOfMessages(
+            UUID conversationId, LocalDateTime beforeSentAt, int size) {
         Pageable pageable = PageRequest.of(0, size);
         Slice<ChatMessage> chatMessages;
         if (beforeSentAt == null) {

@@ -19,13 +19,10 @@ public interface ChatMessageRepo extends JpaRepository<ChatMessage, Long> {
     SELECT m
     FROM ChatMessage m
     WHERE m.conversation.id = :conversationId
-      AND (
-            m.sentAt < :beforeSentAt
-         OR (m.sentAt = :beforeSentAt AND m.id < :beforeMessageId)
-      )
+      AND m.sentAt < :beforeSentAt
     ORDER BY m.sentAt DESC, m.id DESC
     """)
     Slice<ChatMessage> findMessagesOlderThan(
-            UUID conversationId, LocalDateTime beforeSentAt, Long beforeMessageId, Pageable pageable);
+            UUID conversationId, LocalDateTime beforeSentAt, Pageable pageable);
 
 }
