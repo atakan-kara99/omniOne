@@ -86,10 +86,10 @@ public class ProblemDetailAccessDeniedHandler implements AccessDeniedHandler {
             return "null";
         }
         int len = token.length();
-        if (len <= 8) {
-            return token + "(len=" + len + ")";
+        if (len < 4) {
+            return "****(len=" + len + ")";
         }
-        return token.substring(0, 4) + "...(len=" + len + ")";
+        return token.substring(0, 2) + "..." + token.substring(len - 2) + "(len=" + len + ")";
     }
 
 }
