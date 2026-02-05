@@ -20,7 +20,7 @@ public interface RefreshTokenRepo extends JpaRepository<RefreshToken, UUID> {
 
     Optional<RefreshToken> findByTokenHashAndDeviceId(String tokenHash, UUID deviceId);
 
-    Optional<RefreshToken> findByUserIdAndDeviceIdAndRevokedAtIsNull(UUID userId, UUID deviceId);
+    Optional<RefreshToken> findByUserIdAndDeviceId(UUID userId, UUID deviceId);
 
     @Modifying
     @Query("DELETE FROM RefreshToken rt WHERE rt.expiresAt < :now")

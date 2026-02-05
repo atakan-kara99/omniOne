@@ -56,7 +56,7 @@ public class RefreshTokenService {
         }
         String tokenHash = hash(rawToken);
         LocalDateTime expiresAt = LocalDateTime.now().plusDays(ttlDays);
-        RefreshToken refreshToken = refreshTokenRepo.findByUserIdAndDeviceIdAndRevokedAtIsNull(user.getId(), deviceId)
+        RefreshToken refreshToken = refreshTokenRepo.findByUserIdAndDeviceId(user.getId(), deviceId)
                 .orElse(null);
         if (refreshToken == null) {
             refreshToken = RefreshToken.builder()
@@ -74,6 +74,7 @@ public class RefreshTokenService {
         refreshToken.setTokenHash(tokenHash);
         refreshToken.setExpiresAt(expiresAt);
         refreshToken.setLastUsedAt(null);
+        refreshToken.setRevokedAt(null);
         refreshTokenRepo.save(refreshToken);
         log.info("Updated refresh token (userId={}, deviceId={}, expiresAt={})",
                 user.getId(), deviceId, expiresAt);

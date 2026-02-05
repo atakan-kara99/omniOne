@@ -14,7 +14,11 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @Entity
-@Table(name = "refresh_token")
+@Table(name = "refresh_token",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_refresh_token_hash", columnNames = "token_hash"),
+                @UniqueConstraint(name = "uk_refresh_token_user_device", columnNames = {"user_id", "device_id"})
+        })
 public class RefreshToken {
 
     @Id
@@ -25,10 +29,10 @@ public class RefreshToken {
     @JoinColumn(name = "user_id", nullable = false)
     User user;
 
-    @Column(nullable = false)
+    @Column(name = "token_hash", nullable = false, length = 64)
     String tokenHash;
 
-    @Column(nullable = false)
+    @Column(name = "device_id", nullable = false)
     UUID deviceId;
 
     @CreationTimestamp
