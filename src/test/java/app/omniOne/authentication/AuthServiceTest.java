@@ -69,7 +69,7 @@ import static org.mockito.Mockito.*;
         Coach coach = new Coach();
         coach.setId(coachId);
         client.setCoach(coach);
-        when(coachingRepo.existsByCoachIdAndClientId(coachId, clientId)).thenReturn(true);
+        when(coachingRepo.existsByCoachIdAndClientIdAndEndDateIsNull(coachId, clientId)).thenReturn(true);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(coachId.toString(), null);
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -77,7 +77,7 @@ import static org.mockito.Mockito.*;
         boolean result = authService.isCoachedByMe(clientId);
 
         assertTrue(result);
-        verify(coachingRepo).existsByCoachIdAndClientId(coachId, clientId);
+        verify(coachingRepo).existsByCoachIdAndClientIdAndEndDateIsNull(coachId, clientId);
     }
 
     @Test void login_returnsJwtAfterAuthentication() {

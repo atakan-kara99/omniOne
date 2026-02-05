@@ -58,7 +58,7 @@ public class AuthService {
 
     public boolean isCoachedByMe(UUID clientId) {
         UUID coachId = getMyId();
-        return coachingRepo.existsByCoachIdAndClientId(coachId, clientId);
+        return coachingRepo.existsByCoachIdAndClientIdAndEndDateIsNull(coachId, clientId);
     }
 
     public boolean isRelated(UUID userId1, UUID userId2) {
