@@ -66,7 +66,7 @@ public class UserService {
         }
         if (user.getRole() == UserRole.COACH) {
             UUID coachId = user.getId();
-            List<Coaching> coachings = coachingRepo.findAllByCoachId(coachId);
+            List<Coaching> coachings = coachingRepo.findAllByCoachIdAndEndDateIsNull(coachId);
             coachings.forEach(c -> c.setEndDate(now));
             Coach coach = coachRepo.findByIdOrThrow(coachId);
             coach.getClients().forEach(c -> c.setCoach(null));
@@ -76,7 +76,7 @@ public class UserService {
             Client client = clientRepo.findByIdOrThrow(clientId);
             Coach coach = client.getCoach();
             if (coach != null) {
-                Coaching coaching = coachingRepo.findByCoachIdAndClientIdOrThrow(coach.getId(), clientId);
+                Coaching coaching = coachingRepo.findByClientIdAndEndDateIsNullOrThrow(clientId);
                 coaching.setEndDate(now);
                 client.setCoach(null);
             }
