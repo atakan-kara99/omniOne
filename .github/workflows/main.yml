@@ -37,10 +37,11 @@ jobs:
 
       - name: Run test
         run: mvn test
+        working-directory: backend
 
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v6
         with:
           name: jacoco-report
-          path: target/site/jacoco
+          path: backend/target/site/jacoco

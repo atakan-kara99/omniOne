@@ -1,0 +1,8 @@
+# Default — normalize line endings to LF on commit
+* text=auto eol=lf
+
+# Windows batch files must use CRLF
+*.cmd text eol=crlf
+
+# Maven wrapper script must be LF
+backend/mvnw text eol=lf

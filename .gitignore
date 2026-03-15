@@ -1,2 +1,5 @@
 # Claude Code local session data
 .claude/
+
+# IDE
+.idea/
