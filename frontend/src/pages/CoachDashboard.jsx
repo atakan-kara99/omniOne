@@ -63,28 +63,6 @@ function CoachDashboard() {
               <div className="value">{clients.length}</div>
             </div>
           </div>
-          <div className="list">
-            <div className="section-title">Recent clients</div>
-            {clients.length === 0 ? (
-              <p className="muted">No clients yet.</p>
-            ) : (
-              <ul className="card-list">
-                {clients.slice(0, 4).map((client) => (
-                  <li key={client.id} className="card">
-                    <div>
-                      <div className="card-title">
-                        {client.firstName || 'Client'} {client.lastName || ''}
-                      </div>
-                      <div className="card-value">{client.id}</div>
-                    </div>
-                    <Link className="text-link" to={`/coach/clients/${client.id}`}>
-                      View details
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
         </>
       ) : null}
     </section>

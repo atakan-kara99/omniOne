@@ -1,52 +1,17 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { CaretRight } from 'phosphor-react'
-import {
-  addCoachClientPlan,
-  endCoaching,
-  getCoachClient,
-  getCoachClientActivePlan,
-  getCoachClientAnswers,
-  getCoachClientPlans,
-  updateCoachClientPlan,
-} from '../api.js'
-import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
-
-const EMPTY_PLAN = {
-  carbs: '',
-  proteins: '',
-  fats: '',
-  water: '',
-  salt: '',
-  fiber: '',
-}
+import { endCoaching, getCoachClient, getCoachClientActivePlan, getCoachClientAnswers } from '../api.js'
+import { formatErrorMessage } from '../errorUtils.js'
 
 function CoachClientDetail() {
   const { clientId } = useParams()
   const navigate = useNavigate()
   const [client, setClient] = useState(null)
-  const [plans, setPlans] = useState([])
   const [activePlan, setActivePlan] = useState(null)
   const [answers, setAnswers] = useState([])
-  const [planForm, setPlanForm] = useState(EMPTY_PLAN)
-  const [editingPlanId, setEditingPlanId] = useState(null)
-  const [status, setStatus] = useState('')
   const [error, setError] = useState('')
-  const [fieldErrors, setFieldErrors] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-
-  const nutritionFields = useMemo(
-    () => [
-      { key: 'carbs', label: 'Carbs (g)' },
-      { key: 'proteins', label: 'Proteins (g)' },
-      { key: 'fats', label: 'Fats (g)' },
-      { key: 'water', label: 'Water (L)' },
-      { key: 'salt', label: 'Salt (g)' },
-      { key: 'fiber', label: 'Fiber (g)' },
-    ],
-    [],
-  )
 
   useEffect(() => {
     let mounted = true
@@ -54,18 +19,15 @@ function CoachClientDetail() {
     async function load() {
       setLoading(true)
       setError('')
-      setFieldErrors(null)
       try {
-        const [clientData, active, list, questionnaire] = await Promise.all([
+        const [clientData, active, questionnaire] = await Promise.all([
           getCoachClient(clientId),
           getCoachClientActivePlan(clientId).catch((err) => (err.status === 404 ? null : Promise.reject(err))),
-          getCoachClientPlans(clientId),
           getCoachClientAnswers(clientId),
         ])
         if (mounted) {
           setClient(clientData)
           setActivePlan(active)
-          setPlans(list || [])
           setAnswers(questionnaire || [])
         }
       } catch (err) {
@@ -85,46 +47,6 @@ function CoachClientDetail() {
     }
   }, [clientId])
 
-  async function handlePlanSubmit(event) {
-    event.preventDefault()
-    setStatus('')
-    setError('')
-    setFieldErrors(null)
-    setSaving(true)
-
-    const payload = {
-      carbs: Number(planForm.carbs),
-      proteins: Number(planForm.proteins),
-      fats: Number(planForm.fats),
-    }
-    if (planForm.water !== '') payload.water = Number(planForm.water)
-    if (planForm.salt !== '') payload.salt = Number(planForm.salt)
-    if (planForm.fiber !== '') payload.fiber = Number(planForm.fiber)
-
-    try {
-      if (editingPlanId) {
-        await updateCoachClientPlan(clientId, editingPlanId, payload)
-        setStatus('Plan updated.')
-      } else {
-        await addCoachClientPlan(clientId, payload)
-        setStatus('Plan added.')
-      }
-      const [active, list] = await Promise.all([
-        getCoachClientActivePlan(clientId),
-        getCoachClientPlans(clientId),
-      ])
-      setActivePlan(active)
-      setPlans(list || [])
-      setPlanForm(EMPTY_PLAN)
-      setEditingPlanId(null)
-    } catch (err) {
-      setFieldErrors(getFieldErrors(err))
-      setError(err || 'Failed to save plan.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
   async function handleEndCoaching() {
     const ok = window.confirm('End coaching for this client?')
     if (!ok) return
@@ -136,12 +58,14 @@ function CoachClientDetail() {
     }
   }
 
+  const clientName = `${client?.firstName || ''} ${client?.lastName || ''}`.trim() || 'Client'
+
   return (
     <section className="panel">
       <div className="panel-header client-detail-header">
         <div>
-          <h1>Client detail</h1>
-          <p className="muted">Manage plans and review questionnaire answers.</p>
+          <h1>{clientName}</h1>
+          <p className="muted">Manage client details</p>
         </div>
         <Link className="back-button" to="/coach/clients">
           <span className="button-label">Back</span>
@@ -152,116 +76,66 @@ function CoachClientDetail() {
       {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
       {!loading && client ? (
         <>
-          <div className="stat-grid">
-            <div className="stat">
-              <div className="label">Client</div>
-              <div className="value">{client.firstName || 'Client'} {client.lastName || ''}</div>
-              <div className="label">Client ID</div>
-              <div className="value">{client.id}</div>
-            </div>
-            <div className="stat">
-              <div className="label">Active calories</div>
-              <div className="value">{activePlan?.calories ?? '—'}</div>
-            </div>
-            <div className="stat">
-              <div className="label">Plans total</div>
-              <div className="value">{plans.length}</div>
-            </div>
-          </div>
-          <div className="split-grid">
-            <div className="card">
-              <div className="card-title">Nutrition plan editor</div>
-              <form className="form" onSubmit={handlePlanSubmit} autoComplete="off">
-                {nutritionFields.map((field) => (
-                  <label key={field.key} className="field">
-                    <span>{field.label}</span>
-                    <input
-                      type="number"
-                      name={field.key}
-                      id={`plan-${field.key}`}
-                      autoComplete="off"
-                      min="0"
-                      step="0.1"
-                      value={planForm[field.key]}
-                      onChange={(event) =>
-                        setPlanForm((prev) => ({
-                          ...prev,
-                          [field.key]: event.target.value,
-                        }))
-                      }
-                      required={['carbs', 'proteins', 'fats'].includes(field.key)}
-                    />
-                    {fieldErrors?.[field.key] ? (
-                      <p className="field-error">{fieldErrors[field.key]}</p>
-                    ) : null}
-                  </label>
-                ))}
-                <button type="submit" disabled={saving}>
-                  {saving ? 'Saving...' : editingPlanId ? 'Update plan' : 'Create plan'}
-                </button>
-                {status ? <p className="success">{status}</p> : null}
-              </form>
-            </div>
-            <div className="card">
-              <div className="card-title">Plan history</div>
-              {plans.length === 0 ? (
-                <p className="muted">No plans yet.</p>
+          <div className="client-detail-grid">
+            <Link to={`/coach/clients/${clientId}/nutrition-plans`} className="card client-card-link client-detail-nutrition-link">
+              <div className="card-title">Nutrition plans</div>
+              <div className="plan-grid">
+                <div>
+                  <div className="label">Calories</div>
+                  <div className="value">{activePlan?.calories ?? '—'} kcal</div>
+                </div>
+                <div>
+                  <div className="label">Carbs</div>
+                  <div className="value">{activePlan?.carbs ?? '—'} g</div>
+                </div>
+                <div>
+                  <div className="label">Proteins</div>
+                  <div className="value">{activePlan?.proteins ?? '—'} g</div>
+                </div>
+                <div>
+                  <div className="label">Fats</div>
+                  <div className="value">{activePlan?.fats ?? '—'} g</div>
+                </div>
+                <div>
+                  <div className="label">Water</div>
+                  <div className="value">{activePlan?.water ?? '—'} L</div>
+                </div>
+                <div>
+                  <div className="label">Fiber</div>
+                  <div className="value">{activePlan?.fiber ?? '—'} g</div>
+                </div>
+              </div>
+            </Link>
+            <Link
+              to={`/coach/clients/${clientId}/questionnaire-responses`}
+              className="card client-card-link client-detail-questionnaire-link"
+            >
+              <div className="card-title">Questionnaire answers</div>
+              {answers.length === 0 ? (
+                <p className="muted">No answers yet.</p>
               ) : (
-                <ul className="card-list">
-                  {plans.map((plan) => (
-                    <li key={plan.createdAt} className="list-item">
-                      <div>
-                        <div className="card-title">{new Date(plan.createdAt).toLocaleString()}</div>
-                        <div className="card-value">{plan.calories?.toFixed?.(0) ?? plan.calories} kcal</div>
-                      </div>
-                      {plan.id ? (
-                        <button
-                          type="button"
-                          className="ghost-button"
-                          onClick={() => {
-                            setEditingPlanId(plan.id)
-                            setPlanForm({
-                              carbs: plan.carbs ?? '',
-                              proteins: plan.proteins ?? '',
-                              fats: plan.fats ?? '',
-                              water: plan.water ?? '',
-                              salt: plan.salt ?? '',
-                              fiber: plan.fiber ?? '',
-                            })
-                          }}
-                        >
-                          Edit
-                        </button>
-                      ) : null}
+                <ul className="qa-list">
+                  {answers.slice(0, 1).map((answer) => (
+                    <li key={answer.questionId}>
+                      <div className="qa-question">{answer.questionText}</div>
+                      <div className="qa-answer">{answer.answerText || '—'}</div>
                     </li>
                   ))}
                 </ul>
               )}
+              {answers.length > 1 ? (
+                <p className="muted client-detail-more-hint">{`+${answers.length - 1} more responses`}</p>
+              ) : null}
+            </Link>
+            <div className="danger-zone client-detail-danger-zone">
+              <div>
+                <div className="card-title">End coaching</div>
+                <p className="muted">This will remove the client from your roster.</p>
+              </div>
+              <button type="button" className="danger-button" onClick={handleEndCoaching}>
+                End coaching
+              </button>
             </div>
-          </div>
-          <div className="card">
-            <div className="card-title">Questionnaire responses</div>
-            {answers.length === 0 ? (
-              <p className="muted">No answers yet.</p>
-            ) : (
-              <ul className="qa-list">
-                {answers.map((answer) => (
-                  <li key={answer.questionId}>
-                    <div className="qa-question">{answer.questionText}</div>
-                    <div className="qa-answer">{answer.answerText || '—'}</div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          <div className="danger-zone">
-            <div>
-              <div className="card-title">End coaching</div>
-              <p className="muted">This will remove the client from your roster.</p>
-            </div>
-            <button type="button" className="danger-button" onClick={handleEndCoaching}>
-              End coaching
-            </button>
           </div>
         </>
       ) : null}

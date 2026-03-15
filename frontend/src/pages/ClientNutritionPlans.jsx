@@ -3,21 +3,24 @@ import { getClientActivePlan, getClientPlans } from '../api.js'
 import { formatErrorMessage } from '../errorUtils.js'
 
 function PlanCard({ title, plan }) {
+  const isActiveCard = title === 'Active plan'
+  const cardClassName = `card${isActiveCard ? ' active-plan-card active-plan-card--featured' : ''}`
+
   if (!plan) {
     return (
-      <div className="card">
-        <div className="card-title">{title}</div>
+      <div className={cardClassName}>
+        {!isActiveCard ? <div className="card-title">{title}</div> : null}
         <p className="muted">No plan yet.</p>
       </div>
     )
   }
   return (
-    <div className="card">
-      <div className="card-title">{title}</div>
+    <div className={cardClassName}>
+      {!isActiveCard ? <div className="card-title">{title}</div> : null}
       <div className="plan-grid">
         <div>
           <div className="label">Calories</div>
-          <div className="value">{plan.calories ?? '—'}</div>
+          <div className="value">{plan.calories ?? '—'} kcal</div>
         </div>
         <div>
           <div className="label">Carbs</div>
@@ -95,19 +98,42 @@ function ClientNutritionPlans() {
       {!loading && !error ? (
         <>
           <PlanCard title="Active plan" plan={activePlan} />
-          <div className="card">
+          <div className="card client-plan-history-card">
             <div className="card-title">Plan history</div>
             {plans.length === 0 ? (
               <p className="muted">No historical plans yet.</p>
             ) : (
-              <ul className="card-list">
-                {plans.map((plan) => (
-                  <li key={plan.createdAt} className="list-item">
-                    <span>{new Date(plan.createdAt).toLocaleString()}</span>
-                    <span className="pill">{plan.calories ?? '—'} kcal</span>
-                  </li>
-                ))}
-              </ul>
+                <ul className="card-list plan-history-list">
+                  {plans.map((plan) => (
+                    <li key={plan.createdAt} className="list-item plan-history-item">
+                      <div>
+                        <div className="plan-history-header">
+                          <div className="card-title">Calories: {plan.calories ?? '—'} kcal</div>
+                          <div className="card-title plan-history-timestamp">
+                            {new Date(plan.createdAt).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                            ,{' '}
+                            {new Date(plan.createdAt).toLocaleDateString([], {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                            })}
+                          </div>
+                        </div>
+                        <div className="plan-history-values">
+                          <div className="card-value">Carbs: {plan.carbs ?? '—'} g</div>
+                          <div className="card-value">Proteins: {plan.proteins ?? '—'} g</div>
+                          <div className="card-value">Fats: {plan.fats ?? '—'} g</div>
+                          <div className="card-value">Water: {plan.water ?? '—'} L</div>
+                          <div className="card-value">Salt: {plan.salt ?? '—'} g</div>
+                          <div className="card-value">Fiber: {plan.fiber ?? '—'} g</div>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
             )}
           </div>
         </>

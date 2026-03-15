@@ -25,6 +25,8 @@ import Profile from './pages/Profile.jsx'
 import CompleteProfile from './pages/CompleteProfile.jsx'
 import CoachClients from './pages/CoachClients.jsx'
 import CoachClientDetail from './pages/CoachClientDetail.jsx'
+import CoachClientNutritionPlans from './pages/CoachClientNutritionPlans.jsx'
+import CoachClientQuestionnaireResponses from './pages/CoachClientQuestionnaireResponses.jsx'
 import CoachQuestionnaire from './pages/CoachQuestionnaire.jsx'
 import ClientNutritionPlans from './pages/ClientNutritionPlans.jsx'
 import ClientQuestionnaire from './pages/ClientQuestionnaire.jsx'
@@ -387,6 +389,22 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['COACH']}>
                   <CoachClientDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/coach/clients/:clientId/nutrition-plans"
+              element={
+                <ProtectedRoute allowedRoles={['COACH']}>
+                  <CoachClientNutritionPlans />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/coach/clients/:clientId/questionnaire-responses"
+              element={
+                <ProtectedRoute allowedRoles={['COACH']}>
+                  <CoachClientQuestionnaireResponses />
                 </ProtectedRoute>
               }
             />

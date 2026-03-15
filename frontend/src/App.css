@@ -401,6 +401,42 @@ button {
   border-radius: 12px;
   cursor: pointer;
   font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+button:not(:disabled):not(.ghost-button):not(.danger-button):not(.active):not(.is-active):hover {
+  background: #1e293b;
+}
+
+:is(
+  .user-action,
+  .back-button,
+  .message-button,
+  .primary-link,
+  .list-link,
+  .chat-dock-toggle,
+  .chat-dock-contact,
+  .nav-toggle,
+  .dev-button,
+  .back-icon
+):not(.is-active) {
+  transition: background 0.2s ease, filter 0.2s ease;
+}
+
+:is(
+  button,
+  .user-action,
+  .back-button,
+  .message-button,
+  .primary-link,
+  .list-link,
+  .chat-dock-toggle,
+  .chat-dock-contact,
+  .nav-toggle,
+  .dev-button,
+  .back-icon
+):not(:disabled):not(.ghost-button):not(.active):not(.is-active):hover {
+  filter: brightness(1.08);
 }
 
 .icon-button {
@@ -477,6 +513,10 @@ button {
   background: #0f172a;
   color: #ffffff;
   text-decoration: none;
+}
+
+.user-action:not(.is-active):hover {
+  background: #1e293b;
 }
 
 .user-action-icon {
@@ -925,6 +965,50 @@ button:disabled {
   border-color: #cbd5f5;
 }
 
+.client-detail-nutrition-link {
+  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.client-detail-questionnaire-link {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.client-detail-more-hint {
+  margin-top: 4px;
+}
+
+.client-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+.client-detail-danger-zone {
+  margin-top: 0 !important;
+  padding: 18px;
+  border-radius: 18px;
+  height: 100%;
+  justify-content: space-between;
+}
+
+@media (max-width: 1100px) {
+  .client-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .client-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .message-button {
   display: inline-flex;
   align-items: center;
@@ -935,7 +1019,7 @@ button:disabled {
 }
 
 .message-button:hover {
-  background: #111827;
+  background: #1e293b;
 }
 
 .back-button {
@@ -961,7 +1045,7 @@ button:disabled {
 }
 
 .back-button:hover {
-  background: #111827;
+  background: #1e293b;
 }
 
 .chip-list {
@@ -986,6 +1070,181 @@ button:disabled {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
+}
+
+.client-detail-plan-stack {
+  grid-template-columns: 1fr;
+}
+
+.nutrition-plan-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.nutrition-plan-field {
+  width: 84px;
+  min-width: 84px;
+  gap: 6px;
+}
+
+.nutrition-plan-field > span {
+  white-space: nowrap;
+}
+
+.nutrition-plan-field input {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
+
+.nutrition-plan-form > button {
+  align-self: end;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.nutrition-plan-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nutrition-plan-form > .success {
+  flex-basis: 100%;
+}
+
+.plan-history-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.plan-history-item {
+  width: 100%;
+  min-width: 0;
+  padding: 16px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  align-items: flex-start;
+}
+
+.list-item.plan-history-item {
+  padding: 16px 16px;
+  align-items: flex-start;
+}
+
+.plan-history-item > div {
+  display: grid;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.plan-history-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.plan-history-timestamp {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.plan-history-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+
+.plan-history-values-editing {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+}
+
+.plan-history-inline-field > span {
+  white-space: nowrap;
+}
+
+.plan-history-inline-field {
+  flex: 0 0 auto;
+}
+
+.plan-history-inline-field input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.plan-history-edit-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: center;
+  white-space: nowrap;
+}
+
+.plan-history-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: center;
+  align-items: flex-end;
+  margin-left: 0;
+  justify-self: end;
+}
+
+.plan-history-action-button {
+  width: fit-content;
+  inline-size: max-content;
+  flex: 0 0 auto;
+  align-self: auto;
+  justify-content: flex-start;
+  background: #0f172a;
+  color: #ffffff;
+  border: 1px solid #0f172a;
+  border-radius: 12px;
+  padding: 6px 10px;
+}
+
+.plan-history-save-button {
+  min-width: 102px;
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+.plan-history-save-button:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+}
+
+.plan-history-action-button:not(.plan-history-save-button):hover {
+  background: #1e293b;
+}
+
+.plan-history-item.is-editing {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.list-item.plan-history-item.is-editing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+}
+
+@media (max-width: 1100px) {
+  .plan-history-values-editing {
+    flex-wrap: wrap;
+  }
 }
 
 .list-item {
@@ -1114,8 +1373,69 @@ button:disabled {
 
 .plan-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.active-plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
+  margin-bottom: 8px;
+}
+
+.active-plan-title {
+  margin-bottom: 0;
+}
+
+.active-plan-marker {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: #dbeafe;
+  color: #1d4ed8;
+  white-space: nowrap;
+}
+
+.active-plan-card .plan-grid > div {
+  text-align: center;
+}
+
+.active-plan-card .label {
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.active-plan-card .value {
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.active-plan-card--featured {
+  position: relative;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(249, 115, 22, 0.2) 100%);
+}
+
+.active-plan-card--featured .active-plan-marker {
+  display: none;
+}
+
+.client-plan-history-card {
+  margin-top: 16px;
+}
+
+.client-plan-history-card .plan-history-values {
+  justify-content: center;
+}
+
+.client-detail-questionnaire-card {
+  margin-top: 16px;
 }
 
 .chat-thread {
@@ -1441,7 +1761,7 @@ button:disabled {
 }
 
 .chat-dock-contact:hover {
-  background: #0b1220;
+  background: #1e293b;
 }
 
 .chat-dock-actions {

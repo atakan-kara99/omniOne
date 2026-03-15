@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { PaperPlaneTilt, Plus } from 'phosphor-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ForkKnife, PaperPlaneTilt, Plus } from 'phosphor-react'
 import { getCoachClients, inviteClient } from '../api.js'
 import { openChatDock } from '../chatDockEvents.js'
 import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
 
 function CoachClients() {
+  const navigate = useNavigate()
   const inviteRef = useRef(null)
   const statusTimerRef = useRef(null)
   const [clients, setClients] = useState([])
@@ -96,6 +97,12 @@ function CoachClients() {
     openChatDock({ targetId: client.id, targetName: name })
   }
 
+  function handleOpenNutritionPlans(clientId, event) {
+    event.preventDefault()
+    event.stopPropagation()
+    navigate(`/coach/clients/${clientId}/nutrition-plans`)
+  }
+
   return (
     <section className="panel">
       <div className="panel-header clients-header">
@@ -157,6 +164,14 @@ function CoachClients() {
                   {client.firstName || 'Client'} {client.lastName || ''}
                 </div>
                 <div className="inline-actions">
+                  <button
+                    type="button"
+                    className="ghost-button message-button"
+                    onClick={(event) => handleOpenNutritionPlans(client.id, event)}
+                  >
+                    <ForkKnife size={22} weight="bold" />
+                    Nutrition
+                  </button>
                   <button
                     type="button"
                     className="ghost-button message-button"
