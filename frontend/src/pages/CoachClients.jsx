@@ -109,7 +109,7 @@ function CoachClients() {
                     required
                   />
                 </FormField>
-                <Button loading={inviteForm.saving} loadingText="Sending...">
+                <Button type="submit" loading={inviteForm.saving} loadingText="Sending...">
                   Send invite
                 </Button>
                 <StatusMessage status={inviteForm.status} error={inviteForm.error} />

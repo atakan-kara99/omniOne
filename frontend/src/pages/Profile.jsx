@@ -167,7 +167,7 @@ function Profile() {
                 <option value="OTHER">Other</option>
               </select>
             </FormField>
-            <Button loading={form.saving} loadingText="Saving...">
+            <Button type="submit" loading={form.saving} loadingText="Saving...">
               Save profile
             </Button>
           </form>
@@ -219,7 +219,7 @@ function Profile() {
                 required
               />
             </FormField>
-            <Button loading={savingPassword} loadingText="Updating...">
+            <Button type="submit" loading={savingPassword} loadingText="Updating...">
               Change password
             </Button>
           </form>

@@ -68,7 +68,7 @@ function CoachQuestionnaire() {
                 required
               />
             </FormField>
-            <Button loading={form.saving} loadingText="Saving...">
+            <Button type="submit" loading={form.saving} loadingText="Saving...">
               Add question
             </Button>
             <StatusMessage status={form.status} error={form.error} />

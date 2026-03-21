@@ -42,7 +42,7 @@ function ForgotPassword() {
             required
           />
         </FormField>
-        <Button loading={form.saving} loadingText="Sending...">
+        <Button type="submit" loading={form.saving} loadingText="Sending...">
           Send reset link
         </Button>
         <StatusMessage status={form.status} error={form.error} />

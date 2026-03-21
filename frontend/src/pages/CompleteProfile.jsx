@@ -148,7 +148,7 @@ function CompleteProfile() {
               <option value="OTHER">Other</option>
             </select>
           </FormField>
-          <Button loading={form.saving} loadingText="Saving...">
+          <Button type="submit" loading={form.saving} loadingText="Saving...">
             Save and continue
           </Button>
         </form>

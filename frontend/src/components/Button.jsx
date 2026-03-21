@@ -13,6 +13,7 @@
  */
 export default function Button({
   variant = 'primary',
+  type = 'button',
   loading = false,
   loadingText = 'Saving...',
   children,
@@ -28,6 +29,7 @@ export default function Button({
 
   return (
     <button
+      type={type}
       className={`${baseClass}${className ? ` ${className}` : ''}`}
       disabled={loading || props.disabled}
       {...props}

@@ -67,7 +67,7 @@ function Register() {
             required
           />
         </FormField>
-        <Button loading={form.saving} loadingText="Creating account...">
+        <Button type="submit" loading={form.saving} loadingText="Creating account...">
           Register
         </Button>
         <StatusMessage status={form.status} error={form.error} />

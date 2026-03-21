@@ -169,7 +169,7 @@ function Login() {
                 required
               />
             </FormField>
-            <Button loading={form.saving} loadingText="Signing in...">
+            <Button type="submit" loading={form.saving} loadingText="Signing in...">
               Sign in
             </Button>
             <StatusMessage status={form.status} error={form.error} />

@@ -100,7 +100,7 @@ function AcceptInvitation() {
           ) : (
             <p className="muted">No password required. Confirm to accept the invitation.</p>
           )}
-          <Button loading={form.saving} loadingText="Accepting...">
+          <Button type="submit" loading={form.saving} loadingText="Accepting...">
             Accept invitation
           </Button>
         </form>

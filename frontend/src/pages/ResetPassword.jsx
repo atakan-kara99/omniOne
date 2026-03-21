@@ -63,7 +63,7 @@ function ResetPassword() {
             required
           />
         </FormField>
-        <Button loading={form.saving} loadingText="Updating...">
+        <Button type="submit" loading={form.saving} loadingText="Updating...">
           Reset password
         </Button>
         <StatusMessage status={form.status} error={form.error} />
