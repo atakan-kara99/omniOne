@@ -35,6 +35,9 @@ public class Client extends BaseEntity {
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<QuestionnaireAnswer> answers;
 
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<SupplementPlan> supplementPlans;
+
     public Coach getCoachOrThrow() {
         if (coach == null)
             throw new ResourceNotFoundException("Coach not found");

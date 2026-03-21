@@ -1,61 +1,35 @@
-import { useEffect, useState } from 'react'
+// REFERENCE PAGE: New pages should follow this structure.
+// Pattern: useLoadData for fetching, useFormState for forms, FormField/Button/StatusMessage for UI.
+import { useState } from 'react'
 import { addCoachQuestion, deleteCoachQuestion, getCoachQuestions } from '../api.js'
-import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
+import { getFieldErrors } from '../errorUtils.js'
+import { useLoadData } from '../hooks/useLoadData.js'
+import { useFormState } from '../hooks/useFormState.js'
+import FormField from '../components/FormField.jsx'
+import StatusMessage from '../components/StatusMessage.jsx'
+import Button from '../components/Button.jsx'
 
 function CoachQuestionnaire() {
   const [questions, setQuestions] = useState([])
   const [text, setText] = useState('')
-  const [status, setStatus] = useState('')
-  const [error, setError] = useState('')
-  const [fieldErrors, setFieldErrors] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    let mounted = true
-
-    async function load() {
-      setLoading(true)
-      setError('')
-      setFieldErrors(null)
-      try {
-        const list = await getCoachQuestions()
-        if (mounted) {
-          setQuestions(list || [])
-        }
-      } catch (err) {
-        if (mounted) {
-          setError(err || 'Failed to load questions.')
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false)
-        }
-      }
-    }
-
-    load()
-    return () => {
-      mounted = false
-    }
+  const { loading, error } = useLoadData(async () => {
+    const list = await getCoachQuestions()
+    setQuestions(list || [])
   }, [])
+
+  const form = useFormState()
 
   async function handleAdd(event) {
     event.preventDefault()
-    setStatus('')
-    setError('')
-    setFieldErrors(null)
-    setSaving(true)
+    form.startSaving()
     try {
       const created = await addCoachQuestion({ text })
       setQuestions((prev) => [created, ...prev])
       setText('')
-      setStatus('Question added.')
+      form.setSuccess('Question added.')
     } catch (err) {
-      setFieldErrors(getFieldErrors(err))
-      setError(err || 'Failed to add question.')
-    } finally {
-      setSaving(false)
+      form.setFailure(err, getFieldErrors(err))
     }
   }
 
@@ -66,7 +40,7 @@ function CoachQuestionnaire() {
       await deleteCoachQuestion(questionId)
       setQuestions((prev) => prev.filter((item) => item.id !== questionId))
     } catch (err) {
-      setError(err || 'Failed to delete question.')
+      form.setError(err || 'Failed to delete question.')
     }
   }
 
@@ -82,8 +56,7 @@ function CoachQuestionnaire() {
         <div className="card">
           <div className="card-title">Add a question</div>
           <form className="form" onSubmit={handleAdd} autoComplete="off">
-            <label className="field">
-              <span>Prompt</span>
+            <FormField label="Prompt" error={form.fieldErrors?.text}>
               <input
                 type="text"
                 name="text"
@@ -94,18 +67,17 @@ function CoachQuestionnaire() {
                 placeholder="Ex: How many meals do you eat daily?"
                 required
               />
-              {fieldErrors?.text ? <p className="field-error">{fieldErrors.text}</p> : null}
-            </label>
-            <button type="submit" disabled={saving}>
-              {saving ? 'Saving...' : 'Add question'}
-            </button>
-            {status ? <p className="success">{status}</p> : null}
+            </FormField>
+            <Button loading={form.saving} loadingText="Saving...">
+              Add question
+            </Button>
+            <StatusMessage status={form.status} error={form.error} />
           </form>
         </div>
         <div className="card">
           <div className="card-title">Live questions</div>
           {loading ? <p className="muted">Loading questions...</p> : null}
-          {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
+          {error ? <p className="error">{error}</p> : null}
           {!loading && !error ? (
             questions.length === 0 ? (
               <p className="muted">No questions yet.</p>

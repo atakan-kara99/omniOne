@@ -381,6 +381,42 @@ export function getClientPlans() {
   return apiFetch('/client/nutri-plans', { method: 'GET' })
 }
 
+export function getCoachClientSupplementPlans(clientId) {
+  return apiFetch(`/coach/clients/${clientId}/supplement-plans`, { method: 'GET' })
+}
+
+export function getCoachClientActiveSupplementPlan(clientId) {
+  return apiFetch(`/coach/clients/${clientId}/supplement-plans/active`, { method: 'GET' })
+}
+
+export function addCoachClientSupplementPlan(clientId, payload) {
+  return apiFetch(`/coach/clients/${clientId}/supplement-plans`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function updateCoachClientSupplementPlan(clientId, planId, payload) {
+  return apiFetch(`/coach/clients/${clientId}/supplement-plans/${planId}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function deleteCoachClientSupplementPlan(clientId, planId) {
+  return apiFetch(`/coach/clients/${clientId}/supplement-plans/${planId}`, {
+    method: 'DELETE',
+  })
+}
+
+export function getClientActiveSupplementPlan() {
+  return apiFetch('/client/supplement-plans/active', { method: 'GET' })
+}
+
+export function getClientSupplementPlans() {
+  return apiFetch('/client/supplement-plans', { method: 'GET' })
+}
+
 export function getClientQuestionnaire() {
   return apiFetch('/client/questionnaire', { method: 'GET' })
 }

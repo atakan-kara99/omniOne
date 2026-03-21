@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { CaretRight, FloppyDisk, PencilSimple, Plus, X } from 'phosphor-react'
 import {
@@ -7,7 +7,11 @@ import {
   getCoachClientPlans,
   updateCoachClientPlan,
 } from '../api.js'
-import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
+import { useLoadData } from '../hooks/useLoadData.js'
+import { useFormState } from '../hooks/useFormState.js'
+import FormField from '../components/FormField.jsx'
+import StatusMessage from '../components/StatusMessage.jsx'
+import Button from '../components/Button.jsx'
 
 const EMPTY_PLAN = {
   carbs: '',
@@ -28,11 +32,20 @@ function CoachClientNutritionPlans() {
   const [historyEditingPlanId, setHistoryEditingPlanId] = useState(null)
   const [historyEditForm, setHistoryEditForm] = useState(EMPTY_PLAN)
   const [historySaving, setHistorySaving] = useState(false)
-  const [status, setStatus] = useState('')
-  const [error, setError] = useState('')
-  const [fieldErrors, setFieldErrors] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+
+  const form = useFormState()
+
+  const { loading, error: loadError } = useLoadData(
+    async () => {
+      const [clientData, list] = await Promise.all([
+        getCoachClient(clientId),
+        getCoachClientPlans(clientId),
+      ])
+      setClient(clientData)
+      setPlans(list || [])
+    },
+    [clientId],
+  )
 
   const nutritionFields = useMemo(
     () => [
@@ -46,52 +59,15 @@ function CoachClientNutritionPlans() {
     [],
   )
 
-  useEffect(() => {
-    let mounted = true
-
-    async function load() {
-      setLoading(true)
-      setError('')
-      setFieldErrors(null)
-      try {
-        const [clientData, list] = await Promise.all([
-          getCoachClient(clientId),
-          getCoachClientPlans(clientId),
-        ])
-        if (mounted) {
-          setClient(clientData)
-          setPlans(list || [])
-        }
-      } catch (err) {
-        if (mounted) {
-          setError(err || 'Failed to load nutrition plans.')
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false)
-        }
-      }
-    }
-
-    load()
-    return () => {
-      mounted = false
-    }
-  }, [clientId])
-
   async function handlePlanSubmit(event) {
     event.preventDefault()
-    setStatus('')
-    setError('')
-    setFieldErrors(null)
-    setSaving(true)
+    form.startSaving()
 
     const hasInvalidIntegerMacro = INTEGER_PLAN_FIELDS.some(
       (key) => planForm[key] === '' || !/^\d+$/.test(planForm[key]),
     )
     if (hasInvalidIntegerMacro) {
-      setError('Carbs, proteins, and fats must be natural numbers.')
-      setSaving(false)
+      form.setErrorManual('Carbs, proteins, and fats must be natural numbers.')
       return
     }
 
@@ -106,22 +82,19 @@ function CoachClientNutritionPlans() {
 
     try {
       await addCoachClientPlan(clientId, payload)
-      setStatus('Plan added.')
+      form.setSuccess('Plan added.')
       const list = await getCoachClientPlans(clientId)
       setPlans(list || [])
       setPlanForm(EMPTY_PLAN)
     } catch (err) {
-      setFieldErrors(getFieldErrors(err))
-      setError(err || 'Failed to save plan.')
-    } finally {
-      setSaving(false)
+      form.setFailure(err)
     }
   }
 
   function handleEditPlan(plan) {
     const planId = plan.id
     if (!planId) {
-      setError('This plan cannot be edited because its identifier is missing.')
+      form.setErrorManual('This plan cannot be edited because its identifier is missing.')
       return
     }
     setHistoryEditingPlanId(planId)
@@ -133,9 +106,7 @@ function CoachClientNutritionPlans() {
       salt: plan.salt ?? '',
       fiber: plan.fiber ?? '',
     })
-    setStatus('')
-    setError('')
-    setFieldErrors(null)
+    form.reset()
   }
 
   function handleHistoryEditFieldChange(fieldKey, nextValue) {
@@ -151,19 +122,16 @@ function CoachClientNutritionPlans() {
   function handleCancelHistoryEdit() {
     setHistoryEditingPlanId(null)
     setHistoryEditForm(EMPTY_PLAN)
-    setFieldErrors(null)
   }
 
   async function handleSaveHistoryEdit(planId) {
-    setStatus('')
-    setError('')
-    setFieldErrors(null)
+    form.reset()
 
     const hasInvalidIntegerMacro = INTEGER_PLAN_FIELDS.some(
       (key) => historyEditForm[key] === '' || !/^\d+$/.test(historyEditForm[key]),
     )
     if (hasInvalidIntegerMacro) {
-      setError('Carbs, proteins, and fats must be natural numbers.')
+      form.setErrorManual('Carbs, proteins, and fats must be natural numbers.')
       return
     }
 
@@ -185,10 +153,9 @@ function CoachClientNutritionPlans() {
       setPlans(list || [])
       setHistoryEditingPlanId(null)
       setHistoryEditForm(EMPTY_PLAN)
-      setStatus('Plan updated.')
+      form.setSuccess('Plan updated.')
     } catch (err) {
-      setFieldErrors(getFieldErrors(err))
-      setError(err || 'Failed to save plan.')
+      form.setFailure(err)
     } finally {
       setHistorySaving(false)
     }
@@ -209,15 +176,19 @@ function CoachClientNutritionPlans() {
         </Link>
       </div>
       {loading ? <p className="muted">Loading nutrition plans...</p> : null}
-      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
+      {loadError ? <p className="error">{loadError}</p> : null}
       {!loading && client ? (
         <div className="split-grid client-detail-plan-stack">
           <div className="card">
             <div className="card-title">Nutrition plan creator</div>
             <form className="form nutrition-plan-form" onSubmit={handlePlanSubmit} autoComplete="off">
               {nutritionFields.map((field) => (
-                <label key={field.key} className="field nutrition-plan-field">
-                  <span>{field.label}</span>
+                <FormField
+                  key={field.key}
+                  label={field.label}
+                  error={form.fieldErrors?.[field.key]}
+                  className="nutrition-plan-field"
+                >
                   <input
                     type="number"
                     name={field.key}
@@ -243,20 +214,18 @@ function CoachClientNutritionPlans() {
                     }}
                     required={INTEGER_PLAN_FIELDS.includes(field.key)}
                   />
-                  {fieldErrors?.[field.key] ? <p className="field-error">{fieldErrors[field.key]}</p> : null}
-                </label>
+                </FormField>
               ))}
-              <button type="submit" className="nutrition-plan-submit" disabled={saving}>
-                {saving ? (
-                  'Saving...'
-                ) : (
-                  <>
-                    <Plus size={22} weight="bold" />
-                    Create
-                  </>
-                )}
-              </button>
-              {status ? <p className="success">{status}</p> : null}
+              <Button
+                type="submit"
+                className="nutrition-plan-submit"
+                loading={form.saving}
+                loadingText="Saving..."
+              >
+                <Plus size={22} weight="bold" />
+                Create
+              </Button>
+              <StatusMessage status={form.status} error={form.error} />
             </form>
           </div>
           <div className="card">
@@ -291,8 +260,12 @@ function CoachClientNutritionPlans() {
                       {historyEditingPlanId === plan.id ? (
                         <div className="plan-history-values plan-history-values-editing">
                           {nutritionFields.map((field) => (
-                            <label key={field.key} className="field nutrition-plan-field plan-history-inline-field">
-                              <span>{field.label}</span>
+                            <FormField
+                              key={field.key}
+                              label={field.label}
+                              error={form.fieldErrors?.[field.key]}
+                              className="nutrition-plan-field plan-history-inline-field"
+                            >
                               <input
                                 type="number"
                                 inputMode={INTEGER_PLAN_FIELDS.includes(field.key) ? 'numeric' : 'decimal'}
@@ -302,8 +275,7 @@ function CoachClientNutritionPlans() {
                                 onChange={(event) => handleHistoryEditFieldChange(field.key, event.target.value)}
                                 required={INTEGER_PLAN_FIELDS.includes(field.key)}
                               />
-                              {fieldErrors?.[field.key] ? <p className="field-error">{fieldErrors[field.key]}</p> : null}
-                            </label>
+                            </FormField>
                           ))}
                         </div>
                       ) : (
@@ -324,40 +296,35 @@ function CoachClientNutritionPlans() {
                     </div>
                     {historyEditingPlanId === plan.id ? (
                       <div className="plan-history-actions">
-                        <button
-                          type="button"
-                          className="ghost-button plan-history-edit-button plan-history-action-button plan-history-save-button"
-                          disabled={historySaving}
+                        <Button
+                          variant="primary"
+                          className="plan-history-edit-button plan-history-action-button plan-history-save-button"
+                          loading={historySaving}
+                          loadingText="Saving..."
                           onClick={() => handleSaveHistoryEdit(plan.id)}
                         >
-                          {historySaving ? (
-                            'Saving...'
-                          ) : (
-                            <>
-                              <FloppyDisk size={22} weight="bold" />
-                              Save
-                            </>
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          className="ghost-button plan-history-edit-button plan-history-action-button"
+                          <FloppyDisk size={22} weight="bold" />
+                          Save
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="plan-history-edit-button plan-history-action-button"
                           disabled={historySaving}
                           onClick={handleCancelHistoryEdit}
                         >
                           <X size={22} weight="bold" />
                           Cancel
-                        </button>
+                        </Button>
                       </div>
                     ) : (
-                      <button
-                        type="button"
-                        className="ghost-button plan-history-edit-button"
+                      <Button
+                        variant="ghost"
+                        className="plan-history-edit-button"
                         onClick={() => handleEditPlan(plan)}
                       >
                         <PencilSimple size={22} weight="bold" />
                         Edit
-                      </button>
+                      </Button>
                     )}
                   </li>
                 ))}

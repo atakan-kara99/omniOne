@@ -3,7 +3,12 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ForkKnife, PaperPlaneTilt, Plus } from 'phosphor-react'
 import { getCoachClients, inviteClient } from '../api.js'
 import { openChatDock } from '../chatDockEvents.js'
-import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
+import { getFieldErrors } from '../errorUtils.js'
+import { useLoadData } from '../hooks/useLoadData.js'
+import { useFormState } from '../hooks/useFormState.js'
+import FormField from '../components/FormField.jsx'
+import StatusMessage from '../components/StatusMessage.jsx'
+import Button from '../components/Button.jsx'
 
 function CoachClients() {
   const navigate = useNavigate()
@@ -11,41 +16,43 @@ function CoachClients() {
   const statusTimerRef = useRef(null)
   const [clients, setClients] = useState([])
   const [inviteEmail, setInviteEmail] = useState('')
-  const [status, setStatus] = useState('')
-  const [inviteError, setInviteError] = useState('')
-  const [inviteFieldErrors, setInviteFieldErrors] = useState(null)
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [inviting, setInviting] = useState(false)
   const [showInvite, setShowInvite] = useState(false)
 
-  useEffect(() => {
-    let mounted = true
-
-    async function load() {
-      setLoading(true)
-      setError('')
-      try {
-        const clientList = await getCoachClients()
-        if (mounted) {
-          setClients(clientList || [])
-        }
-      } catch (err) {
-        if (mounted) {
-          setError(err || 'Failed to load clients.')
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false)
-        }
-      }
-    }
-
-    load()
-    return () => {
-      mounted = false
-    }
+  const { loading, error } = useLoadData(async () => {
+    const clientList = await getCoachClients()
+    setClients(clientList || [])
   }, [])
+
+  const inviteForm = useFormState()
+
+  async function handleInvite(event) {
+    event.preventDefault()
+    inviteForm.startSaving()
+    try {
+      await inviteClient(inviteEmail)
+      inviteForm.setSuccess('Invitation sent.')
+      if (statusTimerRef.current) {
+        clearTimeout(statusTimerRef.current)
+      }
+      statusTimerRef.current = setTimeout(() => {
+        inviteForm.reset()
+      }, 1000)
+      setInviteEmail('')
+    } catch (err) {
+      inviteForm.setFailure(err, getFieldErrors(err))
+    }
+  }
+
+  function handleStartChat(client) {
+    const name = `${client.firstName || ''} ${client.lastName || ''}`.trim()
+    openChatDock({ targetId: client.id, targetName: name })
+  }
+
+  function handleOpenNutritionPlans(clientId, event) {
+    event.preventDefault()
+    event.stopPropagation()
+    navigate(`/coach/clients/${clientId}/nutrition-plans`)
+  }
 
   useEffect(() => {
     if (!showInvite) return
@@ -67,41 +74,6 @@ function CoachClients() {
       }
     }
   }, [])
-
-  async function handleInvite(event) {
-    event.preventDefault()
-    setStatus('')
-    setInviteError('')
-    setInviteFieldErrors(null)
-    setInviting(true)
-    try {
-      await inviteClient(inviteEmail)
-      setStatus('Invitation sent.')
-      if (statusTimerRef.current) {
-        clearTimeout(statusTimerRef.current)
-      }
-      statusTimerRef.current = setTimeout(() => {
-        setStatus('')
-      }, 1000)
-      setInviteEmail('')
-    } catch (err) {
-      setInviteFieldErrors(getFieldErrors(err))
-      setInviteError(err || 'Failed to send invite.')
-    } finally {
-      setInviting(false)
-    }
-  }
-
-  function handleStartChat(client) {
-    const name = `${client.firstName || ''} ${client.lastName || ''}`.trim()
-    openChatDock({ targetId: client.id, targetName: name })
-  }
-
-  function handleOpenNutritionPlans(clientId, event) {
-    event.preventDefault()
-    event.stopPropagation()
-    navigate(`/coach/clients/${clientId}/nutrition-plans`)
-  }
 
   return (
     <section className="panel">
@@ -125,8 +97,7 @@ function CoachClients() {
             <div className="chat-start-menu invite-menu" id="invite-form">
               <div className="chat-start-title">Invite a client</div>
               <form className="form invite-form" onSubmit={handleInvite} autoComplete="off">
-                <label className="field">
-                  <span>Client email</span>
+                <FormField label="Client email" error={inviteForm.fieldErrors?.email}>
                   <input
                     type="email"
                     name="inviteEmail"
@@ -137,22 +108,18 @@ function CoachClients() {
                     placeholder="client@example.com"
                     required
                   />
-                  {inviteFieldErrors?.email ? (
-                    <p className="field-error">{inviteFieldErrors.email}</p>
-                  ) : null}
-                </label>
-                <button type="submit" disabled={inviting}>
-                  {inviting ? 'Sending...' : 'Send invite'}
-                </button>
-                {status ? <p className="success">{status}</p> : null}
-                {inviteError ? <p className="error">{formatErrorMessage(inviteError)}</p> : null}
+                </FormField>
+                <Button loading={inviteForm.saving} loadingText="Sending...">
+                  Send invite
+                </Button>
+                <StatusMessage status={inviteForm.status} error={inviteForm.error} />
               </form>
             </div>
           ) : null}
         </div>
       </div>
       {loading ? <p className="muted">Loading clients...</p> : null}
-      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
+      {error ? <p className="error">{error}</p> : null}
       {!loading && !error ? (
         clients.length === 0 ? (
           <p className="muted">No clients yet.</p>

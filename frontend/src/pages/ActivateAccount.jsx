@@ -1,49 +1,33 @@
-import { useEffect, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { activateAccount } from '../api.js'
+import { useLoadData } from '../hooks/useLoadData.js'
 import { formatErrorMessage } from '../errorUtils.js'
+import StatusMessage from '../components/StatusMessage.jsx'
+import { Link } from 'react-router-dom'
 
 function ActivateAccount() {
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token')
   const navigate = useNavigate()
-  const [status, setStatus] = useState('Activating your account...')
-  const [error, setError] = useState('')
 
-  useEffect(() => {
-    let mounted = true
-    async function run() {
-      if (!token) {
-        setError('Activation token missing.')
-        setStatus('')
-        return
-      }
-      try {
-        await activateAccount(token)
-        if (mounted) {
-          setStatus('Account activated. You can now sign in.')
-          setTimeout(() => navigate('/login'), 1200)
-        }
-      } catch (err) {
-        if (mounted) {
-          setError(err || 'Activation failed.')
-          setStatus('')
-        }
-      }
+  const { loading, error } = useLoadData(async () => {
+    if (!token) {
+      throw new Error('Activation token missing.')
     }
+    await activateAccount(token)
+  }, [token])
 
-    run()
-    return () => {
-      mounted = false
-    }
-  }, [navigate, token])
+  if (!loading && !error) {
+    setTimeout(() => navigate('/login'), 1200)
+  }
+
+  const status = loading ? 'Activating your account...' : !error ? 'Account activated. You can now sign in.' : ''
 
   return (
     <section className="panel panel-narrow">
       <h1>Activate Account</h1>
       <p className="muted">We are verifying your activation link.</p>
-      {status ? <p className="success">{status}</p> : null}
-      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
+      <StatusMessage status={status} error={error} />
       <p className="hint">
         <Link to="/login">Return to sign in</Link>
       </p>

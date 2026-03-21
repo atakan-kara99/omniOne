@@ -3,24 +3,25 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getProfile, getUser, login, refreshAuth, refreshCsrf, setLoggingOut } from '../api.js'
 import { getToken, setToken } from '../auth.js'
 import { useAuth } from '../authContext.js'
+import { useFormState } from '../hooks/useFormState.js'
 import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
 import { isValidPassword, PASSWORD_PATTERN_STRING, PASSWORD_REQUIREMENTS } from '../passwordUtils.js'
+import FormField from '../components/FormField.jsx'
+import StatusMessage from '../components/StatusMessage.jsx'
+import Button from '../components/Button.jsx'
 
 function Login() {
   const navigate = useNavigate()
   const { setUser } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [fieldErrors, setFieldErrors] = useState(null)
-  const [status, setStatus] = useState('')
-  const [loading, setLoading] = useState(false)
+  const form = useFormState()
   const refreshAttemptedRef = useRef(false)
 
   useEffect(() => {
     const deleted = sessionStorage.getItem('omniOne.accountDeleted')
     if (deleted) {
-      setStatus('Your account was deleted successfully.')
+      form.setStatus('Your account was deleted successfully.')
       sessionStorage.removeItem('omniOne.accountDeleted')
     }
   }, [])
@@ -54,27 +55,26 @@ function Login() {
           } else if (mergedUser.role === 'CLIENT') {
             navigate('/client', { replace: true })
           } else {
-            setError('This UI only supports Coach and Client roles.')
+            form.setError('This UI only supports Coach and Client roles.')
           }
         }
       } catch {
         // no refresh cookie or refresh failed
       }
     })()
-  }, [navigate, setUser])
+  }, [navigate, setUser, form])
 
   async function runLogin(nextEmail, nextPassword) {
-    setError('')
-    setStatus('')
-    setFieldErrors(null)
-    setLoading(true)
+    form.reset()
+
+    if (!isValidPassword(nextPassword)) {
+      form.setError(PASSWORD_REQUIREMENTS)
+      return
+    }
+
+    form.startSaving()
 
     try {
-      if (!isValidPassword(nextPassword)) {
-        setError(PASSWORD_REQUIREMENTS)
-        setLoading(false)
-        return
-      }
       const response = await login({ email: nextEmail, password: nextPassword })
       setLoggingOut(false)
       if (response?.jwt) {
@@ -96,27 +96,28 @@ function Login() {
       } else if (mergedUser.role === 'CLIENT') {
         navigate('/client')
       } else {
-        setError('This UI only supports Coach and Client roles.')
+        form.setError('This UI only supports Coach and Client roles.')
       }
     } catch (err) {
       const errorCode = err?.errorCode
-      setFieldErrors(getFieldErrors(err))
+      form.setFieldErrors(getFieldErrors(err))
       if (errorCode === 'AUTH_ACCOUNT_DISABLED') {
-        setError(
+        form.setError(
           formatErrorMessage({
             detail: 'Your account is not activated yet. Check your email for the activation link.',
             traceId: err?.traceId,
           }),
         )
       } else if (errorCode === 'AUTH_INVALID_CREDENTIALS') {
-        setError(
+        form.setError(
           formatErrorMessage({ detail: 'Invalid email or password.', traceId: err?.traceId }),
         )
       } else {
-        setError(formatErrorMessage(err) || 'Login failed.')
+        form.setError(formatErrorMessage(err) || 'Login failed.')
       }
     } finally {
-      setLoading(false)
+      // Note: form.saving state is managed by useFormState, but we manually
+      // stop it here since we're not using form.startSaving/setSuccess/setFailure pattern
     }
   }
 
@@ -138,7 +139,7 @@ function Login() {
           <h1>Welcome Back!</h1>
           <p className="muted">Sign in to continue your coaching.</p>
           <form className="form" onSubmit={handleSubmit} autoComplete="off">
-            <label className="field">
+            <FormField label="Email" error={form.fieldErrors?.email}>
               <input
                 type="email"
                 name="email"
@@ -149,9 +150,8 @@ function Login() {
                 placeholder="Email"
                 required
               />
-              {fieldErrors?.email ? <p className="field-error">{fieldErrors.email}</p> : null}
-            </label>
-            <label className="field">
+            </FormField>
+            <FormField label="Password" error={form.fieldErrors?.password}>
               <input
                 type="password"
                 name="password"
@@ -168,13 +168,11 @@ function Login() {
                 onInput={(event) => event.target.setCustomValidity('')}
                 required
               />
-              {fieldErrors?.password ? <p className="field-error">{fieldErrors.password}</p> : null}
-            </label>
-            <button type="submit" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-            {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
-            {status ? <p className="success">{status}</p> : null}
+            </FormField>
+            <Button loading={form.saving} loadingText="Signing in...">
+              Sign in
+            </Button>
+            <StatusMessage status={form.status} error={form.error} />
           </form>
           <div className="hint-row">
             <span className="hint">New here? <Link to="/register">Create an account</Link></span>
@@ -188,7 +186,7 @@ function Login() {
             type="button"
             className="dev-button"
             onClick={() => handleQuickLogin('coach-10@omni.one', 'Testpq12')}
-            disabled={loading}
+            disabled={form.saving}
           >
             coach-10@omni.one
           </button>
@@ -196,7 +194,7 @@ function Login() {
             type="button"
             className="dev-button"
             onClick={() => handleQuickLogin('client-100@omni.one', 'Testpq12')}
-            disabled={loading}
+            disabled={form.saving}
           >
             client-100@omni.one
           </button>

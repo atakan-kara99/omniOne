@@ -1,45 +1,28 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { LinkBreak, PaperPlaneTilt } from 'phosphor-react'
 import { endClientCoaching, getClientCoach } from '../api.js'
 import { openChatDock } from '../chatDockEvents.js'
-import { formatErrorMessage } from '../errorUtils.js'
+import { useLoadData } from '../hooks/useLoadData.js'
+import { useFormState } from '../hooks/useFormState.js'
+import PagePanel from '../components/PagePanel.jsx'
+import StatusMessage from '../components/StatusMessage.jsx'
+import Button from '../components/Button.jsx'
 
 function ClientCoach() {
   const [coach, setCoach] = useState(null)
-  const [error, setError] = useState('')
-  const [status, setStatus] = useState('')
-  const [loading, setLoading] = useState(true)
   const [ending, setEnding] = useState(false)
+  const form = useFormState()
 
-  useEffect(() => {
-    let mounted = true
-
-    async function load() {
-      setLoading(true)
-      setError('')
-      try {
-        const data = await getClientCoach()
-        if (mounted) {
-          setCoach(data)
-        }
-      } catch (err) {
-        if (mounted) {
-          if (err?.status === 404) {
-            setCoach(null)
-          } else {
-            setError(err || 'Failed to load coach information.')
-          }
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false)
-        }
+  const { loading, error: loadError } = useLoadData(async () => {
+    try {
+      const data = await getClientCoach()
+      setCoach(data)
+    } catch (err) {
+      if (err?.status === 404) {
+        setCoach(null)
+      } else {
+        throw err
       }
-    }
-
-    load()
-    return () => {
-      mounted = false
     }
   }, [])
 
@@ -47,14 +30,13 @@ function ClientCoach() {
     const ok = window.confirm('End coaching with your coach?')
     if (!ok) return
     setEnding(true)
-    setError('')
-    setStatus('')
+    form.reset()
     try {
       await endClientCoaching()
       setCoach(null)
-      setStatus('Coaching relationship ended.')
+      form.setSuccess('Coaching relationship ended.')
     } catch (err) {
-      setError(err || 'Failed to end coaching.')
+      form.setFailure(err || 'Failed to end coaching.')
     } finally {
       setEnding(false)
     }
@@ -67,52 +49,47 @@ function ClientCoach() {
   }
 
   return (
-    <section className="panel">
-      <div className="panel-header">
-        <div>
-          <h1>Your coach</h1>
-          <p className="muted">Details about your assigned coach.</p>
-        </div>
-      </div>
-      {loading ? <p className="muted">Loading coach...</p> : null}
-      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
-      {status ? <p className="success">{status}</p> : null}
-      {!loading && !error ? (
-        coach ? (
-          <div className="card">
-            <div className="card-header-row">
-              <div className="card-title">
-                {coach.firstName || 'Coach'} {coach.lastName || ''}
-              </div>
-              <div className="inline-actions">
-                <button
-                  type="button"
-                  className="ghost-button message-button"
-                  onClick={handleStartChat}
-                >
-                  <PaperPlaneTilt size={22} weight="bold" />
-                  <span className="button-label">Message</span>
-                </button>
-                <button
-                  type="button"
-                  className="danger-button"
-                  onClick={handleEndCoaching}
-                  disabled={ending}
-                >
-                  <LinkBreak size={24} />
-                  {ending ? 'Ending...' : 'End coaching'}
-                </button>
-              </div>
+    <PagePanel
+      title="Your coach"
+      subtitle="Details about your assigned coach."
+      loading={loading}
+      error={loadError}
+    >
+      <StatusMessage status={form.status} error={form.error} />
+      {coach ? (
+        <div className="card">
+          <div className="card-header-row">
+            <div className="card-title">
+              {coach.firstName || 'Coach'} {coach.lastName || ''}
+            </div>
+            <div className="inline-actions">
+              <button
+                type="button"
+                className="ghost-button message-button"
+                onClick={handleStartChat}
+              >
+                <PaperPlaneTilt size={22} weight="bold" />
+                <span className="button-label">Message</span>
+              </button>
+              <Button
+                variant="danger"
+                onClick={handleEndCoaching}
+                loading={ending}
+                loadingText="Ending..."
+              >
+                <LinkBreak size={24} />
+                End coaching
+              </Button>
             </div>
           </div>
-        ) : (
-          <div className="card">
-            <div className="card-title">No coach assigned</div>
-            <p className="muted">You have not been assigned a coach yet.</p>
-          </div>
-        )
-      ) : null}
-    </section>
+        </div>
+      ) : (
+        <div className="card">
+          <div className="card-title">No coach assigned</div>
+          <p className="muted">You have not been assigned a coach yet.</p>
+        </div>
+      )}
+    </PagePanel>
   )
 }
 

@@ -1,29 +1,27 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { forgotPassword } from '../api.js'
+import { useFormState } from '../hooks/useFormState.js'
 import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
+import FormField from '../components/FormField.jsx'
+import StatusMessage from '../components/StatusMessage.jsx'
+import Button from '../components/Button.jsx'
 
 function ForgotPassword() {
   const [email, setEmail] = useState('')
-  const [status, setStatus] = useState('')
-  const [error, setError] = useState('')
-  const [fieldErrors, setFieldErrors] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const form = useFormState()
 
   async function handleSubmit(event) {
     event.preventDefault()
-    setStatus('')
-    setError('')
-    setFieldErrors(null)
-    setLoading(true)
+    form.reset()
+
+    form.startSaving()
     try {
       await forgotPassword(email)
-      setStatus('Reset link sent. Check your email for next steps.')
+      form.setSuccess('Reset link sent. Check your email for next steps.')
     } catch (err) {
-      setFieldErrors(getFieldErrors(err))
-      setError(formatErrorMessage(err) || 'Failed to send reset link.')
-    } finally {
-      setLoading(false)
+      form.setFieldErrors(getFieldErrors(err))
+      form.setFailure(formatErrorMessage(err) || 'Failed to send reset link.')
     }
   }
 
@@ -32,7 +30,7 @@ function ForgotPassword() {
       <h1>Reset Your Password</h1>
       <p className="muted">Enter your email to receive a reset link.</p>
       <form className="form" onSubmit={handleSubmit} autoComplete="off">
-        <label className="field">
+        <FormField label="Email" error={form.fieldErrors?.email}>
           <input
             type="email"
             name="email"
@@ -43,13 +41,11 @@ function ForgotPassword() {
             placeholder="Email"
             required
           />
-          {fieldErrors?.email ? <p className="field-error">{fieldErrors.email}</p> : null}
-        </label>
-        <button type="submit" disabled={loading}>
-          {loading ? 'Sending...' : 'Send reset link'}
-        </button>
-        {status ? <p className="success">{status}</p> : null}
-        {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
+        </FormField>
+        <Button loading={form.saving} loadingText="Sending...">
+          Send reset link
+        </Button>
+        <StatusMessage status={form.status} error={form.error} />
       </form>
       <p className="hint">
         <Link to="/login">Back to sign in</Link>

@@ -1,8 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { acceptInvitation, validateInvitation } from '../api.js'
+import { useLoadData } from '../hooks/useLoadData.js'
+import { useFormState } from '../hooks/useFormState.js'
 import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
 import { isValidPassword, PASSWORD_PATTERN_STRING, PASSWORD_REQUIREMENTS } from '../passwordUtils.js'
+import FormField from '../components/FormField.jsx'
+import StatusMessage from '../components/StatusMessage.jsx'
+import Button from '../components/Button.jsx'
 
 function AcceptInvitation() {
   const [searchParams] = useSearchParams()
@@ -11,76 +16,45 @@ function AcceptInvitation() {
   const [password, setPassword] = useState('')
   const [email, setEmail] = useState('')
   const [requiresPassword, setRequiresPassword] = useState(false)
-  const [status, setStatus] = useState('')
-  const [error, setError] = useState('')
-  const [fieldErrors, setFieldErrors] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [validating, setValidating] = useState(true)
+  const form = useFormState()
 
-  useEffect(() => {
-    let mounted = true
-    async function validate() {
-      setValidating(true)
-      setError('')
-      setFieldErrors(null)
-      if (!token) {
-        setError('Invitation token missing.')
-        setValidating(false)
-        return
-      }
-      try {
-        const data = await validateInvitation(token)
-        if (mounted) {
-          setEmail(data?.email || '')
-          setRequiresPassword(Boolean(data?.requiresPassword))
-        }
-      } catch (err) {
-        if (mounted) {
-          setFieldErrors(getFieldErrors(err))
-          setError(formatErrorMessage(err) || 'Invalid invitation token.')
-        }
-      } finally {
-        if (mounted) {
-          setValidating(false)
-        }
-      }
+  const { loading: validating, error: validationError } = useLoadData(async () => {
+    if (!token) {
+      throw new Error('Invitation token missing.')
     }
-
-    validate()
-    return () => {
-      mounted = false
-    }
+    const data = await validateInvitation(token)
+    setEmail(data?.email || '')
+    setRequiresPassword(Boolean(data?.requiresPassword))
   }, [token])
 
   async function handleSubmit(event) {
     event.preventDefault()
-    setStatus('')
-    setError('')
-    setFieldErrors(null)
+    form.reset()
+
     if (!token) {
-      setError('Invitation token missing.')
+      form.setErrorManual('Invitation token missing.')
       return
     }
+
     if (requiresPassword) {
       if (!password.trim()) {
-        setError('Password is required.')
+        form.setErrorManual('Password is required.')
         return
       }
       if (!isValidPassword(password)) {
-        setError(PASSWORD_REQUIREMENTS)
+        form.setError(PASSWORD_REQUIREMENTS)
         return
       }
     }
-    setLoading(true)
+
+    form.startSaving()
     try {
       await acceptInvitation(token, requiresPassword ? { password } : undefined)
-      setStatus('Invitation accepted. You can now sign in.')
+      form.setSuccess('Invitation accepted. You can now sign in.')
       setTimeout(() => navigate('/login'), 1000)
     } catch (err) {
-      setFieldErrors(getFieldErrors(err))
-      setError(formatErrorMessage(err) || 'Failed to accept invitation.')
-    } finally {
-      setLoading(false)
+      form.setFieldErrors(getFieldErrors(err))
+      form.setFailure(formatErrorMessage(err) || 'Failed to accept invitation.')
     }
   }
 
@@ -89,12 +63,11 @@ function AcceptInvitation() {
       <h1>Accept Invitation</h1>
       <p className="muted">Complete the invitation to activate the account.</p>
       {validating ? <p className="muted">Validating invitation...</p> : null}
-      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
-      {status ? <p className="success">{status}</p> : null}
-      {!validating && !error ? (
+      <StatusMessage status={form.status} error={form.error || validationError} />
+      {!validating && !validationError ? (
         <form className="form" onSubmit={handleSubmit} autoComplete="off">
           {email ? (
-            <label className="field">
+            <FormField label="Email">
               <input
                 type="email"
                 name="email"
@@ -103,10 +76,10 @@ function AcceptInvitation() {
                 value={email}
                 disabled
               />
-            </label>
+            </FormField>
           ) : null}
           {requiresPassword ? (
-            <label className="field">
+            <FormField label="Password" error={form.fieldErrors?.password}>
               <input
                 type="password"
                 name="password"
@@ -123,14 +96,13 @@ function AcceptInvitation() {
                 onInput={(event) => event.target.setCustomValidity('')}
                 required
               />
-              {fieldErrors?.password ? <p className="field-error">{fieldErrors.password}</p> : null}
-            </label>
+            </FormField>
           ) : (
             <p className="muted">No password required. Confirm to accept the invitation.</p>
           )}
-          <button type="submit" disabled={loading}>
-            {loading ? 'Accepting...' : 'Accept invitation'}
-          </button>
+          <Button loading={form.saving} loadingText="Accepting...">
+            Accept invitation
+          </Button>
         </form>
       ) : null}
       <p className="hint">

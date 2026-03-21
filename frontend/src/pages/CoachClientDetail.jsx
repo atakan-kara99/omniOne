@@ -1,80 +1,63 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { CaretRight } from 'phosphor-react'
-import { endCoaching, getCoachClient, getCoachClientActivePlan, getCoachClientAnswers } from '../api.js'
-import { formatErrorMessage } from '../errorUtils.js'
+import { endCoaching, getCoachClient, getCoachClientActivePlan, getCoachClientActiveSupplementPlan, getCoachClientAnswers } from '../api.js'
+import { useLoadData } from '../hooks/useLoadData.js'
+import { useFormState } from '../hooks/useFormState.js'
+import PagePanel from '../components/PagePanel.jsx'
+import Button from '../components/Button.jsx'
 
 function CoachClientDetail() {
   const { clientId } = useParams()
   const navigate = useNavigate()
   const [client, setClient] = useState(null)
   const [activePlan, setActivePlan] = useState(null)
+  const [activeSupplementPlan, setActiveSupplementPlan] = useState(null)
   const [answers, setAnswers] = useState([])
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    let mounted = true
-
-    async function load() {
-      setLoading(true)
-      setError('')
-      try {
-        const [clientData, active, questionnaire] = await Promise.all([
-          getCoachClient(clientId),
-          getCoachClientActivePlan(clientId).catch((err) => (err.status === 404 ? null : Promise.reject(err))),
-          getCoachClientAnswers(clientId),
-        ])
-        if (mounted) {
-          setClient(clientData)
-          setActivePlan(active)
-          setAnswers(questionnaire || [])
-        }
-      } catch (err) {
-        if (mounted) {
-          setError(err || 'Failed to load client.')
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false)
-        }
-      }
-    }
-
-    load()
-    return () => {
-      mounted = false
-    }
+  const { loading, error } = useLoadData(async () => {
+    const [clientData, active, activeSupp, questionnaire] = await Promise.all([
+      getCoachClient(clientId),
+      getCoachClientActivePlan(clientId).catch((err) => (err.status === 404 ? null : Promise.reject(err))),
+      getCoachClientActiveSupplementPlan(clientId).catch((err) => (err.status === 404 ? null : Promise.reject(err))),
+      getCoachClientAnswers(clientId),
+    ])
+    setClient(clientData)
+    setActivePlan(active)
+    setActiveSupplementPlan(activeSupp)
+    setAnswers(questionnaire || [])
   }, [clientId])
+
+  const endCoachingForm = useFormState()
 
   async function handleEndCoaching() {
     const ok = window.confirm('End coaching for this client?')
     if (!ok) return
+    endCoachingForm.startSaving()
     try {
       await endCoaching(clientId)
       navigate('/coach/clients')
     } catch (err) {
-      setError(err || 'Failed to end coaching.')
+      endCoachingForm.setError(err || 'Failed to end coaching.')
     }
   }
 
   const clientName = `${client?.firstName || ''} ${client?.lastName || ''}`.trim() || 'Client'
 
   return (
-    <section className="panel">
-      <div className="panel-header client-detail-header">
-        <div>
-          <h1>{clientName}</h1>
-          <p className="muted">Manage client details</p>
-        </div>
+    <PagePanel
+      title={clientName}
+      subtitle="Manage client details"
+      loading={loading}
+      error={error}
+      actions={
         <Link className="back-button" to="/coach/clients">
           <span className="button-label">Back</span>
           <CaretRight size={22} weight="bold" />
         </Link>
-      </div>
-      {loading ? <p className="muted">Loading client...</p> : null}
-      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
-      {!loading && client ? (
+      }
+    >
+      {client ? (
         <>
           <div className="client-detail-grid">
             <Link to={`/coach/clients/${clientId}/nutrition-plans`} className="card client-card-link client-detail-nutrition-link">
@@ -107,6 +90,42 @@ function CoachClientDetail() {
               </div>
             </Link>
             <Link
+              to={`/coach/clients/${clientId}/supplement-plans`}
+              className="card client-card-link"
+            >
+              <div className="card-title">Supplement plans</div>
+              {activeSupplementPlan && activeSupplementPlan.entries?.length > 0 ? (
+                <>
+                  <ul className="supplement-entry-list">
+                    {activeSupplementPlan.entries.slice(0, 3).map((entry, i) => (
+                      <li key={entry.id ?? i} className="supplement-entry-item">
+                        <div className="supplement-entry-name">
+                          {entry.supplementName}
+                          {entry.brand ? (
+                            <span className="supplement-entry-brand"> — {entry.brand}</span>
+                          ) : null}
+                        </div>
+                        <div className="supplement-entry-meta">
+                          <span className="card-value">{entry.dosage}</span>
+                          {entry.timing ? (
+                            <span className="card-value">{entry.timing}</span>
+                          ) : null}
+                        </div>
+                      </li>
+                    ))}
+                    {activeSupplementPlan.entries.length > 3 ? (
+                      <p className="muted client-detail-more-hint">
+                        {`+${activeSupplementPlan.entries.length - 3} more`}
+                      </p>
+                    ) : null}
+                  </ul>
+                  <p className="muted client-detail-more-hint">Manage plans →</p>
+                </>
+              ) : (
+                <p className="muted">No plan yet — click to create one →</p>
+              )}
+            </Link>
+            <Link
               to={`/coach/clients/${clientId}/questionnaire-responses`}
               className="card client-card-link client-detail-questionnaire-link"
             >
@@ -132,14 +151,19 @@ function CoachClientDetail() {
                 <div className="card-title">End coaching</div>
                 <p className="muted">This will remove the client from your roster.</p>
               </div>
-              <button type="button" className="danger-button" onClick={handleEndCoaching}>
+              <Button
+                variant="danger"
+                loading={endCoachingForm.saving}
+                onClick={handleEndCoaching}
+              >
                 End coaching
-              </button>
+              </Button>
+              {endCoachingForm.error ? <p className="error">{endCoachingForm.error}</p> : null}
             </div>
           </div>
         </>
       ) : null}
-    </section>
+    </PagePanel>
   )
 }
 

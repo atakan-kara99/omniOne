@@ -1,71 +1,42 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getCoach, getCoachClients } from '../api.js'
-import { formatErrorMessage } from '../errorUtils.js'
+import { useLoadData } from '../hooks/useLoadData.js'
+import PagePanel from '../components/PagePanel.jsx'
 
 function CoachDashboard() {
   const [coach, setCoach] = useState(null)
   const [clients, setClients] = useState([])
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    let mounted = true
-
-    async function load() {
-      setLoading(true)
-      setError('')
-      try {
-        const [coachData, clientList] = await Promise.all([getCoach(), getCoachClients()])
-        if (mounted) {
-          setCoach(coachData)
-          setClients(clientList || [])
-        }
-      } catch (err) {
-        if (mounted) {
-          setError(err || 'Failed to load coach data.')
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false)
-        }
-      }
-    }
-
-    load()
-    return () => {
-      mounted = false
-    }
+  const { loading, error } = useLoadData(async () => {
+    const [coachData, clientList] = await Promise.all([getCoach(), getCoachClients()])
+    setCoach(coachData)
+    setClients(clientList || [])
   }, [])
 
   return (
-    <section className="panel">
-      <div className="panel-header">
-        <div>
-          <h1>Coach dashboard</h1>
-          <p className="muted">Keep tabs on client progress and upcoming touchpoints.</p>
-        </div>
+    <PagePanel
+      title="Coach dashboard"
+      subtitle="Keep tabs on client progress and upcoming touchpoints."
+      loading={loading}
+      error={error}
+      actions={
         <Link className="primary-link" to="/coach/clients">
           View clients
         </Link>
+      }
+    >
+      <div className="stat-grid">
+        <div className="stat">
+          <div className="label">Coach ID</div>
+          <div className="value">{coach?.id || '—'}</div>
+        </div>
+        <div className="stat">
+          <div className="label">Active clients</div>
+          <div className="value">{clients.length}</div>
+        </div>
       </div>
-      {loading ? <p className="muted">Loading coach data...</p> : null}
-      {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
-      {!loading && !error ? (
-        <>
-          <div className="stat-grid">
-            <div className="stat">
-              <div className="label">Coach ID</div>
-              <div className="value">{coach?.id || '—'}</div>
-            </div>
-            <div className="stat">
-              <div className="label">Active clients</div>
-              <div className="value">{clients.length}</div>
-            </div>
-          </div>
-        </>
-      ) : null}
-    </section>
+    </PagePanel>
   )
 }
 

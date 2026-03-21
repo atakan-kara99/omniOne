@@ -26,9 +26,11 @@ import CompleteProfile from './pages/CompleteProfile.jsx'
 import CoachClients from './pages/CoachClients.jsx'
 import CoachClientDetail from './pages/CoachClientDetail.jsx'
 import CoachClientNutritionPlans from './pages/CoachClientNutritionPlans.jsx'
+import CoachClientSupplementPlans from './pages/CoachClientSupplementPlans.jsx'
 import CoachClientQuestionnaireResponses from './pages/CoachClientQuestionnaireResponses.jsx'
 import CoachQuestionnaire from './pages/CoachQuestionnaire.jsx'
 import ClientNutritionPlans from './pages/ClientNutritionPlans.jsx'
+import ClientSupplementPlans from './pages/ClientSupplementPlans.jsx'
 import ClientQuestionnaire from './pages/ClientQuestionnaire.jsx'
 import ClientCoach from './pages/ClientCoach.jsx'
 import ChatDock from './components/ChatDock.jsx'
@@ -101,6 +103,7 @@ function AppShell({ children, user, onLogout }) {
       ? [
           { label: 'Coach', to: '/client/coach' },
           { label: 'Nutrition plans', to: '/client/nutrition-plans' },
+          { label: 'Supplement plans', to: '/client/supplement-plans' },
           { label: 'Questionnaire', to: '/client/questionnaire' },
         ]
       : []
@@ -401,6 +404,14 @@ function App() {
               }
             />
             <Route
+              path="/coach/clients/:clientId/supplement-plans"
+              element={
+                <ProtectedRoute allowedRoles={['COACH']}>
+                  <CoachClientSupplementPlans />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/coach/clients/:clientId/questionnaire-responses"
               element={
                 <ProtectedRoute allowedRoles={['COACH']}>
@@ -429,6 +440,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['CLIENT']}>
                   <ClientNutritionPlans />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/client/supplement-plans"
+              element={
+                <ProtectedRoute allowedRoles={['CLIENT']}>
+                  <ClientSupplementPlans />
                 </ProtectedRoute>
               }
             />

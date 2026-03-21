@@ -1,43 +1,42 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { resetPassword } from '../api.js'
+import { useFormState } from '../hooks/useFormState.js'
 import { formatErrorMessage, getFieldErrors } from '../errorUtils.js'
 import { isValidPassword, PASSWORD_PATTERN_STRING, PASSWORD_REQUIREMENTS } from '../passwordUtils.js'
+import FormField from '../components/FormField.jsx'
+import StatusMessage from '../components/StatusMessage.jsx'
+import Button from '../components/Button.jsx'
 
 function ResetPassword() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const token = searchParams.get('token')
   const [password, setPassword] = useState('')
-  const [status, setStatus] = useState('')
-  const [error, setError] = useState('')
-  const [fieldErrors, setFieldErrors] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const form = useFormState()
 
   async function handleSubmit(event) {
     event.preventDefault()
-    setStatus('')
-    setError('')
-    setFieldErrors(null)
+    form.reset()
+
     if (!token) {
-      setError('Reset token missing.')
+      form.setErrorManual('Reset token missing.')
       return
     }
-    setLoading(true)
+
+    if (!isValidPassword(password)) {
+      form.setError(PASSWORD_REQUIREMENTS)
+      return
+    }
+
+    form.startSaving()
     try {
-      if (!isValidPassword(password)) {
-        setError(PASSWORD_REQUIREMENTS)
-        setLoading(false)
-        return
-      }
       await resetPassword(token, { password })
-      setStatus('Password updated. You can now sign in.')
+      form.setSuccess('Password updated. You can now sign in.')
       setTimeout(() => navigate('/login'), 1000)
     } catch (err) {
-      setFieldErrors(getFieldErrors(err))
-      setError(formatErrorMessage(err) || 'Failed to reset password.')
-    } finally {
-      setLoading(false)
+      form.setFieldErrors(getFieldErrors(err))
+      form.setFailure(formatErrorMessage(err) || 'Failed to reset password.')
     }
   }
 
@@ -46,7 +45,7 @@ function ResetPassword() {
       <h1>Create A New Password</h1>
       <p className="muted">Choose a password to secure your account.</p>
       <form className="form" onSubmit={handleSubmit} autoComplete="off">
-        <label className="field">
+        <FormField label="Password" error={form.fieldErrors?.password}>
           <input
             type="password"
             name="password"
@@ -63,13 +62,11 @@ function ResetPassword() {
             onInput={(event) => event.target.setCustomValidity('')}
             required
           />
-          {fieldErrors?.password ? <p className="field-error">{fieldErrors.password}</p> : null}
-        </label>
-        <button type="submit" disabled={loading}>
-          {loading ? 'Updating...' : 'Reset password'}
-        </button>
-        {status ? <p className="success">{status}</p> : null}
-        {error ? <p className="error">{formatErrorMessage(error)}</p> : null}
+        </FormField>
+        <Button loading={form.saving} loadingText="Updating...">
+          Reset password
+        </Button>
+        <StatusMessage status={form.status} error={form.error} />
       </form>
       <p className="hint">
         <Link to="/login">Back to sign in</Link>
