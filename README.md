@@ -48,6 +48,8 @@ omniOne/
 ### Backend
 
 ```bash
+python3 scripts/generate_reference_data.py
+
 cd backend
 
 # Start PostgreSQL, Adminer, and MailHog
@@ -60,6 +62,8 @@ docker compose up -d
 API available at `http://localhost:8080`
 Swagger UI at `http://localhost:8080/swagger-ui.html`
 MailHog UI at `http://localhost:8025`
+
+The reference country/city data under `backend/src/main/resources/reference/` is generated locally and not tracked in Git.
 
 ### Frontend
 

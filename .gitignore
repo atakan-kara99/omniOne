@@ -6,3 +6,6 @@
 
 # Maven build output
 target/
+
+# Generated reference data
+backend/src/main/resources/reference/
