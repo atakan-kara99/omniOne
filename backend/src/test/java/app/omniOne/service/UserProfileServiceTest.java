@@ -31,6 +31,7 @@ class UserProfileServiceTest {
     @Mock private UserRepo userRepo;
     @Mock private UserProfileRepo userProfileRepo;
     @Mock private UserProfileMapper userProfileMapper;
+    @Mock private ReferenceDataService referenceDataService;
     @InjectMocks private UserProfileService userProfileService;
 
     private UUID userId;
@@ -53,10 +54,12 @@ class UserProfileServiceTest {
 
     @Test void putProfile_createsProfileWhenMissing() {
         UserProfileRequest request = new UserProfileRequest(
-                "John", "Doe", LocalDate.of(1990, 1, 1), Gender.MALE);
+                "John", "Doe", LocalDate.of(1990, 1, 1), Gender.MALE, "DE", "Berlin");
 
         when(userRepo.findByIdOrThrow(userId)).thenReturn(user);
         when(userProfileRepo.findById(userId)).thenReturn(Optional.empty());
+        when(referenceDataService.isValidCountryCode("DE")).thenReturn(true);
+        when(referenceDataService.isValidCity("DE", "Berlin")).thenReturn(true);
 
         UserProfile result = userProfileService.putProfile(userId, request);
 
@@ -68,12 +71,14 @@ class UserProfileServiceTest {
 
     @Test void putProfile_updatesExistingProfile() {
         UserProfileRequest request = new UserProfileRequest(
-                "Jane", "Roe", LocalDate.of(1985, 5, 5), Gender.FEMALE);
+                "Jane", "Roe", LocalDate.of(1985, 5, 5), Gender.FEMALE, "US", "Chicago");
         UserProfile existingProfile = new UserProfile();
         existingProfile.setUser(user);
 
         when(userRepo.findByIdOrThrow(userId)).thenReturn(user);
         when(userProfileRepo.findById(userId)).thenReturn(Optional.of(existingProfile));
+        when(referenceDataService.isValidCountryCode("US")).thenReturn(true);
+        when(referenceDataService.isValidCity("US", "Chicago")).thenReturn(true);
 
         UserProfile result = userProfileService.putProfile(userId, request);
 

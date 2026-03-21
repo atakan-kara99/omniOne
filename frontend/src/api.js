@@ -278,6 +278,22 @@ export function updateProfile(payload) {
   })
 }
 
+export function getReferenceCountries(query = '', limit = 300) {
+  const params = new URLSearchParams()
+  if (query) params.set('query', query)
+  params.set('limit', String(limit))
+  return apiFetch(`/reference/countries?${params.toString()}`, { method: 'GET' })
+}
+
+export function getReferenceCities(countryCode, query = '', limit = 100) {
+  const params = new URLSearchParams()
+  if (query) params.set('query', query)
+  params.set('limit', String(limit))
+  return apiFetch(`/reference/countries/${encodeURIComponent(countryCode)}/cities?${params.toString()}`, {
+    method: 'GET',
+  })
+}
+
 export function changePassword(payload) {
   return apiFetch('/user/password', {
     method: 'POST',

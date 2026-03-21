@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   changePassword,
   deleteUser,
   getProfile,
+  getReferenceCities,
+  getReferenceCountries,
   updateProfile,
 } from '../api.js'
 import { useAuth } from '../authContext.js'
@@ -11,6 +13,7 @@ import { isValidPassword, PASSWORD_PATTERN_STRING, PASSWORD_REQUIREMENTS } from 
 import { useFormState } from '../hooks/useFormState.js'
 import { useLoadData } from '../hooks/useLoadData.js'
 import FormField from '../components/FormField.jsx'
+import SearchableSelect from '../components/SearchableSelect.jsx'
 import StatusMessage from '../components/StatusMessage.jsx'
 import Button from '../components/Button.jsx'
 import PagePanel from '../components/PagePanel.jsx'
@@ -19,8 +22,46 @@ function Profile() {
   const { user, logout, setUser, setProfileComplete } = useAuth()
   const [profile, setProfile] = useState(EMPTY_PROFILE)
   const [passwords, setPasswords] = useState({ oldPassword: '', newPassword: '' })
+  const [countries, setCountries] = useState([])
+  const [cities, setCities] = useState([])
+  const [countrySearch, setCountrySearch] = useState('')
+  const [citySearch, setCitySearch] = useState('')
   const form = useFormState()
   const [savingPassword, setSavingPassword] = useState(false)
+  const countryOptions = countries
+  const cityOptions = cities
+
+  useEffect(() => {
+    let cancelled = false
+
+    getReferenceCountries('', 300).then((result) => {
+      if (!cancelled) {
+        setCountries(result)
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    if (!profile.countryCode) {
+      return undefined
+    }
+
+    getReferenceCities(profile.countryCode, '', 10000).then((result) => {
+      if (!cancelled) {
+        setCities(result)
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [profile.countryCode])
 
   const { loading, error: loadError } = useLoadData(async () => {
     const profileData = await getProfile()
@@ -28,6 +69,8 @@ function Profile() {
       ...EMPTY_PROFILE,
       ...profileData,
     })
+    setCities([])
+    setCitySearch(profileData?.city || '')
   }, [])
 
   async function handleProfileSave(event) {
@@ -166,6 +209,48 @@ function Profile() {
                 <option value="FEMALE">Female</option>
                 <option value="OTHER">Other</option>
               </select>
+            </FormField>
+            <FormField label="Country" error={form.fieldErrors?.countryCode}>
+              <SearchableSelect
+                value={profile.countryCode}
+                searchValue={countrySearch}
+                id="profile-countryCode"
+                name="countryCode"
+                options={countryOptions}
+                placeholder="Search country"
+                emptyText="No matching countries."
+                onSearchChange={setCountrySearch}
+                onChange={(countryCode) => {
+                  setProfile((prev) => ({
+                    ...prev,
+                    countryCode,
+                    city: '',
+                  }))
+                  setCities([])
+                  setCitySearch('')
+                }}
+                required
+              />
+            </FormField>
+            <FormField label="City" error={form.fieldErrors?.city}>
+              <SearchableSelect
+                value={profile.city}
+                searchValue={citySearch}
+                id="profile-city"
+                name="city"
+                options={cityOptions}
+                placeholder={profile.countryCode ? 'Search city' : 'Select a country first'}
+                emptyText="No matching cities."
+                onSearchChange={setCitySearch}
+                onChange={(city) =>
+                  setProfile((prev) => ({
+                    ...prev,
+                    city,
+                  }))
+                }
+                disabled={!profile.countryCode || cities.length === 0}
+                required
+              />
             </FormField>
             <Button type="submit" loading={form.saving} loadingText="Saving...">
               Save profile

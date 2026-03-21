@@ -3,6 +3,8 @@ export const EMPTY_PROFILE = {
   lastName: '',
   birthDate: '',
   gender: 'OTHER',
+  countryCode: '',
+  city: '',
 }
 
 const REQUIRED_GENDERS = new Set(['MALE', 'FEMALE', 'OTHER'])
@@ -13,5 +15,7 @@ export function isProfileComplete(profile) {
   const lastName = (profile.lastName || '').trim()
   const birthDate = (profile.birthDate || '').trim()
   const gender = profile.gender || ''
-  return Boolean(firstName && lastName && birthDate && REQUIRED_GENDERS.has(gender))
+  const countryCode = (profile.countryCode || '').trim()
+  const city = (profile.city || '').trim()
+  return Boolean(firstName && lastName && birthDate && REQUIRED_GENDERS.has(gender) && countryCode && city)
 }

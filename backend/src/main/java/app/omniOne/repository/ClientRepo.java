@@ -21,7 +21,15 @@ public interface ClientRepo extends JpaRepository<Client, UUID> {
     List<Client> findAllByCoachId(UUID coachId);
 
     @Query("""
-    SELECT new app.omniOne.model.dto.ClientResponse(c.id, up.firstName, up.lastName)
+    SELECT new app.omniOne.model.dto.ClientResponse(
+        c.id,
+        up.firstName,
+        up.lastName,
+        up.birthDate,
+        up.gender,
+        up.countryCode,
+        up.city
+    )
     FROM Client c
     JOIN UserProfile up ON up.id = c.id
     WHERE c.coach.id = :coachId

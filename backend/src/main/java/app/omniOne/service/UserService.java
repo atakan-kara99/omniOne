@@ -63,6 +63,8 @@ public class UserService {
             profile.setBirthDate(LocalDate.of(1970, 1, 1));
             profile.setFirstName("deleted");
             profile.setLastName("user");
+            profile.setCountryCode("ZZ");
+            profile.setCity("Deleted");
         }
         if (user.getRole() == UserRole.COACH) {
             UUID coachId = user.getId();

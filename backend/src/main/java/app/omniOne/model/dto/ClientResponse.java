@@ -1,5 +1,8 @@
 package app.omniOne.model.dto;
 
+import app.omniOne.model.enums.Gender;
+
+import java.time.LocalDate;
 import java.util.UUID;
 
 public record ClientResponse(
@@ -8,6 +11,14 @@ public record ClientResponse(
 
         String firstName,
 
-        String lastName
+        String lastName,
+
+        LocalDate birthDate,
+
+        Gender gender,
+
+        String countryCode,
+
+        String city
 
 ) {}

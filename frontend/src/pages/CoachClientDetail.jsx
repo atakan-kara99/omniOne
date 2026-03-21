@@ -1,11 +1,29 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { CaretRight } from 'phosphor-react'
-import { endCoaching, getCoachClient, getCoachClientActivePlan, getCoachClientActiveSupplementPlan, getCoachClientAnswers } from '../api.js'
+import {
+  endCoaching,
+  getCoachClient,
+  getCoachClientActivePlan,
+  getCoachClientActiveSupplementPlan,
+  getCoachClientAnswers,
+  getReferenceCountries,
+} from '../api.js'
 import { useLoadData } from '../hooks/useLoadData.js'
 import { useFormState } from '../hooks/useFormState.js'
 import PagePanel from '../components/PagePanel.jsx'
 import Button from '../components/Button.jsx'
+
+function formatBirthDate(value) {
+  if (!value) return '—'
+  const [year, month, day] = value.split('-').map(Number)
+  if (!year || !month || !day) return value
+  return new Date(year, month - 1, day).toLocaleDateString([], {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
 
 function CoachClientDetail() {
   const { clientId } = useParams()
@@ -14,18 +32,21 @@ function CoachClientDetail() {
   const [activePlan, setActivePlan] = useState(null)
   const [activeSupplementPlan, setActiveSupplementPlan] = useState(null)
   const [answers, setAnswers] = useState([])
+  const [countries, setCountries] = useState([])
 
   const { loading, error } = useLoadData(async () => {
-    const [clientData, active, activeSupp, questionnaire] = await Promise.all([
+    const [clientData, active, activeSupp, questionnaire, countriesList] = await Promise.all([
       getCoachClient(clientId),
       getCoachClientActivePlan(clientId).catch((err) => (err.status === 404 ? null : Promise.reject(err))),
       getCoachClientActiveSupplementPlan(clientId).catch((err) => (err.status === 404 ? null : Promise.reject(err))),
       getCoachClientAnswers(clientId),
+      getReferenceCountries('', 300).catch(() => []),
     ])
     setClient(clientData)
     setActivePlan(active)
     setActiveSupplementPlan(activeSupp)
     setAnswers(questionnaire || [])
+    setCountries(countriesList || [])
   }, [clientId])
 
   const endCoachingForm = useFormState()
@@ -43,6 +64,12 @@ function CoachClientDetail() {
   }
 
   const clientName = `${client?.firstName || ''} ${client?.lastName || ''}`.trim() || 'Client'
+  const countryName =
+    countries.find((country) => country.value === client?.countryCode)?.label || client?.countryCode || '—'
+  const birthDateLabel = formatBirthDate(client?.birthDate)
+  const genderLabel = client?.gender
+    ? `${client.gender.charAt(0)}${client.gender.slice(1).toLowerCase()}`
+    : '—'
 
   return (
     <PagePanel
@@ -59,6 +86,27 @@ function CoachClientDetail() {
     >
       {client ? (
         <>
+          <div className="card client-profile-summary">
+            <div className="card-title">Profile</div>
+            <div className="client-profile-grid">
+              <div>
+                <div className="label">Birth date</div>
+                <div className="value">{birthDateLabel}</div>
+              </div>
+              <div>
+                <div className="label">Gender</div>
+                <div className="value">{genderLabel}</div>
+              </div>
+              <div>
+                <div className="label">Country</div>
+                <div className="value">{countryName}</div>
+              </div>
+              <div>
+                <div className="label">City</div>
+                <div className="value">{client.city || '—'}</div>
+              </div>
+            </div>
+          </div>
           <div className="client-detail-grid">
             <Link to={`/coach/clients/${clientId}/nutrition-plans`} className="card client-card-link client-detail-nutrition-link">
               <div className="card-title">Nutrition plans</div>

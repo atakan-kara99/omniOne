@@ -2,7 +2,6 @@
 
 ## Frontend
 
-- [ ] Client location + join date fields (display on coach client detail page)
 - [ ] Questionnaire templating — Q&A flow after client activation
 - [ ] Check-In UI — submission form (weight, nutrition adherence, photos, sleep, steps, energy level, comment)
 - [ ] Check-In history view — list of past check-ins per client

@@ -37,4 +37,9 @@ public class UserProfile extends BaseEntity {
     @Column(nullable = false)
     private Gender gender;
 
+    @Column(length = 2)
+    private String countryCode;
+
+    private String city;
+
 }

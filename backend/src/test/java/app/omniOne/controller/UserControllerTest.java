@@ -109,7 +109,7 @@ class UserControllerTest extends AuthTestSupport {
     @Test void getProfile_returnsMappedProfile() throws Exception {
         UserProfile profile = new UserProfile();
         UserProfileDto dto = new UserProfileDto("John", "Doe",
-                LocalDate.of(1990, 1, 1), Gender.MALE);
+                LocalDate.of(1990, 1, 1), Gender.MALE, "DE", "Berlin");
         when(userProfileService.getProfile(userId)).thenReturn(profile);
         when(userProfileMapper.map(profile)).thenReturn(dto);
 
@@ -118,7 +118,9 @@ class UserControllerTest extends AuthTestSupport {
                 .andExpect(jsonPath("$.firstName").value("John"))
                 .andExpect(jsonPath("$.lastName").value("Doe"))
                 .andExpect(jsonPath("$.birthDate").value("1990-01-01"))
-                .andExpect(jsonPath("$.gender").value("MALE"));
+                .andExpect(jsonPath("$.gender").value("MALE"))
+                .andExpect(jsonPath("$.countryCode").value("DE"))
+                .andExpect(jsonPath("$.city").value("Berlin"));
 
         verify(userProfileService).getProfile(userId);
         verify(userProfileMapper).map(profile);
@@ -126,10 +128,10 @@ class UserControllerTest extends AuthTestSupport {
 
     @Test void putProfile_updatesProfileAndReturnsDto() throws Exception {
         UserProfileRequest request = new UserProfileRequest(
-                "Jane", "Roe", LocalDate.of(1995, 5, 5), Gender.FEMALE);
+                "Jane", "Roe", LocalDate.of(1995, 5, 5), Gender.FEMALE, "US", "New York");
         UserProfile profile = new UserProfile();
         UserProfileDto dto = new UserProfileDto("Jane", "Roe",
-                LocalDate.of(1995, 5, 5), Gender.FEMALE);
+                LocalDate.of(1995, 5, 5), Gender.FEMALE, "US", "New York");
 
         when(userProfileService.putProfile(eq(userId), any(UserProfileRequest.class))).thenReturn(profile);
         when(userProfileMapper.map(profile)).thenReturn(dto);
@@ -139,13 +141,17 @@ class UserControllerTest extends AuthTestSupport {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value("Jane"))
-                .andExpect(jsonPath("$.gender").value("FEMALE"));
+                .andExpect(jsonPath("$.gender").value("FEMALE"))
+                .andExpect(jsonPath("$.countryCode").value("US"))
+                .andExpect(jsonPath("$.city").value("New York"));
 
         ArgumentCaptor<UserProfileRequest> captor = ArgumentCaptor.forClass(UserProfileRequest.class);
         verify(userProfileService).putProfile(eq(userId), captor.capture());
         UserProfileRequest captured = captor.getValue();
         assertEquals("Jane", captured.firstName());
         assertEquals(LocalDate.of(1995, 5, 5), captured.birthDate());
+        assertEquals("US", captured.countryCode());
+        assertEquals("New York", captured.city());
         verify(userProfileMapper).map(profile);
     }
 

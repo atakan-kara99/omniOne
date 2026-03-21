@@ -12,6 +12,10 @@ public record UserProfileDto (
 
         LocalDate birthDate,
 
-        Gender gender
+        Gender gender,
+
+        String countryCode,
+
+        String city
 
 ) {}

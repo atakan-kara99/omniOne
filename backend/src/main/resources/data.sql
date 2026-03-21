@@ -19,18 +19,18 @@ VALUES
 -- USER_PROFILE
 -----------------------------------------
 
-INSERT INTO user_profile (user_id, created_at, updated_at, birth_date, first_name, last_name, gender)
+INSERT INTO user_profile (user_id, created_at, updated_at, birth_date, first_name, last_name, gender, country_code, city)
 VALUES
-    ((SELECT id FROM user_ WHERE email =    'admin-1@omni.one'), '2025-12-01 00:00:00', NULL, '1980-05-14',   'Alex',    'Admin',   'MALE'),
-    ((SELECT id FROM user_ WHERE email =   'coach-10@omni.one'), '2025-12-01 00:00:00', NULL, '1985-02-20', 'Jordan', 'Maverick',   'MALE'),
-    ((SELECT id FROM user_ WHERE email = 'client-100@omni.one'), '2025-12-01 00:00:00', NULL, '1995-01-12',  'Casey',   'Rivera', 'FEMALE'),
-    ((SELECT id FROM user_ WHERE email = 'client-101@omni.one'), '2025-12-01 00:00:00', NULL, '1998-07-28', 'Morgan',      'Lee',   'MALE'),
-    ((SELECT id FROM user_ WHERE email = 'client-102@omni.one'), '2025-12-01 00:00:00', NULL, '2000-09-09',  'Riley',  'Kendall',  'OTHER'),
-    ((SELECT id FROM user_ WHERE email = 'client-103@omni.one'), '2025-12-09 12:00:00', NULL, '1992-12-02', 'Harper', 'Mitchell', 'FEMALE'),
-    ((SELECT id FROM user_ WHERE email = 'client-104@omni.one'), '2025-12-10 10:10:00', NULL, '1994-04-19',   'Rowan',   'Foster',   'MALE'),
-    ((SELECT id FROM user_ WHERE email = 'client-105@omni.one'), '2025-12-10 14:30:00', NULL, '1997-08-30',   'Dakota',     'Ng',  'OTHER'),
-    ((SELECT id FROM user_ WHERE email = 'client-106@omni.one'), '2025-12-11 09:05:00', NULL, '1991-02-11',   'Parker', 'Santiago',   'MALE'),
-    ((SELECT id FROM user_ WHERE email = 'client-107@omni.one'), '2025-12-11 16:40:00', NULL, '1989-06-06',    'Hayes',   'Moreno', 'FEMALE');
+    ((SELECT id FROM user_ WHERE email =    'admin-1@omni.one'), '2025-12-01 00:00:00', NULL, '1980-05-14',   'Alex',    'Admin',   'MALE',   'DE', 'Berlin'),
+    ((SELECT id FROM user_ WHERE email =   'coach-10@omni.one'), '2025-12-01 00:00:00', NULL, '1985-02-20', 'Jordan', 'Maverick',   'MALE',   'US', 'Chicago'),
+    ((SELECT id FROM user_ WHERE email = 'client-100@omni.one'), '2025-12-01 00:00:00', NULL, '1995-01-12',  'Casey',   'Rivera', 'FEMALE',  'US', 'Seattle'),
+    ((SELECT id FROM user_ WHERE email = 'client-101@omni.one'), '2025-12-01 00:00:00', NULL, '1998-07-28', 'Morgan',      'Lee',   'MALE',   'DE', 'Hamburg'),
+    ((SELECT id FROM user_ WHERE email = 'client-102@omni.one'), '2025-12-01 00:00:00', NULL, '2000-09-09',  'Riley',  'Kendall',  'OTHER',  'TR', 'Adana'),
+    ((SELECT id FROM user_ WHERE email = 'client-103@omni.one'), '2025-12-09 12:00:00', NULL, '1992-12-02', 'Harper', 'Mitchell', 'FEMALE', 'US', 'Boston'),
+    ((SELECT id FROM user_ WHERE email = 'client-104@omni.one'), '2025-12-10 10:10:00', NULL, '1994-04-19',   'Rowan',   'Foster',   'MALE',   'DE', 'Munich'),
+    ((SELECT id FROM user_ WHERE email = 'client-105@omni.one'), '2025-12-10 14:30:00', NULL, '1997-08-30',   'Dakota',     'Ng',  'OTHER',  'TR', 'Izmir'),
+    ((SELECT id FROM user_ WHERE email = 'client-106@omni.one'), '2025-12-11 09:05:00', NULL, '1991-02-11',   'Parker', 'Santiago',   'MALE',   'US', 'Austin'),
+    ((SELECT id FROM user_ WHERE email = 'client-107@omni.one'), '2025-12-11 16:40:00', NULL, '1989-06-06',    'Hayes',   'Moreno', 'FEMALE', 'DE', 'Cologne');
 
 -----------------------------------------
 -- COACH  (IDs discovered via email)
