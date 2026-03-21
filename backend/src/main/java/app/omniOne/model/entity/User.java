@@ -40,7 +40,7 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private boolean deleted;
 
-    @Column(columnDefinition = "TIMESTAMP(0)")
+    @Column
     private LocalDateTime deletedAt;
 
     public UserProfile getProfileOrThrow() {

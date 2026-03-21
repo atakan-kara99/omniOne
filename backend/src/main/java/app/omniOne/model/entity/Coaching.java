@@ -31,10 +31,10 @@ public class Coaching {
     private Client client;
 
     @CreationTimestamp
-    @Column(nullable = false, columnDefinition = "TIMESTAMP(0)")
+    @Column(nullable = false)
     private LocalDateTime startDate;
 
-    @Column(columnDefinition = "TIMESTAMP(0)")
+    @Column
     private LocalDateTime endDate;
 
 }
