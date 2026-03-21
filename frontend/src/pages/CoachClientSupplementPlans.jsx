@@ -190,26 +190,22 @@ function CoachClientSupplementPlans() {
       <div className="panel-header client-detail-header">
         <div>
           <h1>{clientName}</h1>
-          <p className="muted">Manage supplement plans</p>
+          <p className="muted">Submitting creates a new plan and makes it active.</p>
         </div>
         <Link className="back-button" to={`/coach/clients/${clientId}`}>
           <span className="button-label">Back</span>
           <CaretRight size={22} weight="bold" />
         </Link>
       </div>
-
       {loading ? <p className="muted">Loading supplement plans...</p> : null}
       {loadError ? <p className="error">{loadError}</p> : null}
-      <StatusMessage status={form.status} error={form.error} />
-
       {!loading && client ? (
         <div className="split-grid client-detail-plan-stack">
 
           {/* ── Create form ── */}
           <div className="card">
             <div className="card-title">New supplement plan</div>
-            <p className="muted">Submitting creates a new plan and makes it active for this client.</p>
-            <form className="form" onSubmit={handlePlanSubmit} autoComplete="off">
+            <form className="supplement-plan-form" onSubmit={handlePlanSubmit} autoComplete="off">
               {entries.map((entry, index) => (
                 <div key={index} className="supplement-entry-row">
                   <div className="supplement-entry-fields">
@@ -258,6 +254,7 @@ function CoachClientSupplementPlans() {
                   </div>
                   {entries.length > 1 ? (
                     <Button
+                      type="button"
                       variant="ghost"
                       className="supplement-remove-button"
                       onClick={() => handleRemoveEntry(index)}
@@ -268,23 +265,27 @@ function CoachClientSupplementPlans() {
                   ) : null}
                 </div>
               ))}
-              <Button
-                variant="ghost"
-                className="supplement-add-entry-button"
-                onClick={handleAddEntry}
-              >
-                <Plus size={18} weight="bold" />
-                Add supplement
-              </Button>
-              <Button
-                type="submit"
-                className="nutrition-plan-submit"
-                loading={form.saving}
-                loadingText="Saving..."
-              >
-                <Plus size={22} weight="bold" />
-                Create plan
-              </Button>
+              <div className="supplement-form-actions">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="supplement-add-entry-button"
+                  onClick={handleAddEntry}
+                >
+                  <Plus size={18} weight="bold" />
+                  Add supplement
+                </Button>
+                <Button
+                  type="submit"
+                  className="nutrition-plan-submit"
+                  loading={form.saving}
+                  loadingText="Saving..."
+                >
+                  <Plus size={22} weight="bold" />
+                  Create plan
+                </Button>
+              </div>
+              <StatusMessage status={form.status} error={form.error} />
             </form>
           </div>
 
@@ -305,7 +306,6 @@ function CoachClientSupplementPlans() {
                       className={`list-item plan-history-item${isEditing ? ' is-editing' : ''}`}
                     >
                       <div>
-                        {/* Header row */}
                         <div className="plan-history-header">
                           <div className="card-title">
                             {entryCount} supplement{entryCount !== 1 ? 's' : ''}
@@ -327,7 +327,6 @@ function CoachClientSupplementPlans() {
                           </div>
                         </div>
 
-                        {/* Edit form — Save/Cancel sit below the entries, not alongside */}
                         {isEditing ? (
                           <div className="supplement-edit-entries">
                             {historyEditEntries.map((entry, index) => (
@@ -383,6 +382,7 @@ function CoachClientSupplementPlans() {
                                 </div>
                                 {historyEditEntries.length > 1 ? (
                                   <Button
+                                    type="button"
                                     variant="ghost"
                                     className="supplement-remove-button"
                                     onClick={() => handleHistoryRemoveEntry(index)}
@@ -393,36 +393,19 @@ function CoachClientSupplementPlans() {
                                 ) : null}
                               </div>
                             ))}
-                            <Button
-                              variant="ghost"
-                              className="supplement-add-entry-button"
-                              onClick={handleHistoryAddEntry}
-                            >
-                              <Plus size={18} weight="bold" />
-                              Add supplement
-                            </Button>
-                            {/* Save / Cancel flow below entries */}
-                            <div className="inline-actions">
+                            <div className="supplement-form-actions">
                               <Button
-                                className="nutrition-plan-submit"
-                                loading={historySaving}
-                                loadingText="Saving..."
-                                onClick={() => handleSaveHistoryEdit(plan.id)}
-                              >
-                                <FloppyDisk size={20} weight="bold" />
-                                Save
-                              </Button>
-                              <Button
+                                type="button"
                                 variant="ghost"
-                                disabled={historySaving}
-                                onClick={handleCancelHistoryEdit}
+                                className="supplement-add-entry-button"
+                                onClick={handleHistoryAddEntry}
                               >
-                                Cancel
+                                <Plus size={18} weight="bold" />
+                                Add supplement
                               </Button>
                             </div>
                           </div>
                         ) : (
-                          /* Read-only entry list */
                           <ul className="supplement-entry-list">
                             {(plan.entries || []).map((entry, i) => (
                               <li key={entry.id ?? i} className="supplement-entry-item">
@@ -447,8 +430,29 @@ function CoachClientSupplementPlans() {
                         )}
                       </div>
 
-                      {/* Edit / Delete — only shown in view mode; in edit mode actions live inside the form */}
-                      {!isEditing ? (
+                      {isEditing ? (
+                        <div className="plan-history-actions">
+                          <Button
+                            variant="primary"
+                            className="plan-history-edit-button plan-history-action-button plan-history-save-button"
+                            loading={historySaving}
+                            loadingText="Saving..."
+                            onClick={() => handleSaveHistoryEdit(plan.id)}
+                          >
+                            <FloppyDisk size={22} weight="bold" />
+                            Save
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="plan-history-edit-button plan-history-action-button"
+                            disabled={historySaving}
+                            onClick={handleCancelHistoryEdit}
+                          >
+                            <X size={22} weight="bold" />
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
                         <div className="plan-history-actions">
                           <Button
                             variant="ghost"
@@ -459,8 +463,8 @@ function CoachClientSupplementPlans() {
                             Edit
                           </Button>
                           <Button
-                            variant="danger"
-                            className="plan-history-action-button plan-history-save-button"
+                            variant="ghost"
+                            className="plan-history-edit-button plan-history-action-button"
                             loading={historyDeleting === plan.id}
                             loadingText="Deleting..."
                             onClick={() => handleDeletePlan(plan.id)}
@@ -469,7 +473,7 @@ function CoachClientSupplementPlans() {
                             Delete
                           </Button>
                         </div>
-                      ) : null}
+                      )}
                     </li>
                   )
                 })}
